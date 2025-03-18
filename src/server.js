@@ -5,9 +5,11 @@ const { Server } = require('socket.io')
 const cors = require('cors')
 const server = http.createServer(app)
 
+const mongoose = require('mongoose')
+
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: '*',
     methods: ['GET', 'POST'],
   },
 })
@@ -17,12 +19,14 @@ app.use(express.json())
 
 io.on('connection', (socket) => {
   socket.on('message', (message) => {
+    if (!message || !message.name || !message.message) return
+
     console.log(`${message.name}: ${message.message}`)
     io.emit('message', `${message.name}: ${message.message}`)
   })
 
   socket.on('disconnect', () => {
-    io.emit('user has disconnect')
+    io.emit('message', 'A user has disconnected')
   })
 })
 
@@ -30,6 +34,17 @@ app.get('/', (request, response) => {
   response.send('hello world!')
 })
 
-server.listen(10000, () => {
-  console.log('ADDRESS: http://localhost:10000')
-})
+async function start() {
+  try {
+    await mongoose.connect(
+      'mongodb+srv://adminuser:adminpassword@cluster0.oh6fb.mongodb.net/chat'
+    )
+    server.listen(10000, () => {
+      console.log('ADDRESS: http://localhost:10000')
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+start()

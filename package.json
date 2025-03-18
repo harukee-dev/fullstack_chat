@@ -11,8 +11,12 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.1",
+    "nodemon": "^3.1.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.3.0",
     "react-scripts": "5.0.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
@@ -21,6 +25,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "server": "node src/server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
