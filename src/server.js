@@ -16,11 +16,9 @@ app.use(cors())
 app.use(express.json())
 
 io.on('connection', (socket) => {
-  socket.emit('message', 'Hello new user!')
-
   socket.on('message', (message) => {
-    console.log(message)
-    io.emit('message', message)
+    console.log(`${message.name}: ${message.message}`)
+    io.emit('message', `${message.name}: ${message.message}`)
   })
 
   socket.on('disconnect', () => {

@@ -4,7 +4,8 @@ import io from 'socket.io-client'
 const socket = io('http://localhost:10000')
 
 function App() {
-  const [message, setMessage] = useState<string>('message')
+  const [message, setMessage] = useState<string>('')
+  const [username, setUsername] = useState<string>('')
   const [messages, setMessages] = useState<string[]>([])
 
   useEffect(() => {
@@ -19,8 +20,8 @@ function App() {
   }, [])
 
   function sendMessage() {
-    if (message !== '') {
-      socket.emit('message', message)
+    if (message !== '' && username !== '') {
+      socket.emit('message', { name: username, message: message })
       setMessage('')
     } else console.log('err: type something')
   }
@@ -29,9 +30,22 @@ function App() {
     <div>
       <h1>harugram</h1>
       <input
+        placeholder="Написать в чат"
         type="text"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') sendMessage()
+        }}
+      />
+      <input
+        type="text"
+        placeholder="Никнейм"
+        value={username}
+        onChange={(event) => setUsername(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') sendMessage()
+        }}
       />
       <button onClick={sendMessage}>send</button>
       <div>
