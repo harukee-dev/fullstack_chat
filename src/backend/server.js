@@ -5,6 +5,8 @@ const { Server } = require('socket.io')
 const cors = require('cors')
 const server = http.createServer(app)
 
+const authRouter = require('./authRouter')
+
 const mongoose = require('mongoose')
 
 const io = new Server(server, {
@@ -16,6 +18,7 @@ const io = new Server(server, {
 
 app.use(cors())
 app.use(express.json())
+app.use('/auth', authRouter)
 
 io.on('connection', (socket) => {
   socket.on('message', (message) => {
