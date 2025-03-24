@@ -60,7 +60,14 @@ class authController {
         return response.status(400).json({ message: `введен неверный пароль` })
       }
 
-      const token = generateAccessToken(user._id, user.roles)
+      const token = jwt.sign(
+        {
+          username: user.username,
+          id: user._id,
+        },
+        secret,
+        { expiresIn: '1h' }
+      )
       return response.json({ token })
     } catch (e) {
       console.log(e)

@@ -1,29 +1,53 @@
 import { useState, useEffect } from 'react'
-import io from 'socket.io-client'
-
-const socket = io('http://localhost:10000')
+import { useSelector } from 'react-redux'
+import io, { Socket } from 'socket.io-client'
+import { RootState } from '../../store'
 
 export const Chat = () => {
   const [message, setMessage] = useState<string>('')
-  const [username, setUsername] = useState<string>('')
   const [messages, setMessages] = useState<string[]>([])
+  const token = useSelector((state: RootState) => state.auth.token)
+  const isAuth = !!token
+
+  const [socket, setSocket] = useState<Socket | null>(null)
 
   useEffect(() => {
-    socket.on('message', (newMessage) => {
-      console.log('Received message:', newMessage)
-      setMessages((prevMessages) => [...prevMessages, newMessage])
-    })
+    if (isAuth) {
+      console.log('Пользователь авторизован', token)
 
-    return () => {
-      socket.off('message')
+      const newSocket = io('http://localhost:10000', {
+        auth: { token },
+        transports: ['websocket'],
+      })
+
+      newSocket.on('connect', () => {
+        console.log('Подключение установлено')
+      })
+
+      newSocket.on('connect_error', (error) => {
+        console.log('Ошибка подключения:', error)
+      })
+
+      setSocket(newSocket)
+
+      newSocket.on('message', (newMessage) => {
+        console.log('Получено сообщение:', newMessage)
+        setMessages((prevMessages) => [...prevMessages, newMessage])
+      })
+
+      return () => {
+        newSocket.disconnect()
+      }
+    } else {
+      console.log('Пользователь не авторизован')
     }
-  }, [])
+  }, [isAuth, token])
 
   function sendMessage() {
-    if (message !== '' && username !== '') {
-      socket.emit('message', { name: username, message: message })
+    if (message !== '' && socket) {
+      socket.emit('message', { message: message })
       setMessage('')
-    } else console.log('err: type something')
+    } else console.log('err: type something or socket not connected')
   }
 
   return (
@@ -33,15 +57,6 @@ export const Chat = () => {
         type="text"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') sendMessage()
-        }}
-      />
-      <input
-        type="text"
-        placeholder="Никнейм"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === 'Enter') sendMessage()
         }}
