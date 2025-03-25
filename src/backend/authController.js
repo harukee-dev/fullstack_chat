@@ -52,12 +52,12 @@ class authController {
       if (!user) {
         return response
           .status(400)
-          .json({ message: `пользователь с именем ${username} не найден` })
+          .json({ message: `Пользователь с именем ${username} не найден` })
       }
 
       const validPassword = bcrypt.compareSync(password, user.password)
       if (!validPassword) {
-        return response.status(400).json({ message: `введен неверный пароль` })
+        return response.status(400).json({ message: `Введен неверный пароль` })
       }
 
       const token = jwt.sign(
@@ -66,7 +66,7 @@ class authController {
           id: user._id,
         },
         secret,
-        { expiresIn: '1h' }
+        { expiresIn: '24h' }
       )
       return response.json({ token })
     } catch (e) {

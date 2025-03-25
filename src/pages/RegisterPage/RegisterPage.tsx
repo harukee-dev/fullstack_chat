@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const navigate = useNavigate()
 
   async function handleRegister() {
     try {
@@ -14,7 +16,7 @@ export const Register = () => {
         body: JSON.stringify({ username: login, password }),
       })
 
-      console.log(response.json())
+      navigate('/login')
     } catch (error) {
       console.error(error)
     }
@@ -36,6 +38,7 @@ export const Register = () => {
         type="text"
       />
       <button onClick={handleRegister}>register</button>
+      <Link to={'/login'}>Уже есть аккаунт?</Link>
     </div>
   )
 }

@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
+import { Link, useNavigate } from 'react-router-dom'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const navigate = useNavigate()
 
   async function handleLogin() {
     try {
@@ -21,7 +23,7 @@ export const LoginPage = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token)
         dispatch(setToken(data.token))
-        console.log('Успешный вход', data.token)
+        navigate('/chat')
       } else {
         console.error('Ошибка:', data.message)
       }
@@ -46,6 +48,7 @@ export const LoginPage = () => {
         type="text"
       />
       <button onClick={handleLogin}>Login</button>
+      <Link to={'/register'}>Еще нет аккаунта?</Link>
     </div>
   )
 }

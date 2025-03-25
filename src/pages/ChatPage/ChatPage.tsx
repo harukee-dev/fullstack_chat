@@ -1,27 +1,43 @@
 import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { RootState } from '../../store'
+import { AppDispatch, RootState } from '../../store'
+import { useNavigate } from 'react-router-dom'
+import { removeToken } from '../../slices/authSlice'
+// @ts-ignore
+import { jwtDecode } from 'jwt-decode'
+
+interface IMessage {
+  name: string
+  message: string
+}
 
 export const Chat = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const [message, setMessage] = useState<string>('')
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<IMessage[]>([])
   const token = useSelector((state: RootState) => state.auth.token)
+  const navigate = useNavigate()
   const isAuth = !!token
+
+  function isTokenValid() {
+    if (!token) return false
+    try {
+      const decoded: any = jwtDecode(token)
+      if (!decoded.exp) return false
+      return decoded.exp * 1000 > Date.now()
+    } catch (error) {
+      return false
+    }
+  }
 
   const [socket, setSocket] = useState<Socket | null>(null)
 
   useEffect(() => {
     if (isAuth) {
-      console.log('Пользователь авторизован', token)
-
       const newSocket = io('http://localhost:10000', {
         auth: { token },
         transports: ['websocket'],
-      })
-
-      newSocket.on('connect', () => {
-        console.log('Подключение установлено')
       })
 
       newSocket.on('connect_error', (error) => {
@@ -31,15 +47,12 @@ export const Chat = () => {
       setSocket(newSocket)
 
       newSocket.on('message', (newMessage) => {
-        console.log('Получено сообщение:', newMessage)
         setMessages((prevMessages) => [...prevMessages, newMessage])
       })
 
       return () => {
         newSocket.disconnect()
       }
-    } else {
-      console.log('Пользователь не авторизован')
     }
   }, [isAuth, token])
 
@@ -50,8 +63,30 @@ export const Chat = () => {
     } else console.log('err: type something or socket not connected')
   }
 
+  function handleLogout() {
+    dispatch(removeToken())
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
   return (
     <div>
+      <div>
+        <button onClick={handleLogout}>
+          {isTokenValid() ? 'Выйти' : 'Войти'}
+        </button>
+      </div>
+      <div>
+        {messages.length > 0 ? (
+          messages.map((el, index) => (
+            <p key={index}>
+              {el.name}:{el.message}
+            </p>
+          ))
+        ) : (
+          <p>no messages</p>
+        )}
+      </div>
       <input
         placeholder="Написать в чат"
         type="text"
@@ -62,13 +97,6 @@ export const Chat = () => {
         }}
       />
       <button onClick={sendMessage}>send</button>
-      <div>
-        {messages.length > 0 ? (
-          messages.map((el, index) => <p key={index}>{el}</p>)
-        ) : (
-          <p>no messages</p>
-        )}
-      </div>
     </div>
   )
 }

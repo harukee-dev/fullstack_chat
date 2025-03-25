@@ -24,33 +24,23 @@ io.use((socket, next) => {
   console.log('handshake:', socket.handshake)
   const token = socket.handshake.auth.token // токен теперь приходит через auth
   if (!token) {
-    console.log('Нет токена')
     return next(new Error('Нет токена'))
   }
 
   try {
     const decoded = jwt.verify(token, secret)
-    console.log('Пользователь аутентифицирован:', decoded)
     socket.user = decoded
     next()
   } catch (error) {
     console.log('Ошибка при аутентификации:', error)
-    return next(new Error('Неверный или истекший токен'))
   }
 })
 
 io.on('connection', (socket) => {
-  console.log(`Пользователь ${socket.user.username} подключился`)
-
   socket.on('message', (message) => {
     if (!message || !message.message) return
 
-    console.log(`${socket.user.username}: ${message.message}`)
-    io.emit('message', `${socket.user.username}: ${message.message}`)
-  })
-
-  socket.on('disconnect', () => {
-    console.log(`Пользователь ${socket.user.username} отключился`)
+    io.emit('message', { name: socket.user.username, message: message.message })
   })
 })
 
