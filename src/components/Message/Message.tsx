@@ -1,8 +1,18 @@
-export const Message = () => {
+import React from 'react'
+import cl from './message.module.css'
+
+interface IMessageProps {
+  message: string
+  username: string
+}
+
+export const Message: React.FC<IMessageProps> = ({ message, username }) => {
   return (
-    <div>
-      <p>Hello! This is my test message</p>
-      <p>harukee</p>
-    </div>
+    <>
+      <div className={cl.container}>
+        <p className={cl.text}>{message}</p>
+      </div>
+      <p className={cl.username}>{username}</p>
+    </>
   )
 }

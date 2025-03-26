@@ -1,0 +1,34 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  background-color: #63a0f0;
+  width: 20%;
+  padding: 1vh 4vh;
+  border-radius: 50px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.text {
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 2.5vh;
+  white-space: pre-wrap;
+}
+
+.username {
+  color: #63a0f0;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  margin-left: 3vh;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

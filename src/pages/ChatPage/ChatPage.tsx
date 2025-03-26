@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { removeToken } from '../../slices/authSlice'
 // @ts-ignore
 import { jwtDecode } from 'jwt-decode'
+import { Message } from '../../components/Message/Message'
 
 interface IMessage {
   name: string
@@ -79,9 +80,7 @@ export const Chat = () => {
       <div>
         {messages.length > 0 ? (
           messages.map((el, index) => (
-            <p key={index}>
-              {el.name}:{el.message}
-            </p>
+            <Message message={el.message} username={el.name} />
           ))
         ) : (
           <p>no messages</p>

@@ -1,7 +1,12 @@
+import { Message } from '../../components/Message/Message'
+
 export const TestPage = () => {
   return (
     <div>
-      <p>test</p>
+      <Message
+        message="Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!"
+        username="harukee"
+      />
     </div>
   )
 }
