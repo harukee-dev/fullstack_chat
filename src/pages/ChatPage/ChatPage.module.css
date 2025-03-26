@@ -1,0 +1,16 @@
+.chatAndInt {
+  margin-left: 20%;
+  margin-top: 5%;
+  width: 100%;
+}
+
+.loginOrLogoutButton {
+  width: 10vh;
+  height: 5vh;
+  font-size: 2vh;
+  color: white;
+  border-radius: 20px;
+  border: none;
+  background-color: #63a0f0;
+  margin-left: 68%;
+}

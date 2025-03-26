@@ -1,0 +1,28 @@
+.container {
+  width: 60%;
+  background-color: #1e1e1e;
+  display: flex;
+  justify-content: center;
+  gap: 1.5vh;
+  padding: 2vh;
+}
+
+.input {
+  width: 80vh;
+  max-height: 5vh;
+  min-height: 5vh;
+  padding: 1.5vh;
+  border-radius: 20px;
+  border: none;
+  font-size: 1.5vh;
+  resize: none;
+  overflow-y: auto;
+  outline: none;
+}
+
+.button {
+  background-color: #63a0f0;
+  border: none;
+  width: 5vh;
+  border-radius: 100%;
+}

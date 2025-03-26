@@ -8,11 +8,11 @@ interface IMessageProps {
 
 export const Message: React.FC<IMessageProps> = ({ message, username }) => {
   return (
-    <>
+    <div>
       <div className={cl.container}>
         <p className={cl.text}>{message}</p>
       </div>
       <p className={cl.username}>{username}</p>
-    </>
+    </div>
   )
 }

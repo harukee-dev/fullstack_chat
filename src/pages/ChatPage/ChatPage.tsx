@@ -7,6 +7,9 @@ import { removeToken } from '../../slices/authSlice'
 // @ts-ignore
 import { jwtDecode } from 'jwt-decode'
 import { Message } from '../../components/Message/Message'
+import { ChatComponent } from '../../components/Chat/Chat'
+import { Interaction } from '../../components/Interaction/Interaction'
+import cl from './ChatPage.module.css'
 
 interface IMessage {
   name: string
@@ -71,31 +74,33 @@ export const Chat = () => {
   }
 
   return (
-    <div>
-      <div>
-        <button onClick={handleLogout}>
-          {isTokenValid() ? 'Выйти' : 'Войти'}
-        </button>
-      </div>
-      <div>
-        {messages.length > 0 ? (
-          messages.map((el, index) => (
-            <Message message={el.message} username={el.name} />
-          ))
-        ) : (
-          <p>no messages</p>
-        )}
-      </div>
-      <input
-        placeholder="Написать в чат"
-        type="text"
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') sendMessage()
+    <div style={{ background: '#1e1e1e', height: '100vh' }}>
+      <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
+        {isTokenValid() ? 'Выйти' : 'Войти'}
+      </button>
+      <div
+        style={{
+          overflow: 'hidden',
+          backgroundColor: '#1e1e1e',
+          padding: '10px',
+          width: '100%', // или "fit-content", если нужно, чтобы контейнер подстраивался
+          maxWidth: '100%', // предотвращает выход за пределы родительского контейнера
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center', // если нужно центрирование контента
         }}
-      />
-      <button onClick={sendMessage}>send</button>
+      >
+        {messages.length > 0 ? (
+          <ChatComponent messages={messages} isClear={false} />
+        ) : (
+          <ChatComponent messages={messages} isClear={true} />
+        )}
+        <Interaction
+          message={message}
+          setMessage={setMessage}
+          sendMessage={sendMessage}
+        />
+      </div>
     </div>
   )
 }
