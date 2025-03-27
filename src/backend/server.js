@@ -73,8 +73,8 @@ async function start() {
     await mongoose.connect(
       'mongodb+srv://adminuser:adminpassword@cluster0.oh6fb.mongodb.net/chat'
     )
-    server.listen(5000, '0.0.0.0', () => {
-      console.log('ADDRESS: http://95.174.112.204:5000')
+    server.listen(10000, () => {
+      console.log('ADDRESS: http://95.174.112.204:10000')
     })
   } catch (err) {
     console.error(err)

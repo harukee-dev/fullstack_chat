@@ -11,7 +11,7 @@ export const Register = () => {
   async function handleRegister() {
     try {
       const response = await fetch(
-        'http://95.174.112.204:5000/auth/registration',
+        'http://95.174.112.204:10000/auth/registration',
         {
           method: 'POST',
           headers: {

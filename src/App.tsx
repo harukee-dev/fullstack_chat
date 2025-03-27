@@ -7,7 +7,7 @@ import { NotFoundPage } from './pages/NotFoundPage/NotFoundPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { TestPage } from './pages/TestPage/TestPage'
 
-const socket = io('http://95.174.112.204:5000')
+const socket = io('http://95.174.112.204:10000')
 
 function App() {
   return (
