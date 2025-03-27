@@ -1,46 +1,54 @@
-# Getting Started with Create React App
+# How do I launch the application?
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ - First of all, open a terminal that will access the project folder ( fullstackchat )
 
-## Available Scripts
+ - Second, download all dependencies using the `npm install` command - type it into the terminal
 
-In the project directory, you can run:
+ - After installing the dependencies, write `npm run server` in the terminal - when you get the server address in response, you can proceed to the next step.
 
-### `npm start`
+ - After receiving the server address, we realize that the server is running and ready to work, so the only thing left to do is to run the website itself, to do this, write the command `npm run start` in the terminal.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+ - When the website opens, add `“/login”` to the website address and use it!
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+---
 
-### `npm test`
+# Short version:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ - install the project, open its folders terminal
 
-### `npm run build`
+ - download dependencies - `npm install`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+ - run the server - `npm run server`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+ - after getting the address start the site - `npm run start`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+ - add `“/login”` to the site address and use it.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Как запустить приложение?
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+ - Во-первых, откройте терминал в папке проекта ( fullstackchat ).
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+ - Во-вторых, загрузите все зависимости с помощью команды `npm install` - введите ее в терминал
 
-## Learn More
+ - После установки зависимостей напишите в терминале `npm run server` - когда в ответ вы получите адрес сервера, можно переходить к следующему шагу.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+ - После получения адреса сервера мы понимаем, что сервер запущен и готов к работе, осталось только запустить сам сайт, для этого напишите в терминале команду `npm run start`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+ - Когда сайт откроется, добавьте `«/login»` к адресу сайта и используйте его!
+
+---
+
+# Краткая версия:
+
+ - установите проект, откройте его папки в терминале
+
+ - скачать зависимости - `npm install`
+
+ - запустить сервер - `npm run server`
+
+ - после получения адреса запустить сайт - `npm run start`
+
+ - дописать к адресу сайта `"/login"` и пользоваться
