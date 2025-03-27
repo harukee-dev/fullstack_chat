@@ -4,6 +4,7 @@ import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
+import Lines from './images/lines.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -42,26 +43,34 @@ export const LoginPage = () => {
       <div className={cl.leftContainer}>
         <h1 className={cl.websiteName}>Harukee messenger</h1>
         <p className={cl.websiteDescription}>My fullstack messenger app</p>
-        <button>Read More</button>
-        <img src="*" alt="*" />
+        <button className={cl.readMoreButton}>Read More</button>
+        <img className={cl.lines} src={Lines} alt="*" />
       </div>
-      <div>
-        <h1>Hello again!</h1>
-        <p>Welcome back</p>
+      <div className={cl.rightContainer}>
+        <div className={cl.welcomeDiv}>
+          <h1 className={cl.firstWelcomeText}>Hello again!</h1>
+          <p className={cl.secondWelcomeText}>Welcome back</p>
+        </div>
         <input
+          className={cl.input}
           value={login}
           onChange={(e) => setLogin(e.target.value)}
           placeholder="Login"
           type="text"
         />
         <input
+          className={cl.input}
           value={'*'.repeat(password.split('').length)}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="text"
         />
-        <button onClick={handleLogin}>Login</button>
-        <Link to={'/register'}>I already have an account</Link>
+        <button className={cl.loginButton} onClick={handleLogin}>
+          Login
+        </button>
+        <Link className={cl.register} to={'/register'}>
+          I dont have account
+        </Link>
       </div>
     </div>
   )
