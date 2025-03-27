@@ -10,8 +10,6 @@
 
  - When the website opens, add `“/login”` to the website address and use it!
 
----
-
 # Short version:
 
  - install the project, open its folders terminal
@@ -24,7 +22,6 @@
 
  - add `“/login”` to the site address and use it.
 
----
 
 
 # Как запустить приложение?
@@ -39,7 +36,6 @@
 
  - Когда сайт откроется, добавьте `«/login»` к адресу сайта и используйте его!
 
----
 
 # Краткая версия:
 
