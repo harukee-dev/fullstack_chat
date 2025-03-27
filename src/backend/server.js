@@ -22,7 +22,7 @@ const io = new Server(server, {
 
 io.use((socket, next) => {
   console.log('handshake:', socket.handshake)
-  const token = socket.handshake.auth.token // токен теперь приходит через auth
+  const token = socket.handshake.auth.token
   if (!token) {
     return next(new Error('Нет токена'))
   }

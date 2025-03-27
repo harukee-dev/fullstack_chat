@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
+import cl from './LoginPage.module.css'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -32,23 +33,36 @@ export const LoginPage = () => {
     }
   }
 
+  function hidePassword() {
+    return '*'.repeat(password.split('').length)
+  }
+
   return (
-    <div>
-      <h1>Login</h1>
-      <input
-        value={login}
-        onChange={(e) => setLogin(e.target.value)}
-        placeholder="username"
-        type="text"
-      />
-      <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="password"
-        type="text"
-      />
-      <button onClick={handleLogin}>Login</button>
-      <Link to={'/register'}>Еще нет аккаунта?</Link>
+    <div className={cl.allPage}>
+      <div className={cl.leftContainer}>
+        <h1 className={cl.websiteName}>Harukee messenger</h1>
+        <p className={cl.websiteDescription}>My fullstack messenger app</p>
+        <button>Read More</button>
+        <img src="*" alt="*" />
+      </div>
+      <div>
+        <h1>Hello again!</h1>
+        <p>Welcome back</p>
+        <input
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+          placeholder="Login"
+          type="text"
+        />
+        <input
+          value={'*'.repeat(password.split('').length)}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          type="text"
+        />
+        <button onClick={handleLogin}>Login</button>
+        <Link to={'/register'}>I already have an account</Link>
+      </div>
     </div>
   )
 }
