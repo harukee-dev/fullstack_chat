@@ -5,7 +5,7 @@ export const TestPage = () => {
   return (
     <div>
       <ChatComponent
-        messages={[{ name: 'harukee', message: 'hello' }]}
+        messages={[{ username: 'harukee', text: 'hello' }]}
         isClear={true}
       />
     </div>

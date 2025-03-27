@@ -6,6 +6,7 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const { secret } = require('./config')
 const server = http.createServer(app)
+const Message = require('./models/Message')
 
 const authRouter = require('./authRouter')
 
@@ -22,7 +23,7 @@ const io = new Server(server, {
 
 io.use((socket, next) => {
   console.log('handshake:', socket.handshake)
-  const token = socket.handshake.auth.token // токен теперь приходит через auth
+  const token = socket.handshake.auth.token
   if (!token) {
     return next(new Error('Нет токена'))
   }
@@ -37,10 +38,25 @@ io.use((socket, next) => {
 })
 
 io.on('connection', (socket) => {
-  socket.on('message', (message) => {
-    if (!message || !message.message) return
+  socket.on('message', async (message) => {
+    if (!message || !message.text) return
 
-    io.emit('message', { name: socket.user.username, message: message.message })
+    const newMessage = new Message({
+      username: socket.user.username,
+      text: message.text,
+    })
+
+    console.log(newMessage)
+
+    try {
+      await newMessage.save()
+      io.emit('message', {
+        username: socket.user.username,
+        text: message.text,
+      })
+    } catch (error) {
+      console.error('Ошибка при сохранении сообщения:', error)
+    }
   })
 })
 

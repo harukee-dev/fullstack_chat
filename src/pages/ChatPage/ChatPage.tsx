@@ -12,8 +12,8 @@ import { Interaction } from '../../components/Interaction/Interaction'
 import cl from './ChatPage.module.css'
 
 interface IMessage {
-  name: string
-  message: string
+  username: string
+  text: string
 }
 
 export const Chat = () => {
@@ -23,20 +23,19 @@ export const Chat = () => {
   const token = useSelector((state: RootState) => state.auth.token)
   const navigate = useNavigate()
   const isAuth = !!token
+  const [socket, setSocket] = useState<Socket | null>(null)
 
   function isTokenValid() {
     if (!token) return false
     try {
       const decoded: any = jwtDecode(token)
-      if (!decoded.exp) return false
       return decoded.exp * 1000 > Date.now()
-    } catch (error) {
+    } catch {
       return false
     }
   }
 
-  const [socket, setSocket] = useState<Socket | null>(null)
-
+  // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
       const newSocket = io('http://localhost:10000', {
@@ -50,9 +49,11 @@ export const Chat = () => {
 
       setSocket(newSocket)
 
-      newSocket.on('message', (newMessage) => {
+      newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
       })
+
+      console.log(messages)
 
       return () => {
         newSocket.disconnect()
@@ -60,11 +61,29 @@ export const Chat = () => {
     }
   }, [isAuth, token])
 
+  // Загрузка сообщений из БД при открытии страницы
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch('http://localhost:10000/auth/messages')
+        const data = await response.json()
+        setMessages(data)
+      } catch (error) {
+        console.error('Ошибка загрузки сообщений:', error)
+      }
+    }
+
+    fetchMessages()
+  }, [])
+
   function sendMessage() {
-    if (message !== '' && socket) {
-      socket.emit('message', { message: message })
+    if (message.trim() !== '' && socket) {
+      const newMessage = { text: message }
+      socket.emit('message', newMessage)
       setMessage('')
-    } else console.log('err: type something or socket not connected')
+    } else {
+      console.log('Ошибка: сообщение пустое или сокет не подключен')
+    }
   }
 
   function handleLogout() {
@@ -74,27 +93,23 @@ export const Chat = () => {
   }
 
   return (
-    <div style={{ background: '#1e1e1e', height: '100vh' }}>
+    <div style={{ background: '#121212', height: '100vh' }}>
       <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
-        {isTokenValid() ? 'Выйти' : 'Войти'}
+        {isTokenValid() ? 'Logout' : 'Login'}
       </button>
       <div
         style={{
           overflow: 'hidden',
-          backgroundColor: '#1e1e1e',
+          backgroundColor: '#121212',
           padding: '10px',
-          width: '100%', // или "fit-content", если нужно, чтобы контейнер подстраивался
-          maxWidth: '100%', // предотвращает выход за пределы родительского контейнера
+          width: '100%',
+          maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center', // если нужно центрирование контента
+          alignItems: 'center',
         }}
       >
-        {messages.length > 0 ? (
-          <ChatComponent messages={messages} isClear={false} />
-        ) : (
-          <ChatComponent messages={messages} isClear={true} />
-        )}
+        <ChatComponent messages={messages} isClear={messages.length === 0} />
         <Interaction
           message={message}
           setMessage={setMessage}
