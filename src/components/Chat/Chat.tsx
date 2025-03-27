@@ -3,8 +3,8 @@ import cl from './chat.module.css'
 import Duck from '../../images/duck_chat_is_clear.png'
 
 interface IMessage {
-  name: string
-  message: string
+  username: string
+  text: string
 }
 
 interface IChatProps {
@@ -17,10 +17,7 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
     return (
       <div className={cl.chat}>
         <div className={cl.clearContainer}>
-          <img className={cl.duck} src={Duck} alt="duck image" />
-          <h1 className={cl.isClear}>
-            Отправьте ваше первое <br /> сообщение!
-          </h1>
+          <p className={cl.isClear}>Loading messages...</p>
         </div>
       </div>
     )
@@ -29,7 +26,7 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
     <>
       <div className={cl.chat}>
         {messages.map((el) => (
-          <Message message={el.message} username={el.name} />
+          <Message message={el.text} username={el.username} />
         ))}
       </div>
     </>

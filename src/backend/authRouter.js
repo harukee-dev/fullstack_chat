@@ -25,4 +25,8 @@ router.post('/login', controller.login)
 
 router.get('/users', controller.getUsers)
 
+router.post('/sendMessage', controller.sendMessage)
+
+router.get('/messages', controller.getMessages)
+
 module.exports = router

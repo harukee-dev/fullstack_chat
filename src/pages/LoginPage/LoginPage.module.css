@@ -112,6 +112,7 @@
   color: white;
   border-radius: 25px;
   margin-bottom: 1vh;
+  cursor: pointer;
 }
 
 .register {

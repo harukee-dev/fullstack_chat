@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs')
 const { validationResult } = require('express-validator')
 const jwt = require('jsonwebtoken')
 const { secret } = require('./config')
+const Message = require('./models/Message')
 
 function generateAccessToken(id, roles) {
   const payload = {
@@ -81,6 +82,37 @@ class authController {
       response.json(users)
     } catch (e) {
       console.log(e)
+    }
+  }
+  async sendMessage(request, response) {
+    try {
+      const { username, text } = request.body
+
+      if (!username || !text) {
+        return response
+          .status(400)
+          .json({ message: 'Необходимо указать username и текст сообщения' })
+      }
+
+      const message = new Message({
+        username,
+        text,
+      })
+
+      await message.save()
+      return response.json({ message: 'Сообщение отправлено', data: message })
+    } catch (e) {
+      console.log(e)
+      response.status(500).json({ message: 'Ошибка при отправке сообщения' })
+    }
+  }
+  async getMessages(request, response) {
+    try {
+      const messages = await Message.find() // Получаем все сообщения из БД
+      response.json(messages)
+    } catch (e) {
+      console.log(e)
+      response.status(500).json({ message: 'Ошибка при получении сообщений' })
     }
   }
 }
