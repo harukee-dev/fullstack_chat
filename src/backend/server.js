@@ -74,7 +74,7 @@ async function start() {
       'mongodb+srv://adminuser:adminpassword@cluster0.oh6fb.mongodb.net/chat'
     )
     server.listen(10000, () => {
-      console.log('ADDRESS: http://95.174.112.204:10000')
+      console.log('http://localhost:10000')
     })
   } catch (err) {
     console.error(err)
