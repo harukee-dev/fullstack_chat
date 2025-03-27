@@ -60,7 +60,7 @@ export const LoginPage = () => {
         />
         <input
           className={cl.input}
-          value={'*'.repeat(password.split('').length)}
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="text"
