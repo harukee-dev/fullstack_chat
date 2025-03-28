@@ -115,6 +115,10 @@
   cursor: pointer;
 }
 
+.loginButton:active {
+  background-color: #046cd4;
+}
+
 .register {
   text-decoration: underline;
   color: #333333;
