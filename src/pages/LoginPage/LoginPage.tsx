@@ -55,17 +55,15 @@ export const LoginPage = () => {
         </div>
         <input
           className={cl.input}
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
+          onBlur={(e) => setLogin(e.target.value)}
           placeholder="Login"
           type="text"
         />
         <input
           className={cl.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onBlur={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          type="text"
+          type="password"
         />
         <button className={cl.loginButton} onClick={handleLogin}>
           Login

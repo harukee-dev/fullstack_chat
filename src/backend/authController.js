@@ -17,12 +17,6 @@ function generateAccessToken(id, roles) {
 class authController {
   async registration(request, response) {
     try {
-      const errors = validationResult(request)
-      if (!errors.isEmpty()) {
-        return response
-          .status(400)
-          .json({ message: 'Ошибка при регистрации', errors })
-      }
       const { username, password } = request.body
       const candidate = await User.findOne({ username })
       if (candidate) {
@@ -30,15 +24,35 @@ class authController {
           .status(400)
           .json({ message: 'Пользователь с таким именем уже существует' })
       }
-      const hashPassword = bcrypt.hashSync(password, 5)
-      const userRole = await Role.findOne({ value: 'USER' })
-      const user = new User({
-        username,
-        password: hashPassword,
-        roles: [userRole.value],
-      })
-      await user.save()
-      return response.json({ message: 'Пользователь успешно зарегистрирован' })
+      if (username.length >= 4 && username.length <= 20) {
+        const hasLowercase = /[a-z]/.test(password)
+        const hasUppercase = /[A-Z]/.test(password)
+        const hasDigit = /\d/.test(password)
+        const hasSpecialChar = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)
+
+        if (hasLowercase && hasUppercase && hasDigit && hasSpecialChar) {
+          const hashPassword = bcrypt.hashSync(password, 5)
+          const userRole = await Role.findOne({ value: 'USER' })
+          const user = new User({
+            username,
+            password: hashPassword,
+            roles: [userRole.value],
+          })
+          await user.save()
+          return response.json({
+            message: 'Пользователь успешно зарегистрирован',
+          })
+        } else {
+          return response.status(400).json({
+            message:
+              'Пароль должен иметь хотя бы одну цифру, заглавную и строчную букву и специальный символ',
+          })
+        }
+      } else {
+        return response
+          .status(400)
+          .json({ message: 'Логин должен быть от 4 до 20 символов' })
+      }
     } catch (e) {
       console.log(e)
       response.status(400).json({ message: 'Registration error' })
