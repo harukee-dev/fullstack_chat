@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Message } from '../Message/Message'
 import cl from './chat.module.css'
 import Duck from '../../images/duck_chat_is_clear.png'
@@ -13,6 +14,14 @@ interface IChatProps {
 }
 
 export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
+  const chatRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight
+    }
+  }, [messages]) // Срабатывает при изменении сообщений
+
   if (isClear) {
     return (
       <div className={cl.chat}>
@@ -22,13 +31,12 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
       </div>
     )
   }
+
   return (
-    <>
-      <div className={cl.chat}>
-        {messages.map((el) => (
-          <Message message={el.text} username={el.username} />
-        ))}
-      </div>
-    </>
+    <div className={cl.chat} ref={chatRef}>
+      {messages.map((el, index) => (
+        <Message key={index} message={el.text} username={el.username} />
+      ))}
+    </div>
   )
 }
