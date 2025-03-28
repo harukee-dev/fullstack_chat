@@ -121,3 +121,10 @@
   font-weight: 100;
   font-size: 1.5vh;
 }
+
+.error {
+  margin-top: 1vh;
+  color: #ff5b5b;
+  font-weight: 100;
+  font-size: 1.5vh;
+}

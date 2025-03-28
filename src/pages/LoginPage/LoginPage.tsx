@@ -10,6 +10,7 @@ export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [error, setError] = useState<string>('')
   const navigate = useNavigate()
 
   async function handleLogin() {
@@ -28,6 +29,7 @@ export const LoginPage = () => {
         navigate('/chat')
       } else {
         console.error('Ошибка:', data.message)
+        setError(data.message)
       }
     } catch (error) {
       console.error('Ошибка запроса:', error)
@@ -71,6 +73,7 @@ export const LoginPage = () => {
         <Link className={cl.register} to={'/register'}>
           I dont have account
         </Link>
+        <p className={cl.error}>{error}</p>
       </div>
     </div>
   )

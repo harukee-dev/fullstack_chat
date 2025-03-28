@@ -6,6 +6,7 @@ import Lines from '../LoginPage/images/lines.png'
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [error, setError] = useState<string>('')
   const navigate = useNavigate()
 
   async function handleRegister() {
@@ -20,6 +21,10 @@ export const Register = () => {
 
       if (response.ok) {
         navigate('/login')
+      } else {
+        const data = await response.json()
+        console.error(data.message)
+        setError(data.message)
       }
     } catch (error) {
       console.error(error)
@@ -59,6 +64,7 @@ export const Register = () => {
         <Link className={cl.register} to={'/login'}>
           I already have an account
         </Link>
+        <p className={cl.error}>{error}</p>
       </div>
     </div>
   )
