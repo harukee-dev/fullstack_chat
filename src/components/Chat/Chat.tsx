@@ -20,7 +20,7 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight
     }
-  }, [messages]) // Срабатывает при изменении сообщений
+  }, [messages])
 
   if (isClear) {
     return (

@@ -77,7 +77,7 @@ export const Chat = () => {
   }, [])
 
   function sendMessage() {
-    if (message.trim() !== '' && socket && message.length < 10) {
+    if (message.trim() !== '' && socket && message.length < 1000) {
       const newMessage = { text: message }
       socket.emit('message', newMessage)
       setMessage('')
