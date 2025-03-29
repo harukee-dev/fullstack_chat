@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
 import Lines from '../LoginPage/images/lines.png'
@@ -8,6 +8,18 @@ export const Register = () => {
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
 
   async function handleRegister() {
     try {

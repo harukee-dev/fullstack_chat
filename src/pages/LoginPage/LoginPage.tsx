@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
@@ -12,6 +12,18 @@ export const LoginPage = () => {
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
 
   async function handleLogin() {
     try {
