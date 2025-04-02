@@ -45,15 +45,9 @@ export const Register = () => {
 
   return (
     <div className={cl.allPage}>
-      <div className={cl.leftContainer}>
-        <h1 className={cl.websiteName}>Harukee messenger</h1>
-        <p className={cl.websiteDescription}>My fullstack messenger app</p>
-        <button className={cl.readMoreButton}>Read More</button>
-        <img className={cl.lines} src={Lines} alt="*" />
-      </div>
-      <div className={cl.rightContainer}>
+      <div className={cl.registerContainer}>
         <div className={cl.welcomeDiv}>
-          <h1 className={cl.firstWelcomeText}>Hello!</h1>
+          <h1 className={cl.firstWelcomeText}>Hello.</h1>
           <p className={cl.secondWelcomeText}>Sign Up to Get Started</p>
         </div>
         <input
@@ -69,7 +63,7 @@ export const Register = () => {
           type="password"
         />
         <button className={cl.loginButton} onClick={handleRegister}>
-          Register
+          Sign Up
         </button>
         <Link className={cl.register} to={'/login'}>
           I already have an account

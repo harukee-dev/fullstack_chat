@@ -7,88 +7,36 @@
 .allPage {
   display: flex;
   width: 100%;
-  height: 100%;
-}
-
-.leftContainer {
-  height: 100vh;
-  width: 60%;
-  background-image: url('../LoginPage/images/background.png');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  justify-content: center;
-  gap: 1.5vh;
-}
-
-.websiteName {
-  color: white;
-  font-size: 5vh;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-style: normal;
-  margin-left: 12%;
-}
-
-.websiteDescription {
-  color: white;
-  font-size: 2vh;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  margin-left: 12%;
-}
-
-.readMoreButton {
-  background-color: #0575e6;
-  border: none;
-  width: 16vh;
-  height: 5vh;
-  border-radius: 3vh;
-  color: white;
-  margin-left: 12%;
-  margin-top: 2%;
-  cursor: pointer;
-}
-
-.readMoreButton:active {
-  background-color: #046cd4;
-}
-
-.lines {
-  position: absolute;
-  top: 66.3vh;
-}
-
-.rightContainer {
-  width: 40%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 95vh;
   justify-content: center;
   align-items: center;
-  background-color: white;
+}
+
+.registerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  align-items: center;
+  justify-content: center;
 }
 
 .welcomeDiv {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1vh;
-  margin: 0 4.8vh 5vh 0;
 }
 
 .firstWelcomeText {
-  color: #333333;
+  color: #ffffff;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-style: normal;
-  font-size: 3vh;
+  font-size: 3.5vh;
 }
 
 .secondWelcomeText {
-  color: #333333;
+  color: #ffffff;
   font-family: 'Poppins', sans-serif;
   font-weight: 100;
   font-style: normal;
@@ -96,39 +44,42 @@
 }
 
 .input {
-  border: #c5c5c5 solid 1px;
+  border: #4f4f4f solid 0.5px;
   outline: none;
   padding: 2vh 5vh;
   border-radius: 25px;
-  color: #333333;
+  color: white;
+  background-color: #333333;
   font-weight: 100;
-  margin-bottom: 2vh;
 }
 
 .loginButton {
   padding: 2vh 10vh;
   border: none;
-  background-color: #0575e6;
+  background-color: #ffffff;
   font-weight: 100;
-  color: white;
+  color: rgb(0, 0, 0);
   border-radius: 25px;
-  margin-bottom: 1vh;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+.loginButton:hover {
+  box-shadow: 0 0 3vh #ffffff6f;
 }
 
 .loginButton:active {
-  background-color: #046cd4;
+  background-color: rgb(225, 225, 225);
 }
 
 .register {
   text-decoration: underline;
-  color: #333333;
+  color: #c3c3c3;
   font-weight: 100;
   font-size: 1.5vh;
 }
 
 .error {
-  margin-top: 1vh;
   color: #ff5b5b;
   font-weight: 100;
   font-size: 1.5vh;

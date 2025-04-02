@@ -54,15 +54,9 @@ export const LoginPage = () => {
 
   return (
     <div className={cl.allPage}>
-      <div className={cl.leftContainer}>
-        <h1 className={cl.websiteName}>Harukee messenger</h1>
-        <p className={cl.websiteDescription}>My fullstack messenger app</p>
-        <button className={cl.readMoreButton}>Read More</button>
-        <img className={cl.lines} src={Lines} alt="*" />
-      </div>
-      <div className={cl.rightContainer}>
+      <div className={cl.registerContainer}>
         <div className={cl.welcomeDiv}>
-          <h1 className={cl.firstWelcomeText}>Hello again!</h1>
+          <h1 className={cl.firstWelcomeText}>Hello.</h1>
           <p className={cl.secondWelcomeText}>Welcome back</p>
         </div>
         <input
@@ -78,7 +72,7 @@ export const LoginPage = () => {
           type="password"
         />
         <button className={cl.loginButton} onClick={handleLogin}>
-          Login
+          Sign In
         </button>
         <Link className={cl.register} to={'/register'}>
           I dont have account

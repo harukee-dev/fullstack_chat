@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Message } from '../Message/Message'
 import cl from './chat.module.css'
-import Duck from '../../images/duck_chat_is_clear.png'
 
 interface IMessage {
   username: string
