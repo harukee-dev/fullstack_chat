@@ -37,6 +37,7 @@ export const LoginPage = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token)
+        localStorage.setItem('username', login)
         dispatch(setToken(data.token))
         navigate('/chat')
       } else {
@@ -46,10 +47,6 @@ export const LoginPage = () => {
     } catch (error) {
       console.error('Ошибка запроса:', error)
     }
-  }
-
-  function hidePassword() {
-    return '*'.repeat(password.split('').length)
   }
 
   return (

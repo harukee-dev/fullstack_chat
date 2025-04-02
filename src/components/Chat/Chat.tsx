@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Message } from '../Message/Message'
 import cl from './chat.module.css'
+import { MyMessage } from '../Message/MyMessage'
 
 interface IMessage {
   username: string
@@ -33,9 +34,14 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
 
   return (
     <div className={cl.chat} ref={chatRef}>
-      {messages.map((el, index) => (
-        <Message key={index} message={el.text} username={el.username} />
-      ))}
+      {messages.map((el, index) =>
+        // <Message key={index} message={el.text} username={el.username} />
+        el.username === localStorage.getItem('username') ? (
+          <MyMessage key={index} message={el.text} username={el.username} />
+        ) : (
+          <Message key={index} message={el.text} username={el.username} />
+        )
+      )}
     </div>
   )
 }

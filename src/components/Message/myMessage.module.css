@@ -1,0 +1,37 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  background-color: #343434;
+
+  min-width: 5%;
+  max-width: 40%;
+
+  padding: 1.5vh 4.5vh;
+  border-radius: 10px;
+  border: none;
+
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+
+  width: fit-content;
+
+  margin: 0 6vh 0 auto;
+}
+
+.text {
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  font-size: 1.75vh;
+  white-space: pre-wrap;
+}
