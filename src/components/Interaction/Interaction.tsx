@@ -22,13 +22,11 @@ export const Interaction: React.FC<Interaction> = ({
     <div className={cl.container}>
       <textarea
         className={cl.input}
-        placeholder="Написать в чат"
+        placeholder="Напишите что-нибудь..."
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={handleKeyDown}
       />
-
-      <button className={cl.button} onClick={sendMessage}></button>
     </div>
   )
 }

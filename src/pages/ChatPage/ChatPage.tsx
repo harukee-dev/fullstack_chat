@@ -94,14 +94,16 @@ export const Chat = () => {
 
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
-      <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
-        {isTokenValid() ? 'Logout' : 'Login'}
-      </button>
+      <header className={cl.header}>
+        <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
+          {isTokenValid() ? 'Logout' : 'Login'}
+        </button>
+      </header>
       <div
         style={{
           overflow: 'hidden',
           backgroundColor: '#121212',
-          padding: '10px',
+          padding: '0 10px 10px 10px',
           width: '100%',
           maxWidth: '100%',
           display: 'flex',

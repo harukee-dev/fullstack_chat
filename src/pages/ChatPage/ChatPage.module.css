@@ -1,11 +1,19 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  background-color: #141414;
+  padding: 1vh 0;
+}
+
 .chatAndInt {
   margin-left: 20%;
-  margin-top: 5%;
   width: 100vh;
 }
 
 .loginOrLogoutButton {
-  margin-top: 1vh;
   width: 10vh;
   height: 5vh;
   font-size: 1.5vh;
@@ -16,6 +24,6 @@
   font-weight: 100;
   font-style: normal;
   background-color: #1e1e1e;
-  margin-left: 68%;
+  margin-left: 72%;
   cursor: pointer;
 }

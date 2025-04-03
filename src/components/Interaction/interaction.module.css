@@ -3,28 +3,22 @@
   background-color: #121212;
   display: flex;
   justify-content: center;
-  gap: 1.5vh;
+
   padding: 2vh;
 }
 
 .input {
-  width: 80vh;
-  max-height: 5vh;
-  min-height: 5vh;
+  margin-top: -3vh;
+  width: 100vh;
+  max-height: 8vh;
+  min-height: 8vh;
   padding: 1.5vh;
-  border-radius: 10px;
-  border: rgb(55, 55, 55) solid 0.1px;
-  font-size: 1.5vh;
+  border-radius: 20px;
+  border: none;
+  font-size: 2vh;
   resize: none;
   overflow-y: auto;
   outline: none;
-  background-color: #1e1e1e;
+  background-color: #383838;
   color: white;
-}
-
-.button {
-  background-color: #1e1e1e;
-  border: rgb(55, 55, 55) solid 0.1px;
-  width: 5vh;
-  border-radius: 100%;
 }
