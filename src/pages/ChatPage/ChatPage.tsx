@@ -107,7 +107,6 @@ export const Chat = () => {
     if (buffer.length > 0) {
       socket.emit('message', { text: buffer })
     }
-
     setMessage('')
   }
 

@@ -14,7 +14,7 @@
   min-height: 8vh;
   padding: 1.5vh;
   border-radius: 20px;
-  border: none;
+  border: rgb(85, 85, 85) solid 1px;
   font-size: 2vh;
   resize: none;
   overflow-y: auto;
