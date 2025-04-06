@@ -22,24 +22,32 @@ export const Register = () => {
   }, [])
 
   async function handleRegister() {
-    try {
-      const response = await fetch('http://localhost:10000/auth/registration', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: login, password }),
-      })
+    const regex = /[a-zA-Zа-яА-ЯёЁ]/
+    if (regex.test(login)) {
+      try {
+        const response = await fetch(
+          'http://localhost:10000/auth/registration',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: login, password }),
+          }
+        )
 
-      if (response.ok) {
-        navigate('/login')
-      } else {
-        const data = await response.json()
-        console.error(data.message)
-        setError(data.message)
+        if (response.ok) {
+          navigate('/login')
+        } else {
+          const data = await response.json()
+          console.error(data.message)
+          setError(data.message)
+        }
+      } catch (error) {
+        console.error(error)
       }
-    } catch (error) {
-      console.error(error)
+    } else {
+      setError('Логин должен содержать буквы')
     }
   }
 

@@ -77,13 +77,38 @@ export const Chat = () => {
   }, [])
 
   function sendMessage() {
-    if (message.trim() !== '' && socket && message.length < 1000) {
-      const newMessage = { text: message }
-      socket.emit('message', newMessage)
-      setMessage('')
-    } else {
+    if (!socket || message.trim() === '') {
       console.log('Ошибка: сообщение пустое или сокет не подключен')
+      return
+    } // проверяем что сокет подключен и сообщение не пустое
+
+    const maxLength = 1000 // задаем максимальную длину сообщения
+
+    // Разделяем сообщение на слова - убираем лишние пробелы в начале и в конце, делаем из строки массив слов
+    const words = message.trim().split(' ')
+    let buffer = '' // создаем переменную в которую будем класть слова пока длина не станет больше 1000
+
+    for (let i = 0; i < words.length; i++) {
+      // создаем цикл который будет проходиться по массиву слов
+      const word = words[i] // задаем слово
+
+      // Проверяем, влезает ли слово в буфер
+      if ((buffer + ' ' + word).trim().length <= maxLength) {
+        buffer = (buffer + ' ' + word).trim() // если влезает, то добавляем в буфер еще одно слово
+      } else {
+        if (buffer.length > 0) {
+          socket.emit('message', { text: buffer }) // если не влезает и буфер не пустой то отправляем наш заполненный буфер как сообщение
+        }
+        buffer = word // начинаем новую часть
+      }
     }
+
+    // Отправляем оставшийся буфер
+    if (buffer.length > 0) {
+      socket.emit('message', { text: buffer })
+    }
+
+    setMessage('')
   }
 
   function handleLogout() {
