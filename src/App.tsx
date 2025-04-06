@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Chat } from './pages/ChatPage/ChatPage'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import io from 'socket.io-client'
 import { Register } from './pages/RegisterPage/RegisterPage'
 import { NotFoundPage } from './pages/NotFoundPage/NotFoundPage'
@@ -13,6 +13,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/register" replace />} />
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/register" element={<Register />} />
