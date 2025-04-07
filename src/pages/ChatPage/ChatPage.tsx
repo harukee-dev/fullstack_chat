@@ -38,7 +38,7 @@ export const Chat = () => {
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
-      const newSocket = io('http://localhost:10000', {
+      const newSocket = io('https://fullstack-chat-6mbf.onrender.com', {
         auth: { token },
         transports: ['websocket'],
       })
@@ -65,7 +65,9 @@ export const Chat = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch('http://localhost:10000/auth/messages')
+        const response = await fetch(
+          'https://fullstack-chat-6mbf.onrender.com/auth/messages'
+        )
         const data = await response.json()
         setMessages(data)
       } catch (error) {

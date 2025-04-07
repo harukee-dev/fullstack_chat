@@ -26,7 +26,7 @@ export const Register = () => {
     if (regex.test(login)) {
       try {
         const response = await fetch(
-          'http://localhost:10000/auth/registration',
+          'https://fullstack-chat-6mbf.onrender.com/auth/registration',
           {
             method: 'POST',
             headers: {

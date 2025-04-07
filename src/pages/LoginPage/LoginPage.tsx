@@ -27,11 +27,14 @@ export const LoginPage = () => {
 
   async function handleLogin() {
     try {
-      const response = await fetch('http://localhost:10000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: login, password }),
-      })
+      const response = await fetch(
+        'https://fullstack-chat-6mbf.onrender.com/auth/login',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: login, password }),
+        }
+      )
 
       const data = await response.json()
 

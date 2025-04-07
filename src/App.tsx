@@ -7,7 +7,7 @@ import { NotFoundPage } from './pages/NotFoundPage/NotFoundPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { TestPage } from './pages/TestPage/TestPage'
 
-const socket = io('http://localhost:10000')
+const socket = io('https://fullstack-chat-6mbf.onrender.com')
 
 function App() {
   return (
