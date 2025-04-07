@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
-import Lines from '../LoginPage/images/lines.png'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')

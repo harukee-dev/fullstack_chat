@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom'
 import { removeToken } from '../../slices/authSlice'
 // @ts-ignore
 import { jwtDecode } from 'jwt-decode'
-import { Message } from '../../components/Message/Message'
 import { ChatComponent } from '../../components/Chat/Chat'
 import { Interaction } from '../../components/Interaction/Interaction'
 import cl from './ChatPage.module.css'
@@ -52,8 +51,6 @@ export const Chat = () => {
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
       })
-
-      console.log(messages)
 
       return () => {
         newSocket.disconnect()

@@ -4,7 +4,6 @@ import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
-import Lines from './images/lines.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
