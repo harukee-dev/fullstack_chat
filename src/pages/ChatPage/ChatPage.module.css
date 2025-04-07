@@ -5,10 +5,10 @@
 
 .header {
   background-color: #141414;
-  height: 7vh;
+  height: 7.5vh;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
 }
 
 .chatAndInt {
@@ -19,7 +19,7 @@
 .loginOrLogoutButton {
   width: 10vh;
   height: 5vh;
-  font-size: 1rem;
+  font-size: 2vh;
   color: rgb(150, 150, 150);
   border-radius: 20px;
   border: 1px solid rgb(55, 55, 55);
@@ -27,4 +27,19 @@
   font-weight: 100;
   background-color: #1f1f1f;
   cursor: pointer;
+}
+
+.boosty {
+  text-decoration: none;
+  color: white;
+  background-color: rgb(255, 103, 38);
+  padding: 1.2vh 3vh;
+  border-radius: 20px;
+  box-shadow: 0 0 1vh rgb(255, 68, 0);
+  transition: 0.2s;
+}
+
+.boosty:hover {
+  background-color: rgb(255, 103, 37);
+  box-shadow: 0 0 1.5vh rgb(255, 102, 47);
 }

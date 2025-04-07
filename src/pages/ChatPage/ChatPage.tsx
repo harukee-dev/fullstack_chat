@@ -118,6 +118,9 @@ export const Chat = () => {
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <header className={cl.header}>
+        <a className={cl.boosty} href="https://boosty.to/harukee/donate">
+          Boosty
+        </a>
         <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
           {isTokenValid() ? 'Logout' : 'Login'}
         </button>

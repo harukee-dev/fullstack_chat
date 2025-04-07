@@ -35,7 +35,6 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
   return (
     <div className={cl.chat} ref={chatRef}>
       {messages.map((el, index) =>
-        // <Message key={index} message={el.text} username={el.username} />
         el.username === localStorage.getItem('username') ? (
           <MyMessage key={index} message={el.text} username={el.username} />
         ) : (

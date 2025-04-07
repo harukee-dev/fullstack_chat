@@ -66,7 +66,7 @@ export const LoginPage = () => {
         />
         <input
           className={cl.input}
-          onBlur={(e) => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
         />
