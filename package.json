@@ -30,7 +30,7 @@
   },
   "scripts": {
     "frontend": "react-scripts start",
-    "start": "node src/server.js",
+    "start": "node src/backend/server.js",
     "build": "react-scripts build",
     "heroku-postbuild": "npm run build"
   },
