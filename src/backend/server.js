@@ -68,13 +68,15 @@ app.get('/', (request, response) => {
   response.send('server')
 })
 
+const PORT = process.env.PORT || 10000
+
 async function start() {
   try {
     await mongoose.connect(
       'mongodb+srv://adminuser:adminpassword@cluster0.oh6fb.mongodb.net/chat'
     )
     server.listen(10000, () => {
-      console.log('http://localhost:10000')
+      console.log(`Server running on port ${PORT}`)
     })
   } catch (err) {
     console.error(err)
