@@ -2,11 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Message } from '../Message/Message'
 import cl from './chat.module.css'
 import { MyMessage } from '../Message/MyMessage'
-
-interface IMessage {
-  username: string
-  text: string
-}
+import { IMessage } from '../../types/IMessage'
 
 interface IChatProps {
   messages: IMessage[] | []
@@ -36,9 +32,18 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
     <div className={cl.chat} ref={chatRef}>
       {messages.map((el, index) =>
         el.username === localStorage.getItem('username') ? (
-          <MyMessage key={index} message={el.text} username={el.username} />
+          <MyMessage
+            key={index}
+            message={el.text}
+            timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+          />
         ) : (
-          <Message key={index} message={el.text} username={el.username} />
+          <Message
+            key={index}
+            message={el.text}
+            username={el.username}
+            timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+          />
         )
       )}
     </div>

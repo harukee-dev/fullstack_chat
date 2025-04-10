@@ -29,7 +29,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "frontend": "react-scripts start",
+    "client": "react-scripts start",
     "start": "node src/backend/server.js",
     "build": "react-scripts build",
     "heroku-postbuild": "npm run build"
