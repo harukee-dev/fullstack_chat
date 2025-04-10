@@ -37,6 +37,8 @@ io.use((socket, next) => {
   }
 })
 
+const typingUsers = new Set()
+
 io.on('connection', (socket) => {
   socket.on('message', async (message) => {
     if (!message || !message.text) return
@@ -59,6 +61,21 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error('Ошибка при сохранении сообщения:', error)
     }
+  })
+
+  socket.on('typing', () => {
+    typingUsers.add(socket.user.username)
+    socket.broadcast.emit('usersTyping', Array.from(typingUsers))
+  })
+
+  socket.on('stopTyping', () => {
+    typingUsers.delete(socket.user.username)
+    socket.broadcast.emit('usersTyping', Array.from(typingUsers))
+  })
+
+  socket.on('disconnect', () => {
+    typingUsers.delete(socket.user.username)
+    io.emit('usersTyping', Array.from(typingUsers))
   })
 })
 

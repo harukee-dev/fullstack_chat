@@ -1,8 +1,4 @@
 import { jwtDecode } from 'jwt-decode'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { AppDispatch } from '../../store'
-import { removeToken } from '../../slices/authSlice'
 
 export const isTokenValid = (token: any) => {
   if (!token) return false
@@ -46,12 +42,4 @@ export const sendMessage = (socket: any, message: string, setMessage: any) => {
     socket.emit('message', { text: buffer })
   }
   setMessage('')
-}
-
-export const useLogout = () => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  dispatch(removeToken())
-  localStorage.removeItem('token')
-  navigate('/login')
 }

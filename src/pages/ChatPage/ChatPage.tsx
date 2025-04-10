@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { RootState } from '../../store'
+import { AppDispatch, RootState } from '../../store'
 import { ChatComponent } from '../../components/Chat/Chat'
 import { Interaction } from '../../components/Interaction/Interaction'
 import cl from './ChatPage.module.css'
-import { useLogout, isTokenValid, sendMessage } from './ChatPageUtils'
+import { isTokenValid, sendMessage } from './ChatPageUtils'
 import { API_URL, BOOSTY_URL } from '../../constants'
+import { removeToken } from '../../slices/authSlice'
+import { useNavigate } from 'react-router-dom'
 
 interface IMessage {
   username: string
@@ -19,6 +21,10 @@ export const Chat = () => {
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
+  const [usersTyping, setUsersTyping] = useState<string[]>([])
+  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const username = localStorage.getItem('username')
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -35,6 +41,10 @@ export const Chat = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
+      })
+
+      newSocket.on('usersTyping', (usernames: string[]) => {
+        setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
       })
 
       return () => {
@@ -58,6 +68,12 @@ export const Chat = () => {
     fetchMessages()
   }, [])
 
+  const handleLogout = () => {
+    dispatch(removeToken())
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <header className={cl.header}>
@@ -68,13 +84,25 @@ export const Chat = () => {
             alt="boosty"
           />
         </a>
-        <button className={cl.loginOrLogoutButton} onClick={useLogout}>
+        <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
           {isTokenValid(token) ? 'Logout' : 'Login'}
         </button>
       </header>
       <div className={cl.chatPage}>
         <ChatComponent messages={messages} isClear={messages.length === 0} />
+        {usersTyping.length > 0 && usersTyping.length < 3 && (
+          <p id="typing-indicator" className={cl.typingText}>
+            {usersTyping.join(', ')} {usersTyping.length === 1 ? 'is ' : 'are '}
+            typing...
+          </p>
+        )}
+        {usersTyping.length >= 3 && (
+          <p id="typing-indicator" className={cl.typingText}>
+            {usersTyping[0]}, {usersTyping[1]} and others are typing
+          </p>
+        )}
         <Interaction
+          socket={socket}
           message={message}
           setMessage={setMessage}
           sendMessage={() => sendMessage(socket, message, setMessage)}
