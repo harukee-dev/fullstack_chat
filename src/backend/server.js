@@ -44,6 +44,7 @@ io.on('connection', (socket) => {
     const newMessage = new Message({
       username: socket.user.username,
       text: message.text,
+      timestamp: Date.now(),
     })
 
     console.log(newMessage)
