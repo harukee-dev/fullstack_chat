@@ -21,8 +21,10 @@ export const Chat = () => {
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
+  const [usersTyping, setUsersTyping] = useState<string[]>([])
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
+  const username = localStorage.getItem('username')
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -39,6 +41,10 @@ export const Chat = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
+      })
+
+      newSocket.on('usersTyping', (usernames: string[]) => {
+        setUsersTyping(usernames) // не отображай себя
       })
 
       return () => {
@@ -83,8 +89,20 @@ export const Chat = () => {
         </button>
       </header>
       <div className={cl.chatPage}>
+        {usersTyping.length > 0 && usersTyping.length < 3 && (
+          <p style={{ color: 'white' }}>
+            {usersTyping.join(', ')} {usersTyping.length === 1 ? 'is ' : 'are '}
+            typing...
+          </p>
+        )}
+        {usersTyping.length >= 3 && (
+          <p style={{ color: 'white' }}>
+            {usersTyping[0]}, {usersTyping[1]} and others are typing
+          </p>
+        )}
         <ChatComponent messages={messages} isClear={messages.length === 0} />
         <Interaction
+          socket={socket}
           message={message}
           setMessage={setMessage}
           sendMessage={() => sendMessage(socket, message, setMessage)}

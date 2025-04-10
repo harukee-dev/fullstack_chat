@@ -1,8 +1,4 @@
 import { jwtDecode } from 'jwt-decode'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { AppDispatch } from '../../store'
-import { removeToken } from '../../slices/authSlice'
 
 export const isTokenValid = (token: any) => {
   if (!token) return false
