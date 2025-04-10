@@ -54,6 +54,7 @@ io.on('connection', (socket) => {
       io.emit('message', {
         username: socket.user.username,
         text: message.text,
+        timestamp: newMessage.timestamp,
       })
     } catch (error) {
       console.error('Ошибка при сохранении сообщения:', error)
