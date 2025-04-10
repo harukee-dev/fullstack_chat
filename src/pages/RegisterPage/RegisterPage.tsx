@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
+import { API_URL } from '../../constants'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
@@ -24,16 +25,13 @@ export const Register = () => {
     const regex = /[a-zA-Zа-яА-ЯёЁ]/
     if (regex.test(login)) {
       try {
-        const response = await fetch(
-          'https://fullstack-chat-6mbf.onrender.com/auth/registration',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username: login, password }),
-          }
-        )
+        const response = await fetch(API_URL + '/auth/registration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: login, password }),
+        })
 
         if (response.ok) {
           navigate('/login')

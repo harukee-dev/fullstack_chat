@@ -32,14 +32,24 @@
 .boosty {
   text-decoration: none;
   color: white;
-  background-color: rgb(255, 103, 38);
+  background-color: #141414;
   padding: 1.2vh 3vh;
   border-radius: 20px;
-  box-shadow: 0 0 1vh rgb(255, 68, 0);
   transition: 0.2s;
+  cursor: pointer;
 }
 
-.boosty:hover {
-  background-color: rgb(255, 103, 37);
-  box-shadow: 0 0 1.5vh rgb(255, 102, 47);
+.boostyImg {
+  width: 100px;
+}
+
+.chatPage {
+  overflow: hidden;
+  background-color: #121212;
+  padding: 0 10px 10px 10px;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
