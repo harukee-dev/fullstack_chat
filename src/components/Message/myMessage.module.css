@@ -1,21 +1,13 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
 .container {
   display: flex;
-  flex-direction: column;
-  gap: 0.5vh;
+  flex-direction: row;
+  gap: 1vh;
   background-color: #424242;
 
   min-width: 5%;
   max-width: 40%;
 
-  padding: 1.5vh 4.5vh;
+  padding: 1.5vh 2vh 1.5vh 2vh;
   border-radius: 20px;
 
   word-wrap: break-word;
@@ -24,6 +16,9 @@
   width: fit-content;
 
   margin: 0 1vh 0 auto;
+
+  /* Добавим, чтобы текст и время красиво прижимались вниз */
+  align-items: flex-end;
 }
 
 .text {
@@ -33,4 +28,16 @@
   font-style: normal;
   font-size: 1.75vh;
   white-space: pre-wrap;
+
+  align-self: flex-start; /* Текст выравнивается влево */
+
+  word-wrap: normal;
+  overflow-wrap: anywhere;
+}
+
+.timestamp {
+  font-size: 1.5vh;
+  color: #909090;
+  font-family: 'Poppins', sans-serif;
+  align-self: flex-end; /* Время прижимается вправо */
 }

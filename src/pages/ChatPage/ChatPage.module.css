@@ -37,10 +37,11 @@
   border-radius: 20px;
   transition: 0.2s;
   cursor: pointer;
+  width: 10vh;
 }
 
 .boostyImg {
-  width: 100px;
+  width: 10vh;
 }
 
 .chatPage {

@@ -8,21 +8,20 @@
 
 .container {
   display: flex;
-  flex-direction: column;
-  gap: 0.5vh;
+  flex-direction: row;
+  gap: 1vh;
   background-color: #272727;
 
   min-width: 5%;
   max-width: 40%;
 
-  padding: 1.5vh 4.5vh;
+  padding: 1.5vh 2vh;
   border-radius: 20px;
 
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-
   width: fit-content;
-  margin: 0 0 0 1vh;
+
+  /* Чтобы выравнивать текст слева, а время справа */
+  align-items: flex-start;
 }
 
 .text {
@@ -32,6 +31,10 @@
   font-style: normal;
   font-size: 1.75vh;
   white-space: pre-wrap;
+
+  /* Гарантирует, что текст будет занимать всю доступную ширину */
+  word-wrap: normal;
+  overflow-wrap: anywhere;
 }
 
 .username {
@@ -44,4 +47,14 @@
   margin-bottom: 0.25vh;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.timestamp {
+  font-size: 1.5vh;
+  color: #818181;
+  font-family: 'Poppins', sans-serif;
+  align-self: flex-end;
+
+  /* Меньше прозрачности, чтобы не отвлекать внимание */
+  font-weight: 300;
 }
