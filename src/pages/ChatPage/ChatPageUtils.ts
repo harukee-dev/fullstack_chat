@@ -47,11 +47,3 @@ export const sendMessage = (socket: any, message: string, setMessage: any) => {
   }
   setMessage('')
 }
-
-export const useLogout = () => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  dispatch(removeToken())
-  localStorage.removeItem('token')
-  navigate('/login')
-}

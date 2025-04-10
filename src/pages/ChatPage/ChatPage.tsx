@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { RootState } from '../../store'
+import { AppDispatch, RootState } from '../../store'
 import { ChatComponent } from '../../components/Chat/Chat'
 import { Interaction } from '../../components/Interaction/Interaction'
 import cl from './ChatPage.module.css'
-import { useLogout, isTokenValid, sendMessage } from './ChatPageUtils'
+import { isTokenValid, sendMessage } from './ChatPageUtils'
 import { API_URL, BOOSTY_URL } from '../../constants'
+import { removeToken } from '../../slices/authSlice'
+import { useNavigate } from 'react-router-dom'
 
 interface IMessage {
   username: string
@@ -19,6 +21,8 @@ export const Chat = () => {
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
+  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -58,6 +62,12 @@ export const Chat = () => {
     fetchMessages()
   }, [])
 
+  const handleLogout = () => {
+    dispatch(removeToken())
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <header className={cl.header}>
@@ -68,7 +78,7 @@ export const Chat = () => {
             alt="boosty"
           />
         </a>
-        <button className={cl.loginOrLogoutButton} onClick={useLogout}>
+        <button className={cl.loginOrLogoutButton} onClick={handleLogout}>
           {isTokenValid(token) ? 'Logout' : 'Login'}
         </button>
       </header>
