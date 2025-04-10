@@ -45,6 +45,7 @@
 }
 
 .chatPage {
+  position: relative;
   overflow: hidden;
   background-color: #121212;
   padding: 0 10px 10px 10px;
@@ -53,4 +54,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.typingText {
+  position: absolute;
+  bottom: 12vh;
+  color: rgba(255, 255, 255, 0.699);
 }

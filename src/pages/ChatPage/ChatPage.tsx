@@ -44,7 +44,7 @@ export const Chat = () => {
       })
 
       newSocket.on('usersTyping', (usernames: string[]) => {
-        setUsersTyping(usernames) // не отображай себя
+        setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
       })
 
       return () => {
@@ -89,18 +89,18 @@ export const Chat = () => {
         </button>
       </header>
       <div className={cl.chatPage}>
+        <ChatComponent messages={messages} isClear={messages.length === 0} />
         {usersTyping.length > 0 && usersTyping.length < 3 && (
-          <p style={{ color: 'white' }}>
+          <p id="typing-indicator" className={cl.typingText}>
             {usersTyping.join(', ')} {usersTyping.length === 1 ? 'is ' : 'are '}
             typing...
           </p>
         )}
         {usersTyping.length >= 3 && (
-          <p style={{ color: 'white' }}>
+          <p id="typing-indicator" className={cl.typingText}>
             {usersTyping[0]}, {usersTyping[1]} and others are typing
           </p>
         )}
-        <ChatComponent messages={messages} isClear={messages.length === 0} />
         <Interaction
           socket={socket}
           message={message}
