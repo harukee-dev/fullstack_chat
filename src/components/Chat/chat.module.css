@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 5vh;
+  margin-top: 30vh;
 }
 
 .duck {
@@ -32,11 +32,5 @@
 }
 
 .isClear {
-  color: white;
-  font-size: 2vh;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 100;
-  font-style: normal;
-  text-align: center;
-  font-weight: 200;
+  width: 5vh;
 }

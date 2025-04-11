@@ -1,5 +1,6 @@
 import React from 'react'
 import cl from './message.module.css'
+import { motion } from 'framer-motion'
 
 interface IMessageProps {
   message: string
@@ -18,12 +19,16 @@ export const Message: React.FC<IMessageProps> = ({
     minute: '2-digit',
   })
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <p className={cl.username}>{username}</p>
       <div className={cl.container}>
         <p className={cl.text}>{message}</p>
         <span className={cl.timestamp}>{time}</span>
       </div>
-    </div>
+    </motion.div>
   )
 }

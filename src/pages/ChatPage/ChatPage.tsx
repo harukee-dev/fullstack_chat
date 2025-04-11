@@ -9,6 +9,7 @@ import { isTokenValid, sendMessage } from './ChatPageUtils'
 import { API_URL, BOOSTY_URL } from '../../constants'
 import { removeToken } from '../../slices/authSlice'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface IMessage {
   username: string
@@ -90,17 +91,53 @@ export const Chat = () => {
       </header>
       <div className={cl.chatPage}>
         <ChatComponent messages={messages} isClear={messages.length === 0} />
-        {usersTyping.length > 0 && usersTyping.length < 3 && (
-          <p id="typing-indicator" className={cl.typingText}>
-            {usersTyping.join(', ')} {usersTyping.length === 1 ? 'is ' : 'are '}
-            typing...
-          </p>
-        )}
-        {usersTyping.length >= 3 && (
-          <p id="typing-indicator" className={cl.typingText}>
-            {usersTyping[0]}, {usersTyping[1]} and others are typing
-          </p>
-        )}
+        <AnimatePresence>
+          {/* {usersTyping.length > 0 && usersTyping.length < 3 && (
+            <motion.p
+              id="typing-indicator"
+              className={cl.typingText}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              {usersTyping.join(', ')}{' '}
+              {usersTyping.length === 1 ? 'is ' : 'are '}
+              typing <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+            </motion.p>
+          )}
+          {usersTyping.length >= 3 && (
+            <motion.p
+              id="typing-indicator"
+              className={cl.typingText}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              {usersTyping[0]}, {usersTyping[1]} and others are typing{' '}
+              <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+            </motion.p>
+          )} */}
+          {usersTyping.length > 0 && (
+            <motion.div
+              id="typing-indicator"
+              className={cl.typingDiv}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+              <span className={cl.dot}>.</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Interaction
           socket={socket}
           message={message}
