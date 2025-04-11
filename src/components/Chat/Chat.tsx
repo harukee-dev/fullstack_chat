@@ -3,6 +3,8 @@ import { Message } from '../Message/Message'
 import cl from './chat.module.css'
 import { MyMessage } from '../Message/MyMessage'
 import { IMessage } from '../../types/IMessage'
+// @ts-ignore
+import loading from './images/loading.gif'
 
 interface IChatProps {
   messages: IMessage[] | []
@@ -22,7 +24,7 @@ export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
     return (
       <div className={cl.chat}>
         <div className={cl.clearContainer}>
-          <p className={cl.isClear}>Loading messages...</p>
+          <img src={loading} className={cl.isClear} />
         </div>
       </div>
     )
