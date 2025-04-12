@@ -7,6 +7,7 @@ export const ChatsList: React.FC<ChatsListProps> = ({ users }) => {
     <div className={cl.chatsList}>
       {users.map((el, index) => (
         <ChatTab
+          key={index}
           username={el.username}
           avatar={el.avatar}
           isOnline={el.isOnline}
