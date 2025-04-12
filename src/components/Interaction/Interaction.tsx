@@ -46,7 +46,7 @@ export const Interaction: React.FC<Interaction> = ({
     <div className={cl.container}>
       <textarea
         className={cl.input}
-        placeholder="Напишите что-нибудь..."
+        placeholder="Write something..."
         value={message}
         onChange={(event) => handleInputChange(event)}
         onKeyDown={handleKeyDown}

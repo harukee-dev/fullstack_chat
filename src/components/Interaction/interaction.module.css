@@ -14,11 +14,11 @@
   min-height: 8vh;
   padding: 1.5vh;
   border-radius: 20px;
-  border: rgb(85, 85, 85) solid 1px;
+  border: #444444 solid 1px;
   font-size: 2vh;
   resize: none;
   overflow-y: auto;
   outline: none;
-  background-color: #383838;
+  background-color: #1d1d1d;
   color: white;
 }
