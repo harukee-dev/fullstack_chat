@@ -1,8 +1,11 @@
 import { ChatsList } from '../../../components/ChatsList/ChatsList'
 import cl from './leftWindow.module.css'
 import settings from './images/settings-icon.png'
+import { useNavigate } from 'react-router-dom'
+import { BOOSTY_URL } from '../../../constants'
 
 export const LeftWindow = () => {
+  const navigate = useNavigate()
   const users = [
     {
       username: 'harukee',
@@ -27,7 +30,12 @@ export const LeftWindow = () => {
     <div className={cl.leftContainer}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3vh' }}>
         <div className={cl.buttonsContainer}>
-          <button className={cl.boostyButton}>Subscribe harukee boosty</button>
+          <button
+            onClick={() => window.open(BOOSTY_URL, '_blank')}
+            className={cl.boostyButton}
+          >
+            Subscribe harukee boosty
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5vw' }}>
             <button className={cl.settingsButton}>
               <img style={{ width: '2vw' }} src={settings} alt="settings" />
