@@ -1,0 +1,17 @@
+.container {
+  position: absolute;
+  top: 7vh;
+  background-color: #191919;
+  padding: 2vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35vh;
+  border-radius: 2vh;
+  border: #444444 solid 1px;
+}
+
+.user {
+  color: white;
+  font-family: serif 'FF Mark Black';
+  font-weight: 100;
+}

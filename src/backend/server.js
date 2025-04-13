@@ -38,8 +38,12 @@ io.use((socket, next) => {
 })
 
 const typingUsers = new Set()
+const onlineUsers = new Set()
 
 io.on('connection', (socket) => {
+  onlineUsers.add(socket.user.username)
+  io.emit('onlineUsers', Array.from(onlineUsers))
+
   socket.on('message', async (message) => {
     if (!message || !message.text) return
 
@@ -75,6 +79,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     typingUsers.delete(socket.user.username)
+    onlineUsers.delete(socket.user.username)
+    io.emit('onlineUsers', Array.from(onlineUsers))
     io.emit('usersTyping', Array.from(typingUsers))
   })
 })

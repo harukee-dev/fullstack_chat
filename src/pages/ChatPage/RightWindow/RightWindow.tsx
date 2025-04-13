@@ -5,11 +5,11 @@ import { AppDispatch, RootState } from '../../../store'
 import { ChatComponent } from '../../../components/Chat/Chat'
 import { Interaction } from '../../../components/Interaction/Interaction'
 import cl from './rightWindow.module.css'
-import { isTokenValid, sendMessage } from '../ChatPageUtils'
-import { API_URL, BOOSTY_URL } from '../../../constants'
-import { removeToken } from '../../../slices/authSlice'
+import { sendMessage } from '../ChatPageUtils'
+import { API_URL } from '../../../constants'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { OnlineUsersList } from '../../../components/OnlineUsersList/OnlineUsersList'
 
 interface IMessage {
   username: string
@@ -23,8 +23,7 @@ export const RightWindow = () => {
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
   const [usersTyping, setUsersTyping] = useState<string[]>([])
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const username = localStorage.getItem('username')
   // Подключение к серверу
   useEffect(() => {
@@ -48,6 +47,10 @@ export const RightWindow = () => {
         setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
       })
 
+      newSocket.on('onlineUsers', (onlineUsers: string[]) => {
+        setOnlineUsers(onlineUsers)
+      })
+
       return () => {
         newSocket.disconnect()
       }
@@ -69,15 +72,20 @@ export const RightWindow = () => {
     fetchMessages()
   }, [])
 
-  const handleLogout = () => {
-    dispatch(removeToken())
-    localStorage.removeItem('token')
-    navigate('/login')
+  const [onlineListIsOpened, setOnlineListIsOpened] = useState<boolean>(false)
+  const handleOnlineButton = () => {
+    setOnlineListIsOpened(!onlineListIsOpened)
   }
 
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <div className={cl.chatPage}>
+        {/* ONLINE BUTTON */}
+        <button onClick={handleOnlineButton} className={cl.onlineListButton}>
+          <div className={cl.onlineCircle} />
+          {onlineUsers.length}
+        </button>
+        {onlineListIsOpened ? <OnlineUsersList users={onlineUsers} /> : null}
         <ChatComponent messages={messages} isClear={messages.length === 0} />
         <AnimatePresence>
           {usersTyping.length > 0 && (

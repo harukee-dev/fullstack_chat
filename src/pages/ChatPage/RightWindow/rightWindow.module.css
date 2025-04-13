@@ -104,3 +104,31 @@
     transform: translateY(-0.8vh);
   }
 }
+
+.onlineCircle {
+  width: 0.7vh;
+  height: 0.7vh;
+  border-radius: 100%;
+  background-color: #7ff964;
+  box-shadow: 0 0 1vh rgb(9, 219, 9);
+}
+
+.onlineListButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3vw;
+  position: absolute;
+  top: 2vh;
+  padding: 1vh 1.5vh;
+  background-color: #191919;
+  color: white;
+  border: #444444 solid 1px;
+  border-radius: 5vh;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.onlineListButton:hover {
+  box-shadow: 0 0 3vh #0000005e;
+  background-color: #222222;
+}
