@@ -85,7 +85,7 @@ export const RightWindow = () => {
           <div className={cl.onlineCircle} />
           {onlineUsers.length}
         </button>
-        {onlineListIsOpened ? <OnlineUsersList users={onlineUsers} /> : null}
+        <OnlineUsersList isOpened={onlineListIsOpened} users={onlineUsers} />
         <ChatComponent messages={messages} isClear={messages.length === 0} />
         <AnimatePresence>
           {usersTyping.length > 0 && (
