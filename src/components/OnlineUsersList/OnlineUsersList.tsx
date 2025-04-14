@@ -20,6 +20,7 @@ export const OnlineUsersList: React.FC<IProps> = ({ isOpened, users }) => {
         >
           {users.map((el, index) => (
             <p className={cl.user} key={index}>
+              <div className={cl.onlineCircle} />
               {el}
             </p>
           ))}

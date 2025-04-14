@@ -3,22 +3,54 @@ import { Message } from '../Message/Message'
 import cl from './chat.module.css'
 import { MyMessage } from '../Message/MyMessage'
 import { IMessage } from '../../types/IMessage'
+import { RefObject } from 'react'
 // @ts-ignore
 import loading from './images/loading.gif'
 
 interface IChatProps {
   messages: IMessage[] | []
   isClear: boolean
+  setShowScrollButton: (value: boolean) => void
+  chatRef: RefObject<HTMLDivElement | null>
 }
 
-export const ChatComponent: React.FC<IChatProps> = ({ messages, isClear }) => {
-  const chatRef = useRef<HTMLDivElement>(null)
+export const ChatComponent: React.FC<IChatProps> = ({
+  messages,
+  isClear,
+  setShowScrollButton,
+  chatRef,
+}) => {
+  const handleScroll = () => {
+    const chatEl = chatRef.current
+    if (!chatEl) return
 
+    const isScrolledUp =
+      chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 10
+
+    setShowScrollButton(isScrolledUp)
+  }
+
+  // Скролл вниз при новом сообщении
   useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight
+    const chatEl = chatRef.current
+    if (chatEl) {
+      chatEl.scrollTop = chatEl.scrollHeight
+      handleScroll() // Проверка скролла после прокрутки
     }
   }, [messages])
+
+  // Навешиваем обработчик скролла
+  useEffect(() => {
+    const chatEl = chatRef.current
+    if (!chatEl) return
+
+    chatEl.addEventListener('scroll', handleScroll)
+    handleScroll() // Проверка при инициализации
+
+    return () => {
+      chatEl.removeEventListener('scroll', handleScroll)
+    }
+  }, [chatRef])
 
   if (isClear) {
     return (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
 import { AppDispatch, RootState } from '../../../store'
@@ -10,6 +10,7 @@ import { API_URL } from '../../../constants'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { OnlineUsersList } from '../../../components/OnlineUsersList/OnlineUsersList'
+import { ScrollButton } from '../../../components/ScrollButton/ScrollButton'
 
 interface IMessage {
   username: string
@@ -25,6 +26,8 @@ export const RightWindow = () => {
   const [usersTyping, setUsersTyping] = useState<string[]>([])
   const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const username = localStorage.getItem('username')
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
+  const chatRef = useRef<HTMLDivElement>(null)
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -86,7 +89,12 @@ export const RightWindow = () => {
           {onlineUsers.length}
         </button>
         <OnlineUsersList isOpened={onlineListIsOpened} users={onlineUsers} />
-        <ChatComponent messages={messages} isClear={messages.length === 0} />
+        <ChatComponent
+          chatRef={chatRef}
+          setShowScrollButton={setShowScrollButton}
+          messages={messages}
+          isClear={messages.length === 0}
+        />
         <AnimatePresence>
           {usersTyping.length > 0 && (
             <motion.div
@@ -103,6 +111,16 @@ export const RightWindow = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        <ScrollButton
+          handleClick={() => {
+            chatRef.current?.scrollTo({
+              top: chatRef.current.scrollHeight,
+              behavior: 'smooth',
+            })
+          }}
+          isVisibleScrollButton={showScrollButton}
+        />
+
         <Interaction
           socket={socket}
           message={message}
