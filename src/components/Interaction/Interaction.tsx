@@ -8,6 +8,7 @@ interface Interaction {
   setMessage: any
   sendMessage: any
   socket: any
+  scrollFunc: () => void
 }
 
 export const Interaction: React.FC<Interaction> = ({
@@ -15,6 +16,7 @@ export const Interaction: React.FC<Interaction> = ({
   setMessage,
   sendMessage,
   socket,
+  scrollFunc,
 }) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isTyping, setIsTyping] = useState<boolean>(false)
@@ -45,6 +47,7 @@ export const Interaction: React.FC<Interaction> = ({
   return (
     <div className={cl.container}>
       <textarea
+        onClick={scrollFunc}
         className={cl.input}
         placeholder="Write something..."
         value={message}

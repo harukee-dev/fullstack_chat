@@ -10,7 +10,6 @@ import { API_URL } from '../../../constants'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { OnlineUsersList } from '../../../components/OnlineUsersList/OnlineUsersList'
-import { ScrollButton } from '../../../components/ScrollButton/ScrollButton'
 
 interface IMessage {
   username: string
@@ -80,6 +79,15 @@ export const RightWindow = () => {
     setOnlineListIsOpened(!onlineListIsOpened)
   }
 
+  const scrollToBottom = () => {
+    if (chatRef.current) {
+      chatRef.current.scrollTo({
+        top: chatRef.current.scrollHeight,
+        behavior: 'smooth', // ключевая часть!
+      })
+    }
+  }
+
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <div className={cl.chatPage}>
@@ -111,21 +119,12 @@ export const RightWindow = () => {
             </motion.div>
           )}
         </AnimatePresence>
-        <ScrollButton
-          handleClick={() => {
-            chatRef.current?.scrollTo({
-              top: chatRef.current.scrollHeight,
-              behavior: 'smooth',
-            })
-          }}
-          isVisibleScrollButton={showScrollButton}
-        />
-
         <Interaction
           socket={socket}
           message={message}
           setMessage={setMessage}
           sendMessage={() => sendMessage(socket, message, setMessage)}
+          scrollFunc={scrollToBottom}
         />
       </div>
     </div>
