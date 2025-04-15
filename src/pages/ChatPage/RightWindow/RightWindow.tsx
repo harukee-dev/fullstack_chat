@@ -1,20 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { AppDispatch, RootState } from '../../../store'
+import { RootState } from '../../../store'
 import { ChatComponent } from '../../../components/Chat/Chat'
 import { Interaction } from '../../../components/Interaction/Interaction'
 import cl from './rightWindow.module.css'
 import { sendMessage } from '../ChatPageUtils'
 import { API_URL } from '../../../constants'
-import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { OnlineUsersList } from '../../../components/OnlineUsersList/OnlineUsersList'
-
-interface IMessage {
-  username: string
-  text: string
-}
+import { IMessage } from '../../../types/IMessage'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -43,6 +38,7 @@ export const RightWindow = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
+        console.log(newMessage._id)
       })
 
       newSocket.on('usersTyping', (usernames: string[]) => {
@@ -51,6 +47,14 @@ export const RightWindow = () => {
 
       newSocket.on('onlineUsers', (onlineUsers: string[]) => {
         setOnlineUsers(onlineUsers)
+      })
+
+      newSocket.on('messageEdited', (updatedMessage: IMessage) => {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg._id === updatedMessage._id ? updatedMessage : msg
+          )
+        )
       })
 
       return () => {
@@ -65,6 +69,15 @@ export const RightWindow = () => {
       try {
         const response = await fetch(API_URL + '/auth/messages')
         const data = await response.json()
+
+        data.forEach((msg: IMessage) => {
+          if (!msg._id) {
+            console.warn('Сообщение без _id:', msg)
+          } else {
+            console.log(msg._id)
+          }
+        })
+
         setMessages(data)
       } catch (error) {
         console.error('Ошибка загрузки сообщений:', error)
@@ -98,6 +111,7 @@ export const RightWindow = () => {
         </button>
         <OnlineUsersList isOpened={onlineListIsOpened} users={onlineUsers} />
         <ChatComponent
+          socket={socket}
           chatRef={chatRef}
           setShowScrollButton={setShowScrollButton}
           messages={messages}

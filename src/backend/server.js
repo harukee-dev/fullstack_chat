@@ -58,8 +58,9 @@ io.on('connection', (socket) => {
     try {
       await newMessage.save()
       io.emit('message', {
+        _id: newMessage._id.toString(), // <--- добавляем id как строку
         username: socket.user.username,
-        text: message.text,
+        text: newMessage.text,
         timestamp: newMessage.timestamp,
       })
     } catch (error) {
@@ -82,6 +83,22 @@ io.on('connection', (socket) => {
     onlineUsers.delete(socket.user.username)
     io.emit('onlineUsers', Array.from(onlineUsers))
     io.emit('usersTyping', Array.from(typingUsers))
+  })
+  socket.on('editMessage', async ({ _id, text }) => {
+    try {
+      const updatedMessage = await Message.findByIdAndUpdate(
+        _id,
+        { text },
+        { new: true }
+      )
+
+      if (updatedMessage) {
+        // Рассылаем всем клиентам
+        io.emit('messageEdited', updatedMessage)
+      }
+    } catch (error) {
+      console.error('Ошибка при редактировании сообщения:', error)
+    }
   })
 })
 

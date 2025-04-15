@@ -12,6 +12,7 @@ interface IChatProps {
   isClear: boolean
   setShowScrollButton: (value: boolean) => void
   chatRef: RefObject<HTMLDivElement | null>
+  socket: any
 }
 
 export const ChatComponent: React.FC<IChatProps> = ({
@@ -19,6 +20,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
   isClear,
   setShowScrollButton,
   chatRef,
+  socket,
 }) => {
   const handleScroll = () => {
     const chatEl = chatRef.current
@@ -67,8 +69,9 @@ export const ChatComponent: React.FC<IChatProps> = ({
       {messages.map((el, index) =>
         el.username === localStorage.getItem('username') ? (
           <MyMessage
+            socket={socket}
             key={index}
-            message={el.text}
+            message={el}
             timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
           />
         ) : (

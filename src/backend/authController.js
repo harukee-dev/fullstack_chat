@@ -129,6 +129,27 @@ class authController {
       response.status(500).json({ message: 'Ошибка при получении сообщений' })
     }
   }
+
+  async editMessage(req, res) {
+    try {
+      const { id, text } = req.body
+      if (!id || !text) {
+        return res.status(400).json({ message: 'Недостаточно данных' })
+      }
+
+      try {
+        const updated = await Message.findByIdAndUpdate(id, { text })
+        if (!updated)
+          return res.status(404).json({ message: 'Сообщение не найдено' })
+        return res.json(updated)
+      } catch (e) {
+        console.error(e)
+        res.status(500).json({ message: 'Ошибка сервера' })
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
 }
 
 module.exports = new authController()

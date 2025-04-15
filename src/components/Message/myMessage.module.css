@@ -41,3 +41,21 @@
   font-family: 'Poppins', sans-serif;
   align-self: flex-end; /* Время прижимается вправо */
 }
+
+.textarea {
+  width: 10vw;
+  height: 7.5vh;
+  resize: none;
+  background-color: #424242;
+  border: #666666 solid 1px;
+  border-radius: 1vh;
+  padding: 1vh;
+  color: white;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  outline: none;
+}
+
+.textarea::-webkit-scrollbar {
+  display: none;
+}
