@@ -51,6 +51,12 @@ export const MyMessage: React.FC<IMessageProps> = ({
             onBlur={handleBlur}
             value={textareaValue}
             onChange={(e) => setTextareaValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault() // Предотвращаем перевод строки
+                e.currentTarget.blur() // Триггерим blur → отправка
+              }
+            }}
           ></textarea>
         )}
         <span className={cl.timestamp}>{time}</span>
