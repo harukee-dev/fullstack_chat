@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { Message } from '../Message/Message'
 import cl from './chat.module.css'
 import { MyMessage } from '../Message/MyMessage'
@@ -8,7 +8,7 @@ import { RefObject } from 'react'
 import loading from './images/loading.gif'
 import React from 'react'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
-import { format } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 
 interface IChatProps {
   messages: IMessage[] | []
@@ -33,6 +33,12 @@ export const ChatComponent: React.FC<IChatProps> = ({
       chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 10
 
     setShowScrollButton(isScrolledUp)
+  }
+
+  const formatDateLabel = (date: Date) => {
+    if (isToday(date)) return 'Today'
+    if (isYesterday(date)) return 'Yesterday'
+    return format(date, 'MMMM d')
   }
 
   // Скролл вниз при новом сообщении
@@ -70,34 +76,36 @@ export const ChatComponent: React.FC<IChatProps> = ({
   return (
     <div className={cl.chat} ref={chatRef}>
       {messages.map((el, index) => {
-        const prevMessage = index > 0 ? messages[index - 1] : null
-        const currentDate = format(
-          new Date(el.timestamp ?? new Date()),
-          'MMMM d'
-        )
-        const prevDate = prevMessage
-          ? format(new Date(prevMessage.timestamp ?? new Date()), 'MMMM d')
+        const currentMessageDate = new Date(el.timestamp ?? new Date())
+        const prevMessage = messages[index - 1]
+        const prevMessageDate = prevMessage
+          ? new Date(prevMessage.timestamp ?? new Date())
           : null
 
-        const shouldShowDateSeparator = currentDate !== prevDate
+        const shouldShowDate =
+          !prevMessageDate ||
+          format(currentMessageDate, 'yyyy-MM-dd') !==
+            format(prevMessageDate, 'yyyy-MM-dd')
 
         return (
-          <React.Fragment key={el._id || index}>
-            {shouldShowDateSeparator && <DateSeparator date={currentDate} />}
+          <Fragment key={index}>
+            {shouldShowDate && (
+              <DateSeparator date={formatDateLabel(currentMessageDate)} />
+            )}
             {el.username === localStorage.getItem('username') ? (
               <MyMessage
                 socket={socket}
                 message={el}
-                timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+                timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
               />
             ) : (
               <Message
                 message={el.text}
                 username={el.username}
-                timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+                timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
               />
             )}
-          </React.Fragment>
+          </Fragment>
         )
       })}
     </div>
