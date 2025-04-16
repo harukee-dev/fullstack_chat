@@ -1,13 +1,9 @@
-import { ChatsList } from '../../components/ChatsList/ChatsList'
-import { ChatTab } from '../../components/ChatTab/ChatTab'
-import { LeftWindow } from '../ChatPage/LeftWindow/LeftWindow'
-import { RightWindow } from '../ChatPage/RightWindow/RightWindow'
+import { DateSeparator } from '../../components/DateSeparator/DateSeparator'
 
 export const TestPage = () => {
   return (
-    <div style={{ display: 'flex', gap: '1.5vh' }}>
-      <LeftWindow />
-      <RightWindow />
+    <div>
+      <DateSeparator date="april 14" />
     </div>
   )
 }

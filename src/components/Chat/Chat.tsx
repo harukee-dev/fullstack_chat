@@ -6,6 +6,9 @@ import { IMessage } from '../../types/IMessage'
 import { RefObject } from 'react'
 // @ts-ignore
 import loading from './images/loading.gif'
+import React from 'react'
+import { DateSeparator } from '../DateSeparator/DateSeparator'
+import { format } from 'date-fns'
 
 interface IChatProps {
   messages: IMessage[] | []
@@ -66,23 +69,37 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
   return (
     <div className={cl.chat} ref={chatRef}>
-      {messages.map((el, index) =>
-        el.username === localStorage.getItem('username') ? (
-          <MyMessage
-            socket={socket}
-            key={index}
-            message={el}
-            timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
-          />
-        ) : (
-          <Message
-            key={index}
-            message={el.text}
-            username={el.username}
-            timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
-          />
+      {messages.map((el, index) => {
+        const prevMessage = index > 0 ? messages[index - 1] : null
+        const currentDate = format(
+          new Date(el.timestamp ?? new Date()),
+          'MMMM d'
         )
-      )}
+        const prevDate = prevMessage
+          ? format(new Date(prevMessage.timestamp ?? new Date()), 'MMMM d')
+          : null
+
+        const shouldShowDateSeparator = currentDate !== prevDate
+
+        return (
+          <React.Fragment key={el._id || index}>
+            {shouldShowDateSeparator && <DateSeparator date={currentDate} />}
+            {el.username === localStorage.getItem('username') ? (
+              <MyMessage
+                socket={socket}
+                message={el}
+                timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+              />
+            ) : (
+              <Message
+                message={el.text}
+                username={el.username}
+                timestamp={el.timestamp || '"01 Jan 1970 00:00:00 GMT"'}
+              />
+            )}
+          </React.Fragment>
+        )
+      })}
     </div>
   )
 }
