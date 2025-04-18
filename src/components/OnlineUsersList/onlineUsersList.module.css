@@ -5,7 +5,7 @@
   padding: 2vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   gap: 0.35vh;
   border-radius: 2vh;
   border: #444444 solid 1px;

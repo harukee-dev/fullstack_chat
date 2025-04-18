@@ -15,4 +15,6 @@ router.get('/messages', controller.getMessages)
 
 router.post('/editMessage', controller.editMessage)
 
+router.get('/getMessage/:id', controller.getMessageById)
+
 module.exports = router

@@ -3,4 +3,5 @@ export interface IMessage {
   text: string
   timestamp?: Date | string
   _id: string
+  replyMessage?: { username: string; text: string }
 }

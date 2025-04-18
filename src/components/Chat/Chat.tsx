@@ -100,8 +100,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
               />
             ) : (
               <Message
-                message={el.text}
-                username={el.username}
+                message={el}
                 timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
               />
             )}

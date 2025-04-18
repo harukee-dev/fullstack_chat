@@ -150,6 +150,20 @@ class authController {
       console.log(e)
     }
   }
+  async getMessageById(req, res) {
+    const { id } = req.params
+
+    try {
+      const message = await Message.findById(id)
+      if (!message) {
+        return res.status(404).json({ error: 'Сообщение не найдено' })
+      }
+      res.json(message)
+    } catch (error) {
+      console.error('Ошибка при получении сообщения:', error)
+      res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+    }
+  }
 }
 
 module.exports = new authController()

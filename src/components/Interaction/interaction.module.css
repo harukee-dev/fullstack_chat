@@ -3,6 +3,8 @@
 
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.15vw;
 
   padding: 2vh;
 }
@@ -13,7 +15,7 @@
   max-height: 8vh;
   min-height: 8vh;
   padding: 1.5vh;
-  border-radius: 20px;
+  border-radius: 2.5vh;
   border: #444444 solid 1px;
   font-size: 2vh;
   resize: none;
@@ -21,4 +23,51 @@
   outline: none;
   background-color: #1d1d1d;
   color: white;
+}
+
+.reply {
+  background-color: rgb(78, 78, 78);
+  color: white;
+  padding: 0.5vw 1vh;
+  border-radius: 1.75vh;
+  width: 6vw;
+  height: 8vh;
+  margin-top: -3vh;
+}
+
+.replyUsername {
+  font-size: 1.6vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  color: #ffffff;
+}
+
+.replyText {
+  font-size: 1.35vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  color: #afafaf;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replyButton {
+  background-color: transparent;
+  border: #ffffff0f solid 1px;
+  color: #989898;
+  font-weight: 100;
+  padding: 0.4vh;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 0.25vh;
+}
+
+.closeIcon {
+  width: 2vh;
 }

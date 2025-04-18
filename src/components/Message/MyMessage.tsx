@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import cl from './myMessage.module.css'
 import { motion } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
 import { API_URL } from '../../constants'
+import { useSwipeable } from 'react-swipeable'
+import { useDispatch } from 'react-redux'
+import { AppDispatch, useAppSelector } from '../../store'
+import { setReplyMessage } from '../../slices/replyMessageSlice'
 
 interface IMessageProps {
   message: IMessage
@@ -22,6 +26,20 @@ export const MyMessage: React.FC<IMessageProps> = ({
   })
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [textareaValue, setTextareaValue] = useState<string>(message.text)
+  const dispatch = useDispatch<AppDispatch>()
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (message) {
+        dispatch(setReplyMessage(message))
+        console.log(localStorage.getItem('replyMessage'))
+      }
+    },
+    delta: 50, // минимальное расстояние для триггера свайпа
+    preventScrollOnSwipe: true,
+    trackTouch: true,
+    trackMouse: true,
+  })
 
   const handleDoubleClick = () => {
     setIsEditing(true)
@@ -41,8 +59,15 @@ export const MyMessage: React.FC<IMessageProps> = ({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
+      {...handlers}
     >
       <div onDoubleClick={handleDoubleClick} className={cl.container}>
+        {message.replyMessage && (
+          <div className={cl.reply}>
+            <p className={cl.replyUsername}>{message.replyMessage.username}</p>
+            <p className={cl.replyText}>{message.replyMessage.text}</p>
+          </div>
+        )}
         {!isEditing ? (
           <p className={cl.text}>{message.text}</p>
         ) : (

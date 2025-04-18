@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { RootState } from '../../../store'
+import { RootState, useAppSelector } from '../../../store'
 import { ChatComponent } from '../../../components/Chat/Chat'
 import { Interaction } from '../../../components/Interaction/Interaction'
 import cl from './rightWindow.module.css'
@@ -22,6 +22,7 @@ export const RightWindow = () => {
   const username = localStorage.getItem('username')
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
   const chatRef = useRef<HTMLDivElement>(null)
+  const replyMessage = useAppSelector((state) => state.reply.message)
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -69,14 +70,6 @@ export const RightWindow = () => {
       try {
         const response = await fetch(API_URL + '/auth/messages')
         const data = await response.json()
-
-        data.forEach((msg: IMessage) => {
-          if (!msg._id) {
-            console.warn('Сообщение без _id:', msg)
-          } else {
-            console.log(msg._id)
-          }
-        })
 
         setMessages(data)
       } catch (error) {
@@ -137,7 +130,9 @@ export const RightWindow = () => {
           socket={socket}
           message={message}
           setMessage={setMessage}
-          sendMessage={() => sendMessage(socket, message, setMessage)}
+          sendMessage={() =>
+            sendMessage(socket, message, setMessage, replyMessage)
+          }
           scrollFunc={scrollToBottom}
         />
       </div>

@@ -8,14 +8,14 @@
 
 .container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 1vh;
   background-color: #272727;
 
   min-width: 5%;
   max-width: 40%;
 
-  padding: 1.5vh 2vh;
+  padding: 1.4vh 1.5vh 1.25vh 1.5vh;
   border-radius: 20px;
 
   width: fit-content;
@@ -57,4 +57,32 @@
 
   /* Меньше прозрачности, чтобы не отвлекать внимание */
   font-weight: 300;
+}
+
+.reply {
+  background-color: rgba(240, 240, 240, 0.174);
+  color: white;
+  padding: 0.5vw 1vh;
+  border-radius: 0.75vh;
+  width: 100%;
+}
+
+.replyUsername {
+  font-size: 1.6vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  color: #ffffff;
+}
+
+.replyText {
+  font-size: 1.35vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  color: #dedede;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -47,22 +47,46 @@ io.on('connection', (socket) => {
   socket.on('message', async (message) => {
     if (!message || !message.text) return
 
-    const newMessage = new Message({
+    const reply = {
+      username: message.replyUser || null,
+      text: message.replyText || null,
+    }
+
+    let newMessage = new Message({
       username: socket.user.username,
       text: message.text,
       timestamp: Date.now(),
     })
 
+    if (reply.username !== null && reply.text !== null) {
+      newMessage = new Message({
+        username: socket.user.username,
+        text: message.text,
+        timestamp: Date.now(),
+        replyMessage: { username: reply.username, text: reply.text },
+      })
+    }
+
     console.log(newMessage)
 
     try {
       await newMessage.save()
-      io.emit('message', {
-        _id: newMessage._id.toString(), // <--- добавляем id как строку
-        username: socket.user.username,
-        text: newMessage.text,
-        timestamp: newMessage.timestamp,
-      })
+      if (reply.username !== null && reply.text !== null) {
+        io.emit('message', {
+          _id: newMessage._id.toString(), // <--- добавляем id как строку
+          username: socket.user.username,
+          text: newMessage.text,
+          timestamp: newMessage.timestamp,
+          replyMessage: { username: reply.username, text: reply.text },
+        })
+      } else {
+        io.emit('message', {
+          _id: newMessage._id.toString(), // <--- добавляем id как строку
+          username: socket.user.username,
+          text: newMessage.text,
+          timestamp: newMessage.timestamp,
+        })
+      }
     } catch (error) {
       console.error('Ошибка при сохранении сообщения:', error)
     }
