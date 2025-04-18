@@ -16,7 +16,7 @@
   max-width: 40%;
 
   padding: 1.4vh 1.5vh 1.25vh 1.5vh;
-  border-radius: 20px;
+  border-radius: 2vh;
 
   width: fit-content;
 
@@ -63,7 +63,7 @@
   background-color: rgba(240, 240, 240, 0.174);
   color: white;
   padding: 0.5vw 1vh;
-  border-radius: 0.75vh;
+  border-radius: 1vh;
   width: 100%;
 }
 
