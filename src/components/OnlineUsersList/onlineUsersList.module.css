@@ -1,6 +1,6 @@
 .container {
   position: absolute;
-  top: 7vh;
+  top: 8vh;
   background-color: #191919;
   padding: 2vh;
   display: flex;
@@ -23,6 +23,7 @@
   color: white;
   font-family: serif 'FF Mark Black';
   font-weight: 100;
+  font-size: 2vh;
   white-space: nowrap;
 }
 
