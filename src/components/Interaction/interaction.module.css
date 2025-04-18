@@ -30,6 +30,7 @@
   color: white;
   padding: 0.5vw 1vh;
   border-radius: 1.75vh;
+  min-width: 45px;
   width: 6vw;
   height: 8vh;
   margin-top: -3vh;
