@@ -10,9 +10,14 @@ import { setReplyMessage } from '../../slices/replyMessageSlice'
 interface IMessageProps {
   message: IMessage
   timestamp: Date | string
+  setRef?: (ref: HTMLDivElement | null) => void
 }
 
-export const Message: React.FC<IMessageProps> = ({ message, timestamp }) => {
+export const Message: React.FC<IMessageProps> = ({
+  message,
+  timestamp,
+  setRef,
+}) => {
   const date = new Date(timestamp)
   const time = date.toLocaleTimeString([], {
     hour: '2-digit',
@@ -34,23 +39,27 @@ export const Message: React.FC<IMessageProps> = ({ message, timestamp }) => {
   })
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.6 }}
-      {...handlers}
-    >
-      <p className={cl.username}>{message.username}</p>
-      <div className={cl.container}>
-        {message.replyMessage && (
-          <div className={cl.reply}>
-            <p className={cl.replyUsername}>{message.replyMessage.username}</p>
-            <p className={cl.replyText}>{message.replyMessage.text}</p>
-          </div>
-        )}
-        <p className={cl.text}>{message.text}</p>
-        <span className={cl.timestamp}>{time}</span>
-      </div>
-    </motion.div>
+    <div ref={setRef}>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        {...handlers}
+      >
+        <p className={cl.username}>{message.username}</p>
+        <div className={cl.container}>
+          {message.replyMessage && (
+            <div className={cl.reply}>
+              <p className={cl.replyUsername}>
+                {message.replyMessage.username}
+              </p>
+              <p className={cl.replyText}>{message.replyMessage.text}</p>
+            </div>
+          )}
+          <p className={cl.text}>{message.text}</p>
+          <span className={cl.timestamp}>{time}</span>
+        </div>
+      </motion.div>
+    </div>
   )
 }

@@ -12,12 +12,14 @@ interface IMessageProps {
   message: IMessage
   timestamp: Date | string
   socket: any
+  setRef?: (ref: HTMLDivElement | null) => void
 }
 
 export const MyMessage: React.FC<IMessageProps> = ({
   message,
   timestamp,
   socket,
+  setRef,
 }) => {
   const date = new Date(timestamp)
   const time = date.toLocaleTimeString([], {
@@ -55,37 +57,41 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.6 }}
-      {...handlers}
-    >
-      <div onDoubleClick={handleDoubleClick} className={cl.container}>
-        {message.replyMessage && (
-          <div className={cl.reply}>
-            <p className={cl.replyUsername}>{message.replyMessage.username}</p>
-            <p className={cl.replyText}>{message.replyMessage.text}</p>
-          </div>
-        )}
-        {!isEditing ? (
-          <p className={cl.text}>{message.text}</p>
-        ) : (
-          <textarea
-            className={cl.textarea}
-            onBlur={handleBlur}
-            value={textareaValue}
-            onChange={(e) => setTextareaValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault() // Предотвращаем перевод строки
-                e.currentTarget.blur() // Триггерим blur → отправка
-              }
-            }}
-          ></textarea>
-        )}
-        <span className={cl.timestamp}>{time}</span>
-      </div>
-    </motion.div>
+    <div ref={setRef}>
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        {...handlers}
+      >
+        <div onDoubleClick={handleDoubleClick} className={cl.container}>
+          {message.replyMessage && (
+            <div className={cl.reply}>
+              <p className={cl.replyUsername}>
+                {message.replyMessage.username}
+              </p>
+              <p className={cl.replyText}>{message.replyMessage.text}</p>
+            </div>
+          )}
+          {!isEditing ? (
+            <p className={cl.text}>{message.text}</p>
+          ) : (
+            <textarea
+              className={cl.textarea}
+              onBlur={handleBlur}
+              value={textareaValue}
+              onChange={(e) => setTextareaValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault() // Предотвращаем перевод строки
+                  e.currentTarget.blur() // Триггерим blur → отправка
+                }
+              }}
+            ></textarea>
+          )}
+          <span className={cl.timestamp}>{time}</span>
+        </div>
+      </motion.div>
+    </div>
   )
 }

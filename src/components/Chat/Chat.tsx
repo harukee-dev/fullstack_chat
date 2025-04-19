@@ -25,8 +25,8 @@ export const ChatComponent: React.FC<IChatProps> = ({
   socket,
 }) => {
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  // Обновлять закреплённые сообщения при изменении messages
   useEffect(() => {
     const pinned = messages.filter((el) => el.isPinned)
     setPinnedMessages(pinned)
@@ -48,7 +48,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
     return format(date, 'MMMM d')
   }
 
-  // Скролл вниз при новом сообщении
   useEffect(() => {
     const chatEl = chatRef.current
     if (chatEl) {
@@ -57,7 +56,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
     }
   }, [messages])
 
-  // Навешиваем обработчик скролла
   useEffect(() => {
     const chatEl = chatRef.current
     if (!chatEl) return
@@ -83,7 +81,10 @@ export const ChatComponent: React.FC<IChatProps> = ({
   return (
     <div className={cl.chat} ref={chatRef}>
       {pinnedMessages.length > 0 && (
-        <PinnedMessages pinnedMessages={pinnedMessages} />
+        <PinnedMessages
+          pinnedMessages={pinnedMessages}
+          messageRefs={messageRefs.current}
+        />
       )}
 
       {messages.map((el, index) => {
@@ -98,6 +99,15 @@ export const ChatComponent: React.FC<IChatProps> = ({
           format(currentMessageDate, 'yyyy-MM-dd') !==
             format(prevMessageDate, 'yyyy-MM-dd')
 
+        // создаем ref если его ещё нет
+        if (!messageRefs.current[el._id]) {
+          messageRefs.current[el._id] = null
+        }
+
+        const setRef = (ref: HTMLDivElement | null) => {
+          messageRefs.current[el._id] = ref
+        }
+
         return (
           <Fragment key={el._id || index}>
             {shouldShowDate && (
@@ -108,11 +118,13 @@ export const ChatComponent: React.FC<IChatProps> = ({
                 socket={socket}
                 message={el}
                 timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
+                setRef={setRef}
               />
             ) : (
               <Message
                 message={el}
                 timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
+                setRef={setRef}
               />
             )}
           </Fragment>
