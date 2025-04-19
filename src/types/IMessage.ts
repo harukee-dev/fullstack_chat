@@ -4,4 +4,5 @@ export interface IMessage {
   timestamp?: Date | string
   _id: string
   replyMessage?: { username: string; text: string }
+  isPinned?: boolean
 }

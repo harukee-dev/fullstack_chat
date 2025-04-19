@@ -1,9 +1,5 @@
-import { DateSeparator } from '../../components/DateSeparator/DateSeparator'
+import { PinnedMessages } from '../../components/PinnedMessages/PinnedMessages'
 
 export const TestPage = () => {
-  return (
-    <div>
-      <DateSeparator date="april 14" />
-    </div>
-  )
+  return <div></div>
 }

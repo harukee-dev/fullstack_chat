@@ -8,7 +8,6 @@ import cl from './rightWindow.module.css'
 import { sendMessage } from '../ChatPageUtils'
 import { API_URL } from '../../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
-import { OnlineUsersList } from '../../../components/OnlineUsersList/OnlineUsersList'
 import { IMessage } from '../../../types/IMessage'
 
 export const RightWindow = () => {
@@ -18,7 +17,6 @@ export const RightWindow = () => {
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
   const [usersTyping, setUsersTyping] = useState<string[]>([])
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const username = localStorage.getItem('username')
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
   const chatRef = useRef<HTMLDivElement>(null)
@@ -44,10 +42,6 @@ export const RightWindow = () => {
 
       newSocket.on('usersTyping', (usernames: string[]) => {
         setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
-      })
-
-      newSocket.on('onlineUsers', (onlineUsers: string[]) => {
-        setOnlineUsers(onlineUsers)
       })
 
       newSocket.on('messageEdited', (updatedMessage: IMessage) => {
@@ -97,12 +91,6 @@ export const RightWindow = () => {
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <div className={cl.chatPage}>
-        {/* ONLINE BUTTON */}
-        <button onClick={handleOnlineButton} className={cl.onlineListButton}>
-          <div className={cl.onlineCircle} />
-          {onlineUsers.length}
-        </button>
-        <OnlineUsersList isOpened={onlineListIsOpened} users={onlineUsers} />
         <ChatComponent
           socket={socket}
           chatRef={chatRef}

@@ -1,17 +1,16 @@
-import { Fragment, useEffect, useRef } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Message } from '../Message/Message'
-import cl from './chat.module.css'
 import { MyMessage } from '../Message/MyMessage'
 import { IMessage } from '../../types/IMessage'
 import { RefObject } from 'react'
-// @ts-ignore
 import loading from './images/loading.gif'
-import React from 'react'
+import cl from './chat.module.css'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
+import { PinnedMessages } from '../PinnedMessages/PinnedMessages'
 
 interface IChatProps {
-  messages: IMessage[] | []
+  messages: IMessage[]
   isClear: boolean
   setShowScrollButton: (value: boolean) => void
   chatRef: RefObject<HTMLDivElement | null>
@@ -25,6 +24,14 @@ export const ChatComponent: React.FC<IChatProps> = ({
   chatRef,
   socket,
 }) => {
+  const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
+
+  // Обновлять закреплённые сообщения при изменении messages
+  useEffect(() => {
+    const pinned = messages.filter((el) => el.isPinned)
+    setPinnedMessages(pinned)
+  }, [messages])
+
   const handleScroll = () => {
     const chatEl = chatRef.current
     if (!chatEl) return
@@ -46,7 +53,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     const chatEl = chatRef.current
     if (chatEl) {
       chatEl.scrollTop = chatEl.scrollHeight
-      handleScroll() // Проверка скролла после прокрутки
+      handleScroll()
     }
   }, [messages])
 
@@ -56,7 +63,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (!chatEl) return
 
     chatEl.addEventListener('scroll', handleScroll)
-    handleScroll() // Проверка при инициализации
+    handleScroll()
 
     return () => {
       chatEl.removeEventListener('scroll', handleScroll)
@@ -75,6 +82,10 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
   return (
     <div className={cl.chat} ref={chatRef}>
+      {pinnedMessages.length > 0 && (
+        <PinnedMessages pinnedMessages={pinnedMessages} />
+      )}
+
       {messages.map((el, index) => {
         const currentMessageDate = new Date(el.timestamp ?? new Date())
         const prevMessage = messages[index - 1]
@@ -88,7 +99,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
             format(prevMessageDate, 'yyyy-MM-dd')
 
         return (
-          <Fragment key={index}>
+          <Fragment key={el._id || index}>
             {shouldShowDate && (
               <DateSeparator date={formatDateLabel(currentMessageDate)} />
             )}
