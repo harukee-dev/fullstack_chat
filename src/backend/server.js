@@ -102,6 +102,21 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('usersTyping', Array.from(typingUsers))
   })
 
+  socket.on('newPin', async ({ _id }) => {
+    try {
+      const pinnedMessage = await Message.findByIdAndUpdate(_id, {
+        isPinned: true,
+      })
+      if (pinnedMessage) {
+        io.emit('messagePinned', pinnedMessage)
+      } else {
+        console.error('ошибка при закреплении сообщения')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  })
+
   socket.on('disconnect', () => {
     typingUsers.delete(socket.user.username)
     onlineUsers.delete(socket.user.username)

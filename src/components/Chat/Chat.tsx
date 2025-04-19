@@ -28,6 +28,14 @@ export const ChatComponent: React.FC<IChatProps> = ({
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
+    if (!socket) return
+
+    socket.on('messagePinned', (pinnedMessage: IMessage) => {
+      setPinnedMessages((p) => [...p, pinnedMessage])
+    })
+  }, [socket, messages])
+
+  useEffect(() => {
     const pinned = messages.filter((el) => el.isPinned)
     setPinnedMessages(pinned)
   }, [messages])
@@ -122,6 +130,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
               />
             ) : (
               <Message
+                socket={socket}
                 message={el}
                 timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
                 setRef={setRef}

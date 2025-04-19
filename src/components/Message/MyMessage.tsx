@@ -37,6 +37,11 @@ export const MyMessage: React.FC<IMessageProps> = ({
         console.log(localStorage.getItem('replyMessage'))
       }
     },
+    onSwipedUp: () => {
+      if (message) {
+        socket.emit('newPin', { _id: message._id })
+      }
+    },
     delta: 50, // минимальное расстояние для триггера свайпа
     preventScrollOnSwipe: true,
     trackTouch: true,

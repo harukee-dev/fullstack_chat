@@ -11,12 +11,14 @@ interface IMessageProps {
   message: IMessage
   timestamp: Date | string
   setRef?: (ref: HTMLDivElement | null) => void
+  socket: any
 }
 
 export const Message: React.FC<IMessageProps> = ({
   message,
   timestamp,
   setRef,
+  socket,
 }) => {
   const date = new Date(timestamp)
   const time = date.toLocaleTimeString([], {
@@ -30,6 +32,11 @@ export const Message: React.FC<IMessageProps> = ({
       if (message) {
         dispatch(setReplyMessage(message))
         console.log(localStorage.getItem('replyMessage'))
+      }
+    },
+    onSwipedUp: () => {
+      if (message) {
+        socket.emit('newPin', { _id: message._id })
       }
     },
     delta: 50,
