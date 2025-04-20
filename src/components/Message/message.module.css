@@ -7,6 +7,7 @@
 }
 
 .container {
+  position: relative; /* <-- добавлено */
   display: flex;
   flex-direction: column;
   gap: 1vh;
@@ -85,4 +86,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.interactionContainer {
+  position: absolute;
+  top: -10vh;
+  left: 100%; /* Меню появится справа от сообщения */
+  margin-left: -16.5vh; /* Отступ от сообщения */
+  z-index: 0;
 }

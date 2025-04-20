@@ -1,5 +1,5 @@
-import { PinnedMessages } from '../../components/PinnedMessages/PinnedMessages'
+import { MessageInteraction } from '../../components/MessageInteraction/MessageInteraction'
 
 export const TestPage = () => {
-  return <div></div>
+  return <p>hello</p>
 }

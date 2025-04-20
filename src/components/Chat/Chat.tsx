@@ -31,7 +31,8 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (!socket) return
 
     socket.on('messagePinned', (pinnedMessage: IMessage) => {
-      setPinnedMessages((p) => [...p, pinnedMessage])
+      const pinned = messages.filter((el) => el.isPinned)
+      setPinnedMessages(pinned)
     })
   }, [socket, messages])
 

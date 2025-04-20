@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import cl from './message.module.css'
-import { motion } from 'framer-motion'
-import { useSwipeable } from 'react-swipeable'
+import { motion, AnimatePresence } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
+import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
 
 interface IMessageProps {
   message: IMessage
@@ -26,24 +26,25 @@ export const Message: React.FC<IMessageProps> = ({
     minute: '2-digit',
   })
   const dispatch = useDispatch<AppDispatch>()
+  const [isInteraction, setIsInteraction] = useState<boolean>(false)
 
-  const handlers = useSwipeable({
-    onSwipedRight: () => {
-      if (message) {
-        dispatch(setReplyMessage(message))
-        console.log(localStorage.getItem('replyMessage'))
-      }
-    },
-    onSwipedUp: () => {
-      if (message) {
-        socket.emit('newPin', { _id: message._id })
-      }
-    },
-    delta: 50,
-    preventScrollOnSwipe: true,
-    trackTouch: true,
-    trackMouse: true,
-  })
+  const handlePin = () => {
+    if (message) {
+      socket.emit('newPin', { _id: message._id })
+    }
+  }
+
+  const handleReply = () => {
+    if (message) {
+      dispatch(setReplyMessage(message))
+      console.log(localStorage.getItem('replyMessage'))
+    }
+  }
+
+  const handleClick = () => {
+    setIsInteraction((interaction) => !interaction)
+    console.log(isInteraction)
+  }
 
   return (
     <div ref={setRef}>
@@ -51,10 +52,28 @@ export const Message: React.FC<IMessageProps> = ({
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        {...handlers}
       >
         <p className={cl.username}>{message.username}</p>
-        <div className={cl.container}>
+        <div onClick={handleClick} className={cl.container}>
+          <AnimatePresence>
+            {isInteraction && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+                className={cl.interactionContainer}
+              >
+                <MessageInteraction
+                  editFunc={null}
+                  deleteFunc={null}
+                  pinFunc={handlePin}
+                  replyFunc={handleReply}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {message.replyMessage && (
             <div className={cl.reply}>
               <p className={cl.replyUsername}>
@@ -63,7 +82,9 @@ export const Message: React.FC<IMessageProps> = ({
               <p className={cl.replyText}>{message.replyMessage.text}</p>
             </div>
           )}
-          <p className={cl.text}>{message.text}</p>
+          <p onBlur={() => setIsInteraction(false)} className={cl.text}>
+            {message.text}
+          </p>
           <span className={cl.timestamp}>{time}</span>
         </div>
       </motion.div>
