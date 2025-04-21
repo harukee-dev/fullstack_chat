@@ -52,6 +52,12 @@ export const RightWindow = () => {
         )
       })
 
+      newSocket.on('messageDeleted', (deletedMessage) => {
+        setMessages((prevMessages) =>
+          prevMessages.filter((message) => message._id !== deletedMessage._id)
+        )
+      })
+
       return () => {
         newSocket.disconnect()
       }

@@ -63,6 +63,11 @@ export const MyMessage: React.FC<IMessageProps> = ({
     }
   }
 
+  const handleDelete = () => {
+    socket.emit('deleteMessage', { _id: message._id })
+    console.log('request to delete, _id: ' + message._id)
+  }
+
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
     console.log(isInteraction)
@@ -96,7 +101,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
               >
                 <MessageInteraction
                   editFunc={() => setIsEditing(true)}
-                  deleteFunc={() => console.log('deleted')}
+                  deleteFunc={handleDelete}
                   pinFunc={handlePin}
                   replyFunc={handleReply}
                 />

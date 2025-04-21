@@ -117,6 +117,24 @@ io.on('connection', (socket) => {
     }
   })
 
+  socket.on('deleteMessage', async ({ _id }) => {
+    try {
+      const deletedMessage = await Message.findByIdAndDelete(_id)
+
+      if (!deletedMessage) {
+        socket.emit('error', { message: 'Message not found' })
+        return
+      }
+
+      socket.broadcast.emit('messageDeleted', { _id })
+
+      socket.emit('messageDeleted', { _id })
+    } catch (error) {
+      console.error('Error deleting message:', error)
+      socket.emit('error', { message: 'Failed to delete message' })
+    }
+  })
+
   socket.on('disconnect', () => {
     typingUsers.delete(socket.user.username)
     onlineUsers.delete(socket.user.username)
