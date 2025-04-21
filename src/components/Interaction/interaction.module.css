@@ -1,13 +1,11 @@
 .container {
   width: 60vw;
-
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.15vw;
-
-  padding: 2vh;
   z-index: 10;
+  padding: 2vh;
 }
 
 .input {
@@ -24,6 +22,7 @@
   outline: none;
   background-color: #1d1d1d;
   color: white;
+  z-index: 10;
 }
 
 .reply {

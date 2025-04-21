@@ -90,7 +90,7 @@
 
 .interactionContainer {
   position: absolute;
-  top: -10vh;
+  top: -11.75vh;
   left: 100%; /* Меню появится справа от сообщения */
   margin-left: -16.5vh; /* Отступ от сообщения */
   z-index: 0;

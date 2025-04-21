@@ -90,8 +90,7 @@
 
 .interactionContainer {
   position: absolute;
-  top: -10vh;
+  top: -19vh;
   right: 100%;
   margin-right: 1vh;
-  z-index: 0;
 }
