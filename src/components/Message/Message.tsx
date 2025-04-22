@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import cl from './message.module.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
@@ -27,10 +27,28 @@ export const Message: React.FC<IMessageProps> = ({
   })
   const dispatch = useDispatch<AppDispatch>()
   const [isInteraction, setIsInteraction] = useState<boolean>(false)
+  const [isPinned, setIsPinned] = useState(message.isPinned || false)
+  console.log(isPinned)
+
+  useEffect(() => {
+    socket.on('messagePinned', (pinmsg: IMessage) => {
+      if (pinmsg._id === message._id) {
+        setIsPinned(true)
+      }
+    })
+    socket.on('messageUnpinned', (unpinnedMessage: IMessage) => {
+      if (unpinnedMessage._id === message._id) {
+        setIsPinned(false)
+      }
+    })
+  }, [socket])
 
   const handlePin = () => {
-    if (message) {
+    if (message && !isPinned) {
       socket.emit('newPin', { _id: message._id })
+    }
+    if (message && isPinned) {
+      socket.emit('unpin', { _id: message._id })
     }
   }
 
@@ -65,6 +83,7 @@ export const Message: React.FC<IMessageProps> = ({
                 className={cl.interactionContainer}
               >
                 <MessageInteraction
+                  isPinned={isPinned}
                   editFunc={null}
                   deleteFunc={null}
                   pinFunc={handlePin}

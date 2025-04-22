@@ -5,6 +5,7 @@ interface IMessageInteractionProps {
   pinFunc: any
   deleteFunc?: any
   editFunc?: any
+  isPinned: boolean
 }
 
 export const MessageInteraction: React.FC<IMessageInteractionProps> = ({
@@ -12,6 +13,7 @@ export const MessageInteraction: React.FC<IMessageInteractionProps> = ({
   editFunc,
   deleteFunc,
   pinFunc,
+  isPinned,
 }) => {
   const isMyMessage = editFunc !== null && deleteFunc !== null
 
@@ -22,7 +24,7 @@ export const MessageInteraction: React.FC<IMessageInteractionProps> = ({
           Reply
         </button>
         <button onClick={pinFunc} className={cl.button}>
-          Pin
+          {isPinned ? 'Unpin' : 'Pin'}
         </button>
         <button onClick={editFunc} className={cl.button}>
           Edit
@@ -39,7 +41,7 @@ export const MessageInteraction: React.FC<IMessageInteractionProps> = ({
         Reply
       </button>
       <button onClick={pinFunc} className={cl.button}>
-        Pin
+        {isPinned ? 'Unpin' : 'Pin'}
       </button>
     </div>
   )

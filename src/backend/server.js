@@ -117,6 +117,21 @@ io.on('connection', (socket) => {
     }
   })
 
+  socket.on('unpin', async ({ _id }) => {
+    try {
+      const unpinnedMessage = await Message.findByIdAndUpdate(_id, {
+        isPinned: false,
+      })
+      if (unpinnedMessage) {
+        io.emit('messageUnpinned', unpinnedMessage)
+      } else {
+        console.error('ошибка при закреплении сообщения')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  })
+
   socket.on('deleteMessage', async ({ _id }) => {
     try {
       const deletedMessage = await Message.findByIdAndDelete(_id)

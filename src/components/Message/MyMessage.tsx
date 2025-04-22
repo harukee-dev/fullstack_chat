@@ -31,28 +31,27 @@ export const MyMessage: React.FC<IMessageProps> = ({
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [textareaValue, setTextareaValue] = useState<string>(message.text)
   const dispatch = useDispatch<AppDispatch>()
+  const [isPinned, setIsPinned] = useState(message.isPinned || false)
 
-  // const handlers = useSwipeable({
-  //   onSwipedLeft: () => {
-  //     if (message) {
-  //       dispatch(setReplyMessage(message))
-  //       console.log(localStorage.getItem('replyMessage'))
-  //     }
-  //   },
-  //   onSwipedUp: () => {
-  //     if (message) {
-  //       socket.emit('newPin', { _id: message._id })
-  //     }
-  //   },
-  //   delta: 50, // минимальное расстояние для триггера свайпа
-  //   preventScrollOnSwipe: true,
-  //   trackTouch: true,
-  //   trackMouse: true,
-  // })
+  useEffect(() => {
+    socket.on('messagePinned', (pinmsg: IMessage) => {
+      if (pinmsg._id === message._id) {
+        setIsPinned(true)
+      }
+    })
+    socket.on('messageUnpinned', (unpinnedMessage: IMessage) => {
+      if (unpinnedMessage._id === message._id) {
+        setIsPinned(false)
+      }
+    })
+  }, [socket])
 
   const handlePin = () => {
-    if (message) {
+    if (message && !isPinned) {
       socket.emit('newPin', { _id: message._id })
+    }
+    if (message && isPinned) {
+      socket.emit('unpin', { _id: message._id })
     }
   }
 
@@ -100,6 +99,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
                 className={cl.interactionContainer}
               >
                 <MessageInteraction
+                  isPinned={isPinned}
                   editFunc={() => setIsEditing(true)}
                   deleteFunc={handleDelete}
                   pinFunc={handlePin}
