@@ -1,4 +1,5 @@
 import { jwtDecode } from 'jwt-decode'
+import { IMessage } from '../../types/IMessage'
 
 export const isTokenValid = (token: any) => {
   if (!token) return false
@@ -10,7 +11,12 @@ export const isTokenValid = (token: any) => {
   }
 }
 
-export const sendMessage = (socket: any, message: string, setMessage: any) => {
+export const sendMessage = (
+  socket: any,
+  message: string,
+  setMessage: any,
+  replyMessage: IMessage | null
+) => {
   if (!socket || message.trim() === '') {
     console.log('Ошибка: сообщение пустое или сокет не подключен')
     return
@@ -39,7 +45,15 @@ export const sendMessage = (socket: any, message: string, setMessage: any) => {
 
   // Отправляем оставшийся буфер
   if (buffer.length > 0) {
-    socket.emit('message', { text: buffer })
+    if (replyMessage !== null) {
+      socket.emit('message', {
+        text: buffer,
+        replyUser: replyMessage.username,
+        replyText: replyMessage.text,
+      })
+    } else {
+      socket.emit('message', { text: buffer })
+    }
   }
   setMessage('')
 }

@@ -1,5 +1,4 @@
 const User = require('./models/User')
-const Role = require('./models/Role')
 const bcrypt = require('bcryptjs')
 const { validationResult } = require('express-validator')
 const jwt = require('jsonwebtoken')
@@ -127,6 +126,41 @@ class authController {
     } catch (e) {
       console.log(e)
       response.status(500).json({ message: 'Ошибка при получении сообщений' })
+    }
+  }
+
+  async editMessage(req, res) {
+    try {
+      const { id, text } = req.body
+      if (!id || !text) {
+        return res.status(400).json({ message: 'Недостаточно данных' })
+      }
+
+      try {
+        const updated = await Message.findByIdAndUpdate(id, { text })
+        if (!updated)
+          return res.status(404).json({ message: 'Сообщение не найдено' })
+        return res.json(updated)
+      } catch (e) {
+        console.error(e)
+        res.status(500).json({ message: 'Ошибка сервера' })
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  async getMessageById(req, res) {
+    const { id } = req.params
+
+    try {
+      const message = await Message.findById(id)
+      if (!message) {
+        return res.status(404).json({ error: 'Сообщение не найдено' })
+      }
+      res.json(message)
+    } catch (error) {
+      console.error('Ошибка при получении сообщения:', error)
+      res.status(500).json({ error: 'Внутренняя ошибка сервера' })
     }
   }
 }

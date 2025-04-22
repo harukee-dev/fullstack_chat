@@ -1,0 +1,92 @@
+.leftContainer {
+  width: 28vw;
+  height: 97vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin: 1.5vh 0 0 1.5vh;
+  border: #444444 solid 1px;
+  border-radius: 2vh;
+}
+
+.leftContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.buttonsContainer {
+  margin-top: 3vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5vh;
+}
+
+.boostyButton {
+  width: 25vw;
+  max-width: 25vw;
+  height: 7vh;
+  max-height: 7vh;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 2.5vh;
+  color: white;
+  font-family: serif 'FF Mark Black';
+  font-weight: 800;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.friendsButton {
+  width: 20vw;
+  max-width: 25vw;
+  height: 7vh;
+  max-height: 7vh;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 2.5vh;
+  color: white;
+  font-family: serif 'FF Mark Black';
+  font-weight: 800;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.settingsButton {
+  width: 4.2vw;
+  max-width: 25vw;
+  height: 7vh;
+  max-height: 7vh;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 2.5vh;
+  color: white;
+  font-family: serif 'FF Mark Black';
+  font-weight: 800;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boostyButton:hover {
+  background-color: #222222;
+}
+
+.friendsButton:hover {
+  background-color: #222222;
+}
+
+.settingsButton:hover {
+  background-color: #222222;
+}
+
+.hr {
+  width: 17.5vw;
+  height: 1px;
+  background-color: #444444;
+  margin: 0 auto;
+}

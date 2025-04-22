@@ -1,12 +1,5 @@
-import { ChatComponent } from '../../components/Chat/Chat'
+import { MessageInteraction } from '../../components/MessageInteraction/MessageInteraction'
 
 export const TestPage = () => {
-  return (
-    <div>
-      <ChatComponent
-        messages={[{ username: 'harukee', text: 'hello' }]}
-        isClear={true}
-      />
-    </div>
-  )
+  return <p>hello</p>
 }

@@ -38,26 +38,55 @@ io.use((socket, next) => {
 })
 
 const typingUsers = new Set()
+const onlineUsers = new Set()
 
 io.on('connection', (socket) => {
+  onlineUsers.add(socket.user.username)
+  io.emit('onlineUsers', Array.from(onlineUsers))
+
   socket.on('message', async (message) => {
     if (!message || !message.text) return
 
-    const newMessage = new Message({
+    const reply = {
+      username: message.replyUser || null,
+      text: message.replyText || null,
+    }
+
+    let newMessage = new Message({
       username: socket.user.username,
       text: message.text,
       timestamp: Date.now(),
     })
 
+    if (reply.username !== null && reply.text !== null) {
+      newMessage = new Message({
+        username: socket.user.username,
+        text: message.text,
+        timestamp: Date.now(),
+        replyMessage: { username: reply.username, text: reply.text },
+      })
+    }
+
     console.log(newMessage)
 
     try {
       await newMessage.save()
-      io.emit('message', {
-        username: socket.user.username,
-        text: message.text,
-        timestamp: newMessage.timestamp,
-      })
+      if (reply.username !== null && reply.text !== null) {
+        io.emit('message', {
+          _id: newMessage._id.toString(), // <--- добавляем id как строку
+          username: socket.user.username,
+          text: newMessage.text,
+          timestamp: newMessage.timestamp,
+          replyMessage: { username: reply.username, text: reply.text },
+        })
+      } else {
+        io.emit('message', {
+          _id: newMessage._id.toString(), // <--- добавляем id как строку
+          username: socket.user.username,
+          text: newMessage.text,
+          timestamp: newMessage.timestamp,
+        })
+      }
     } catch (error) {
       console.error('Ошибка при сохранении сообщения:', error)
     }
@@ -73,9 +102,75 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('usersTyping', Array.from(typingUsers))
   })
 
+  socket.on('newPin', async ({ _id }) => {
+    try {
+      const pinnedMessage = await Message.findByIdAndUpdate(_id, {
+        isPinned: true,
+      })
+      if (pinnedMessage) {
+        io.emit('messagePinned', pinnedMessage)
+      } else {
+        console.error('ошибка при закреплении сообщения')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  })
+
+  socket.on('unpin', async ({ _id }) => {
+    try {
+      const unpinnedMessage = await Message.findByIdAndUpdate(_id, {
+        isPinned: false,
+      })
+      if (unpinnedMessage) {
+        io.emit('messageUnpinned', unpinnedMessage)
+      } else {
+        console.error('ошибка при закреплении сообщения')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  })
+
+  socket.on('deleteMessage', async ({ _id }) => {
+    try {
+      const deletedMessage = await Message.findByIdAndDelete(_id)
+
+      if (!deletedMessage) {
+        socket.emit('error', { message: 'Message not found' })
+        return
+      }
+
+      socket.broadcast.emit('messageDeleted', { _id })
+
+      socket.emit('messageDeleted', { _id })
+    } catch (error) {
+      console.error('Error deleting message:', error)
+      socket.emit('error', { message: 'Failed to delete message' })
+    }
+  })
+
   socket.on('disconnect', () => {
     typingUsers.delete(socket.user.username)
+    onlineUsers.delete(socket.user.username)
+    io.emit('onlineUsers', Array.from(onlineUsers))
     io.emit('usersTyping', Array.from(typingUsers))
+  })
+  socket.on('editMessage', async ({ _id, text }) => {
+    try {
+      const updatedMessage = await Message.findByIdAndUpdate(
+        _id,
+        { text },
+        { new: true }
+      )
+
+      if (updatedMessage) {
+        // Рассылаем всем клиентам
+        io.emit('messageEdited', updatedMessage)
+      }
+    } catch (error) {
+      console.error('Ошибка при редактировании сообщения:', error)
+    }
   })
 })
 

@@ -1,0 +1,38 @@
+.container {
+  display: flex;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 1.25vh;
+  width: 9vw;
+  height: 6vh;
+  padding: 0.75vh;
+  position: absolute;
+  z-index: 10;
+  right: 30.2vw;
+  cursor: pointer;
+}
+
+.username {
+  font-size: 1.5vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  color: #919191;
+}
+
+.text {
+  font-size: 2vh;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  max-width: 4.5vw;
+  font-style: normal;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  width: 1vw;
+  align-self: flex-start;
+}

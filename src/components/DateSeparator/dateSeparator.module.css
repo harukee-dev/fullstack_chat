@@ -1,0 +1,19 @@
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  color: white;
+  margin: 2vh 0;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  font-size: 2vh;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: rgb(95, 95, 95);
+}
