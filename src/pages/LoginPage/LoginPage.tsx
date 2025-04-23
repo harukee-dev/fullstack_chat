@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
@@ -12,6 +12,8 @@ export const LoginPage = () => {
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
+  const loginRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -26,6 +28,8 @@ export const LoginPage = () => {
   }, [])
 
   async function handleLogin() {
+    setLogin(loginRef.current?.value || '')
+    setPassword(passwordRef.current?.value || '')
     try {
       const response = await fetch(API_URL + '/auth/login', {
         method: 'POST',
@@ -61,12 +65,14 @@ export const LoginPage = () => {
           onBlur={(e) => setLogin(e.target.value)}
           placeholder="Login"
           type="text"
+          ref={loginRef}
         />
         <input
           className={cl.input}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
+          ref={passwordRef}
         />
         <button className={cl.loginButton} onClick={handleLogin}>
           Sign In
