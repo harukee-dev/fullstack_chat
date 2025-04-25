@@ -1,0 +1,27 @@
+.input {
+  position: absolute;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 1.25vh;
+  width: 9vw;
+  height: 6vh;
+  padding: 0.75vh;
+  position: absolute;
+  z-index: 10;
+  color: white;
+  outline: none;
+}
+
+.container {
+  display: flex;
+  background-color: #191919;
+  border: #444444 solid 1px;
+  border-radius: 1.25vh;
+  width: 9vw;
+  height: 6vh;
+  padding: 0.75vh;
+  position: absolute;
+  z-index: 10;
+  right: 30.2vw;
+  cursor: pointer;
+}

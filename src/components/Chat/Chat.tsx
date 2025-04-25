@@ -8,6 +8,7 @@ import cl from './chat.module.css'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
 import { PinnedMessages } from '../PinnedMessages/PinnedMessages'
+import { SearchButton } from '../SearchButton/SearchButton'
 
 interface IChatProps {
   messages: IMessage[]
@@ -100,6 +101,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
           messageRefs={messageRefs.current}
         />
       )}
+      <SearchButton />
 
       {messages.map((el, index) => {
         const currentMessageDate = new Date(el.timestamp ?? new Date())

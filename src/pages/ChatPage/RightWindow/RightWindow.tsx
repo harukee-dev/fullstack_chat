@@ -12,6 +12,7 @@ import { IMessage } from '../../../types/IMessage'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
+  const [allMessages, setAllMessages] = useState<IMessage[]>([]) // ← оригинальный список
   const [messages, setMessages] = useState<IMessage[]>([])
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
@@ -21,6 +22,20 @@ export const RightWindow = () => {
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
   const chatRef = useRef<HTMLDivElement>(null)
   const replyMessage = useAppSelector((state) => state.reply.message)
+  const searchValue = useAppSelector((state) => state.search.value)
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(API_URL + '/auth/messages')
+      const data = await response.json()
+
+      setMessages(data)
+      setAllMessages(data) // ← сохраняем полную копию
+    } catch (error) {
+      console.error('Ошибка загрузки сообщений:', error)
+    }
+  }
+
   // Подключение к серверу
   useEffect(() => {
     if (isAuth) {
@@ -66,19 +81,24 @@ export const RightWindow = () => {
 
   // Загрузка сообщений из БД при открытии страницы
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(API_URL + '/auth/messages')
-        const data = await response.json()
-
-        setMessages(data)
-      } catch (error) {
-        console.error('Ошибка загрузки сообщений:', error)
-      }
-    }
-
     fetchMessages()
   }, [])
+  useEffect(() => {
+    if (searchValue !== '') {
+      const filtered = allMessages.filter((el) =>
+        el.text.toLowerCase().includes(searchValue.toLowerCase())
+      )
+
+      if (filtered.length === 0) {
+        console.log('Сообщения не найдены, отображаем все обратно')
+        setMessages(allMessages)
+      } else {
+        setMessages(filtered)
+      }
+    } else {
+      setMessages(allMessages)
+    }
+  }, [searchValue, allMessages])
 
   const [onlineListIsOpened, setOnlineListIsOpened] = useState<boolean>(false)
   const handleOnlineButton = () => {

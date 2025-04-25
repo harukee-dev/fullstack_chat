@@ -58,7 +58,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
   const handleReply = () => {
     if (message) {
       dispatch(setReplyMessage(message))
-      console.log(localStorage.getItem('replyMessage'))
     }
   }
 

@@ -28,7 +28,6 @@ export const Message: React.FC<IMessageProps> = ({
   const dispatch = useDispatch<AppDispatch>()
   const [isInteraction, setIsInteraction] = useState<boolean>(false)
   const [isPinned, setIsPinned] = useState(message.isPinned || false)
-  console.log(isPinned)
 
   useEffect(() => {
     socket.on('messagePinned', (pinmsg: IMessage) => {
@@ -55,7 +54,6 @@ export const Message: React.FC<IMessageProps> = ({
   const handleReply = () => {
     if (message) {
       dispatch(setReplyMessage(message))
-      console.log(localStorage.getItem('replyMessage'))
     }
   }
 
