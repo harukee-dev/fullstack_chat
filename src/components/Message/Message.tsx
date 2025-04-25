@@ -59,7 +59,6 @@ export const Message: React.FC<IMessageProps> = ({
 
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
-    console.log(isInteraction)
   }
 
   return (

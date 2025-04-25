@@ -30,8 +30,6 @@ export const PinnedMessages: React.FC<IPinnedMessagesProps> = ({
     }
   }
 
-  console.log(pinnedMessages)
-
   return (
     <div className={cl.container}>
       <div

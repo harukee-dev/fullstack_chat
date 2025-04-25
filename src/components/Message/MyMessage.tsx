@@ -68,7 +68,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
-    console.log(isInteraction)
   }
 
   const handleBlur = async () => {
