@@ -1,19 +1,19 @@
 @font-face {
   font-family: 'Poppins Black';
-  src: url('./fonts/Poppins/Poppins-Black.ttf');
+  src: url('/fonts/Poppins/Poppins-Black.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Poppins Light';
-  src: url('./fonts//Poppins/Poppins-Light.ttf');
+  src: url('/fonts/Poppins/Poppins-Light.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Poppins ExtraLight';
-  src: url('./fonts/Poppins/Poppins-ExtraLight.ttf');
+  src: url('/fonts/Poppins/Poppins-ExtraLight.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'FF Mark Black';
-  src: url('./fonts/FF-Mark/MarkPro-Black.otf');
+  src: url('/fonts/FF-Mark/MarkPro-Black.otf') format('opentype');
 }
