@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
 import { removeReplyMessage } from '../../slices/replyMessageSlice'
 import closeIcon from './images/close_icon.png'
+import { EmojiPicker } from '../EmojiPicker/EmojiPicker'
+import emojiIcon from './images/emoji_button.svg'
 
 interface Interaction {
   message: any
@@ -24,6 +26,7 @@ export const Interaction: React.FC<Interaction> = ({
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const replyMessage = useAppSelector((state) => state.reply.message)
   const dispatch = useDispatch<AppDispatch>()
+  const [isEmojiOpened, setIsEmojiOpened] = useState<boolean>(false)
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -53,6 +56,15 @@ export const Interaction: React.FC<Interaction> = ({
       setIsTyping(false)
     }, 2000)
   }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage((prev: string) => prev + emoji)
+  }
+
+  const handleEmojiOpen = () => {
+    setIsEmojiOpened((prev) => !prev)
+  }
+
   return (
     <div className={cl.container}>
       {replyMessage !== null && (
@@ -64,6 +76,7 @@ export const Interaction: React.FC<Interaction> = ({
           </button>
         </div>
       )}
+      <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
       <textarea
         onClick={scrollFunc}
         className={cl.input}
@@ -71,6 +84,12 @@ export const Interaction: React.FC<Interaction> = ({
         value={message}
         onChange={(event) => handleInputChange(event)}
         onKeyDown={handleKeyDown}
+      />
+      <img
+        onClick={handleEmojiOpen}
+        className={cl.emojiButton}
+        src={emojiIcon}
+        alt="emoji-icon"
       />
     </div>
   )

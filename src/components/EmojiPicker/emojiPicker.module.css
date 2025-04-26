@@ -1,0 +1,7 @@
+.picker {
+  position: absolute;
+  bottom: 12vh;
+  right: 3vw;
+  width: 30vh;
+  max-width: 100%;
+}

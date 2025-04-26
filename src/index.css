@@ -7,3 +7,23 @@ body {
   height: 100%;
   background-color: #121212;
 }
+
+@font-face {
+  font-family: 'Poppins Black';
+  src: url('/public/fonts/Poppins/Poppins-Black.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins Light';
+  src: url('/public/fonts/Poppins/Poppins-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins ExtraLight';
+  src: url('/public/fonts/Poppins/Poppins-ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'FF Mark Black';
+  src: url('/public/fonts/FF-Mark/MarkPro-Black.otf') format('opentype');
+}
