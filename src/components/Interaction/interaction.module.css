@@ -25,6 +25,15 @@
   z-index: 10;
 }
 
+.emojiButton {
+  position: absolute;
+  z-index: 11;
+  width: 4.5vh;
+  right: 7vw;
+  bottom: 5vh;
+  cursor: pointer;
+}
+
 .reply {
   background-color: rgb(78, 78, 78);
   color: white;
