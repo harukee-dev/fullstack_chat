@@ -28,7 +28,7 @@
 .emojiButton {
   position: absolute;
   z-index: 11;
-  width: 4.5vh;
+  width: 4vh;
   right: 7vw;
   bottom: 5vh;
   cursor: pointer;
