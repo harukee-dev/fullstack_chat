@@ -8,6 +8,12 @@ const { secret } = require('./config')
 const server = http.createServer(app)
 const Message = require('./models/Message')
 
+app.use(
+  cors({
+    origin: 'https://harukee.netlify.app',
+  })
+)
+
 const authRouter = require('./authRouter')
 
 const mongoose = require('mongoose')
@@ -173,12 +179,6 @@ io.on('connection', (socket) => {
     }
   })
 })
-
-app.use(
-  cors({
-    origin: '*',
-  })
-)
 app.use(express.json())
 app.use('/auth', authRouter)
 
