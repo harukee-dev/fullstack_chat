@@ -35,8 +35,8 @@
   },
   "scripts": {
     "client": "react-scripts start",
-    "start": "node src/backend/server.js",
-    "build": "react-scripts build",
+    "start": "npm install --legacy-peer-deps && node src/backend/server.js",
+    "build": "npm install --legacy-peer-deps && react-scripts build",
     "heroku-postbuild": "npm run build"
   },
   "eslintConfig": {
