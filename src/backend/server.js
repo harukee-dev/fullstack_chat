@@ -8,9 +8,12 @@ const { secret } = require('./config')
 const server = http.createServer(app)
 const Message = require('./models/Message')
 
+// const CLIENT_URL = 'http://localhost:3000'
+// const CLIENT_URL = 'https://harukee.netlify.app'
+
 app.use(
   cors({
-    origin: 'https://harukee.netlify.app',
+    origin: 'http://localhost:3000',
   })
 )
 

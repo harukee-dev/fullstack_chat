@@ -32,6 +32,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
   const [textareaValue, setTextareaValue] = useState<string>(message.text)
   const dispatch = useDispatch<AppDispatch>()
   const [isPinned, setIsPinned] = useState(message.isPinned || false)
+  const [cache, setCache] = useState<string>('')
 
   useEffect(() => {
     socket.on('messagePinned', (pinmsg: IMessage) => {
@@ -68,15 +69,23 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
+    setCache(textareaValue)
   }
 
   const handleBlur = async () => {
     setIsEditing(false)
 
-    socket.emit('editMessage', {
-      _id: message._id,
-      text: textareaValue,
-    })
+    if (
+      /[a-zA-Zа-яА-Я0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(textareaValue)
+    ) {
+      // Есть хотя бы один валидный симво
+      socket.emit('editMessage', {
+        _id: message._id,
+        text: textareaValue,
+      })
+    } else {
+      setTextareaValue(cache)
+    }
   }
 
   return (
