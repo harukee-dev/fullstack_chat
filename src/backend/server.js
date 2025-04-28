@@ -13,7 +13,7 @@ const Message = require('./models/Message')
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://harukee.netlify.app',
   })
 )
 
