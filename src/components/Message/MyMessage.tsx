@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react'
 import cl from './myMessage.module.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
-import { API_URL } from '../../constants'
-import { useSwipeable } from 'react-swipeable'
 import { useDispatch } from 'react-redux'
-import { AppDispatch, useAppSelector } from '../../store'
+import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
 
@@ -45,6 +43,11 @@ export const MyMessage: React.FC<IMessageProps> = ({
         setIsPinned(false)
       }
     })
+    socket.on('openedInteraction', (id: string) => {
+      if (id !== message._id) {
+        setIsInteraction(false)
+      }
+    })
   }, [socket])
 
   const handlePin = () => {
@@ -67,8 +70,11 @@ export const MyMessage: React.FC<IMessageProps> = ({
     console.log('request to delete, _id: ' + message._id)
   }
 
+  // WORK HERE
+
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
+    socket.emit('closeInteractions', { _id: message._id })
     setCache(textareaValue)
   }
 
@@ -78,7 +84,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
     if (
       /[a-zA-Zа-яА-Я0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(textareaValue)
     ) {
-      // Есть хотя бы один валидный симво
       socket.emit('editMessage', {
         _id: message._id,
         text: textareaValue,

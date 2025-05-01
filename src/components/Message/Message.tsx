@@ -40,6 +40,13 @@ export const Message: React.FC<IMessageProps> = ({
         setIsPinned(false)
       }
     })
+    socket.on('openedInteraction', (id: string) => {
+      if (id !== message._id) {
+        setIsInteraction(false)
+        console.log(id)
+        console.log(message._id)
+      }
+    })
   }, [socket])
 
   const handlePin = () => {
@@ -59,6 +66,7 @@ export const Message: React.FC<IMessageProps> = ({
 
   const handleClick = () => {
     setIsInteraction((interaction) => !interaction)
+    socket.emit('closeInteractions', { _id: message._id })
   }
 
   return (
