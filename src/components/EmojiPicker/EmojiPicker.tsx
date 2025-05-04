@@ -28,19 +28,24 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
       {isVisible && (
         <motion.div
           initial={{
-            clipPath: 'inset(40% 0% 0% 40%)', // слегка обрезано сверху и слева
+            clipPath: 'inset(10% 0% 0% 10%)', // чуть-чуть обрезано сверху и слева
+            opacity: 0,
+            scale: 0.95,
+            transformOrigin: 'bottom right',
           }}
           animate={{
             clipPath: 'inset(0% 0% 0% 0%)',
             opacity: 1,
+            scale: 1,
             transition: {
               duration: 0.15,
               ease: 'easeOut',
             },
           }}
           exit={{
-            clipPath: 'inset(0% 0% 0% 0%)',
+            clipPath: 'inset(10% 0% 0% 10%)',
             opacity: 0,
+            scale: 0.95,
             transition: {
               duration: 0.15,
               ease: 'easeIn',
