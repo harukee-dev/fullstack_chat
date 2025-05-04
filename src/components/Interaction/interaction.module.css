@@ -1,15 +1,6 @@
 .container {
-  width: 60vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 0.15vw;
-  z-index: 10;
-  padding: 2vh;
-}
-
-.input {
-  margin-top: -3vh;
+  /* margin-top: -3vh; */
   width: 60vw;
   max-height: 8vh;
   min-height: 8vh;
@@ -18,9 +9,24 @@
   border: #444444 solid 1px;
   font-size: 2vh;
   resize: none;
-  overflow-y: auto;
+  overflow-y: none;
   outline: none;
   background-color: #1d1d1d;
+  z-index: 10;
+}
+
+.input {
+  margin-left: 0.3vw;
+  width: 94%;
+  padding-bottom: 0.5vh;
+  max-height: 6.25vh;
+  min-height: 6.25vh;
+  font-size: 2vh;
+  resize: none;
+  overflow-y: auto;
+  border: none;
+  outline: none;
+  background-color: transparent;
   color: white;
   z-index: 10;
 }
@@ -30,7 +36,7 @@
   z-index: 11;
   width: 4vh;
   right: 7vw;
-  bottom: 5vh;
+  bottom: 3.6vh;
   cursor: pointer;
 }
 

@@ -40,6 +40,13 @@ export const ChatComponent: React.FC<IChatProps> = ({
         prevMessages.filter((el) => el._id !== unpinnedMessage._id)
       )
     })
+    socket.on('message', () => {
+      const chatEl = chatRef.current
+      if (chatEl) {
+        chatEl.scrollTop = chatEl.scrollHeight
+        handleScroll()
+      }
+    })
   }, [socket, messages])
 
   useEffect(() => {
@@ -62,14 +69,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (isYesterday(date)) return 'Yesterday'
     return format(date, 'MMMM d')
   }
-
-  useEffect(() => {
-    const chatEl = chatRef.current
-    if (chatEl) {
-      chatEl.scrollTop = chatEl.scrollHeight
-      handleScroll()
-    }
-  }, [messages])
 
   useEffect(() => {
     const chatEl = chatRef.current

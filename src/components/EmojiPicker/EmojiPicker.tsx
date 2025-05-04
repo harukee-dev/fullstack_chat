@@ -30,7 +30,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25 }}
           className={cl.picker}
           style={{ width: pickerWidth }}
         >
