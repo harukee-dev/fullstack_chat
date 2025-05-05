@@ -1,7 +1,7 @@
 import { ChatsList } from '../../../components/ChatsList/ChatsList'
 import cl from './leftWindow.module.css'
 import settings from './images/settings-icon.png'
-import { BOOSTY_URL } from '../../../constants'
+import { TIP_URL } from '../../../constants'
 
 export const LeftWindow = () => {
   const users = [
@@ -29,10 +29,10 @@ export const LeftWindow = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3vh' }}>
         <div className={cl.buttonsContainer}>
           <button
-            onClick={() => window.open(BOOSTY_URL, '_blank')}
+            onClick={() => window.open(TIP_URL, '_blank')}
             className={cl.boostyButton}
           >
-            Subscribe harukee boosty
+            Support the project with a tip
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5vw' }}>
             <button className={cl.settingsButton}>

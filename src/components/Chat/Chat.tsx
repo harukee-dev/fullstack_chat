@@ -75,7 +75,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
     const distanceFromBottom =
       chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight
-    const isAtBottom = distanceFromBottom < 150
+    const isAtBottom = distanceFromBottom < 200
 
     console.log('Scroll check:', {
       scrollTop: chatEl.scrollTop,
