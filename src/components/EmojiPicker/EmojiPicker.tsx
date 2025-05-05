@@ -28,7 +28,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
       {isVisible && (
         <motion.div
           initial={{
-            clipPath: 'inset(10% 0% 0% 10%)', // чуть-чуть обрезано сверху и слева
+            clipPath: 'inset(10% 0% 0% 10%)',
             opacity: 0,
             scale: 0.95,
             transformOrigin: 'bottom right',

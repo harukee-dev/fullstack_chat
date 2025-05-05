@@ -32,27 +32,20 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (!socket) return
 
     socket.on('messagePinned', (pinnedMessage: IMessage) => {
-      setPinnedMessages((prevMessages) => [...prevMessages, pinnedMessage])
+      setPinnedMessages((prev) => [...prev, pinnedMessage])
     })
 
     socket.on('messageUnpinned', (unpinnedMessage: IMessage) => {
-      setPinnedMessages((prevMessages) =>
-        prevMessages.filter((el) => el._id !== unpinnedMessage._id)
+      setPinnedMessages((prev) =>
+        prev.filter((el) => el._id !== unpinnedMessage._id)
       )
     })
-    socket.on('message', () => {
-      const chatEl = chatRef.current
-      if (chatEl) {
-        chatEl.scrollTop = chatEl.scrollHeight
-        handleScroll()
-      }
-    })
-  }, [socket, messages])
 
-  useEffect(() => {
-    const pinned = messages.filter((el) => el.isPinned)
-    setPinnedMessages(pinned)
-  }, [messages])
+    return () => {
+      socket.off('messagePinned')
+      socket.off('messageUnpinned')
+    }
+  }, [socket])
 
   const handleScroll = () => {
     const chatEl = chatRef.current
@@ -62,12 +55,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
       chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 10
 
     setShowScrollButton(isScrolledUp)
-  }
-
-  const formatDateLabel = (date: Date) => {
-    if (isToday(date)) return 'Today'
-    if (isYesterday(date)) return 'Yesterday'
-    return format(date, 'MMMM d')
   }
 
   useEffect(() => {
@@ -81,6 +68,45 @@ export const ChatComponent: React.FC<IChatProps> = ({
       chatEl.removeEventListener('scroll', handleScroll)
     }
   }, [chatRef])
+
+  useEffect(() => {
+    const chatEl = chatRef.current
+    if (!chatEl) return
+
+    const distanceFromBottom =
+      chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight
+    const isAtBottom = distanceFromBottom < 150
+
+    console.log('Scroll check:', {
+      scrollTop: chatEl.scrollTop,
+      clientHeight: chatEl.clientHeight,
+      scrollHeight: chatEl.scrollHeight,
+      distanceFromBottom,
+      isAtBottom,
+    })
+
+    if (isAtBottom) {
+      requestAnimationFrame(() => {
+        chatEl.scrollTo({
+          top: chatEl.scrollHeight,
+          behavior: 'smooth',
+        })
+      })
+    }
+
+    handleScroll()
+  }, [messages])
+
+  useEffect(() => {
+    const pinned = messages.filter((el) => el.isPinned)
+    setPinnedMessages(pinned)
+  }, [messages])
+
+  const formatDateLabel = (date: Date) => {
+    if (isToday(date)) return 'Today'
+    if (isYesterday(date)) return 'Yesterday'
+    return format(date, 'MMMM d')
+  }
 
   if (isClear) {
     return (
@@ -101,7 +127,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
         />
       )}
       <SearchButton />
-
       {messages.map((el, index) => {
         const currentMessageDate = new Date(el.timestamp ?? new Date())
         const prevMessage = messages[index - 1]
@@ -114,7 +139,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
           format(currentMessageDate, 'yyyy-MM-dd') !==
             format(prevMessageDate, 'yyyy-MM-dd')
 
-        // создаем ref если его ещё нет
         if (!messageRefs.current[el._id]) {
           messageRefs.current[el._id] = null
         }
