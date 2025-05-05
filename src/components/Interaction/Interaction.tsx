@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import cl from './interaction.module.css'
 import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
@@ -27,6 +27,13 @@ export const Interaction: React.FC<Interaction> = ({
   const replyMessage = useAppSelector((state) => state.reply.message)
   const dispatch = useDispatch<AppDispatch>()
   const [isEmojiOpened, setIsEmojiOpened] = useState<boolean>(false)
+
+  useEffect(() => {
+    socket.on('message', () => {
+      if (!!typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+      setIsTyping(false)
+    })
+  }, [socket])
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {

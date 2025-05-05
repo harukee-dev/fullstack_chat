@@ -53,6 +53,7 @@ export const sendMessage = (
       })
     } else {
       socket.emit('message', { text: buffer })
+      socket.emit('stopTyping')
     }
   }
   setMessage('')
