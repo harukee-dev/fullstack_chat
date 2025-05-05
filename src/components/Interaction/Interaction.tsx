@@ -29,6 +29,7 @@ export const Interaction: React.FC<Interaction> = ({
   const [isEmojiOpened, setIsEmojiOpened] = useState<boolean>(false)
 
   useEffect(() => {
+    if (!socket) return
     socket.on('message', () => {
       if (!!typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
       setIsTyping(false)

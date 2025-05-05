@@ -96,9 +96,9 @@ export const MyMessage: React.FC<IMessageProps> = ({
   return (
     <div ref={setRef}>
       <motion.div
-        initial={{ x: 10 }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.4 }}
+      // initial={{ x: 10 }}
+      // animate={{ x: 0 }}
+      // transition={{ duration: 0.4 }}
       >
         <div onClick={handleClick} className={cl.container}>
           <AnimatePresence>
