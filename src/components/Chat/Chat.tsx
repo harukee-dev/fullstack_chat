@@ -9,6 +9,7 @@ import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
 import { PinnedMessages } from '../PinnedMessages/PinnedMessages'
 import { SearchButton } from '../SearchButton/SearchButton'
+import { useFetcher } from 'react-router-dom'
 
 interface IChatProps {
   messages: IMessage[]
@@ -93,8 +94,20 @@ export const ChatComponent: React.FC<IChatProps> = ({
         })
       })
     }
-
     handleScroll()
+  }, [messages])
+
+  const hasScrolledRef = useRef(false)
+
+  useEffect(() => {
+    const chatEl = chatRef.current
+    if (!chatEl || hasScrolledRef.current) return
+
+    chatEl.scrollTo({
+      top: chatEl.scrollHeight,
+      behavior: 'auto',
+    })
+    hasScrolledRef.current = true
   }, [messages])
 
   useEffect(() => {
