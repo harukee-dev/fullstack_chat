@@ -73,10 +73,13 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
   // WORK HERE
 
-  const handleClick = () => {
-    setIsInteraction((interaction) => !interaction)
-    socket.emit('closeInteractions', { _id: message._id })
+  const handleMouseEnter = () => {
+    setIsInteraction(() => true)
     setCache(textareaValue)
+  }
+
+  const handleMouseLeave = () => {
+    setIsInteraction(() => false)
   }
 
   const handleBlur = async () => {
@@ -95,7 +98,12 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div className={cl.allMessage} ref={setRef}>
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cl.allMessage}
+      ref={setRef}
+    >
       <motion.div
         style={{ width: '100%' }}
         // initial={{ x: 10 }}
@@ -103,25 +111,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
         // transition={{ duration: 0.4 }}
       >
         <div className={cl.container}>
-          <AnimatePresence>
-            {isInteraction && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }} // добавляем анимацию выхода
-                transition={{ duration: 0.2 }}
-                className={cl.interactionContainer}
-              >
-                <MessageInteraction
-                  isPinned={isPinned}
-                  editFunc={() => setIsEditing(true)}
-                  deleteFunc={handleDelete}
-                  pinFunc={handlePin}
-                  replyFunc={handleReply}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
           <p className={cl.username}>
             ({time}) {message.username}
           </p>
@@ -149,6 +138,25 @@ export const MyMessage: React.FC<IMessageProps> = ({
               }}
             ></textarea>
           )}
+          <AnimatePresence>
+            {isInteraction && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className={cl.interactionContainer}
+              >
+                <MessageInteraction
+                  isPinned={isPinned}
+                  editFunc={() => setIsEditing(true)}
+                  deleteFunc={handleDelete}
+                  pinFunc={handlePin}
+                  replyFunc={handleReply}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 

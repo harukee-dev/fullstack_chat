@@ -5,8 +5,8 @@ import { IMessage } from '../../types/IMessage'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
-import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
 import defaultUserIcon from './images/user-default-icon.png'
+import replyIcon from './images/reply-other-message.svg'
 
 interface IMessageProps {
   message: IMessage
@@ -65,13 +65,21 @@ export const Message: React.FC<IMessageProps> = ({
     }
   }
 
-  const handleClick = () => {
-    setIsInteraction((interaction) => !interaction)
-    socket.emit('closeInteractions', { _id: message._id })
+  const handleMouseEnter = () => {
+    setIsInteraction(() => true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsInteraction(() => false)
   }
 
   return (
-    <div className={cl.allMessage} ref={setRef}>
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cl.allMessage}
+      ref={setRef}
+    >
       <img
         className={cl.userIcon}
         src={defaultUserIcon}
@@ -82,26 +90,27 @@ export const Message: React.FC<IMessageProps> = ({
       // animate={{ x: 0 }}
       // transition={{ duration: 0.4 }}
       >
-        <div onClick={handleClick} className={cl.container}>
+        <div className={cl.container}>
           <AnimatePresence>
             <p className={cl.username}>
               {message.username} ({time})
             </p>
             {isInteraction && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className={cl.interactionContainer}
               >
-                <MessageInteraction
-                  isPinned={isPinned}
-                  editFunc={null}
-                  deleteFunc={null}
-                  pinFunc={handlePin}
-                  replyFunc={handleReply}
-                />
+                <div onClick={handleReply} className={cl.replyButton}>
+                  <p className={cl.replyButtonText}>Reply message</p>
+                  <img
+                    className={cl.replyButtonIcon}
+                    src={replyIcon}
+                    alt="reply-icon"
+                  />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

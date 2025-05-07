@@ -27,7 +27,7 @@
 
   width: fit-content;
 
-  margin: 0 1vh 0 auto;
+  margin: 0 1vh 1vh auto;
 
   align-items: flex-end;
 }
@@ -109,7 +109,6 @@
 
 .interactionContainer {
   position: absolute;
-  bottom: 0;
-  right: 100%;
-  margin-right: 1vh;
+  bottom: -3vh;
+  right: -1vw;
 }

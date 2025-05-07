@@ -99,8 +99,21 @@
 
 .interactionContainer {
   position: absolute;
-  bottom: 0;
-  left: 100%;
-  margin-left: -16.5vh;
+  bottom: -1vh;
   z-index: 0;
+}
+
+.replyButton {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: filter 0.1s ease;
+}
+
+.replyButtonText {
+  color: #482064;
+}
+
+.replyButton:hover {
+  filter: brightness(2);
 }
