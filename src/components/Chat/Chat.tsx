@@ -133,13 +133,14 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
   return (
     <div className={cl.chat} ref={chatRef}>
-      {pinnedMessages.length > 0 && (
+      {/* ЗАКРЕПЛЕННЫЕ СООБЩЕИЯ И ПОИСК - БУДУТ ПЕРЕДЕЛЫВАТЬСЯ */}
+      {/* {pinnedMessages.length > 0 && (
         <PinnedMessages
           pinnedMessages={pinnedMessages}
           messageRefs={messageRefs.current}
         />
       )}
-      <SearchButton />
+      <SearchButton /> */}
       {messages.map((el, index) => {
         const currentMessageDate = new Date(el.timestamp ?? new Date())
         const prevMessage = messages[index - 1]

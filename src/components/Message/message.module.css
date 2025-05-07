@@ -6,23 +6,52 @@
   overflow-wrap: break-word;
 }
 
-.container {
-  position: relative; /* <-- добавлено */
+.allMessage {
   display: flex;
+  flex-direction: row;
+  width: 100%;
+  background-color: black;
+  padding: 1vh 2vh;
+  border-radius: 0.7vh;
+}
+
+.container {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  justify-content: end;
+
   flex-direction: column;
-  gap: 1vh;
-  background-color: #272727;
+  gap: 0.5vh;
 
-  min-width: 5%;
-  max-width: 40%;
+  min-width: 100%;
+  max-width: 100%;
 
-  padding: 1.4vh 1.5vh 1.25vh 1.5vh;
+  padding: 1.5vh 2vh;
   border-radius: 2vh;
+
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   width: fit-content;
 
-  /* Чтобы выравнивать текст слева, а время справа */
+  margin: 0 1vh 0 auto;
+
   align-items: flex-start;
+}
+
+.username {
+  color: #b4b4b4;
+  font-size: 1.8vh;
+}
+
+.userIcon {
+  margin-top: 0.2vh;
+  width: 6vh;
+  height: 6vh;
+  padding: 0.4vh;
+  border: 0.2vh solid #9927ea;
+  border-radius: 100%;
 }
 
 .text {
@@ -30,34 +59,14 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 100;
   font-style: normal;
-  font-size: 1.75vh;
+  font-size: 2.1vh;
   white-space: pre-wrap;
+  max-width: 70%;
 
-  /* Гарантирует, что текст будет занимать всю доступную ширину */
+  align-self: flex-start; /* Текст выравнивается влево */
+
   word-wrap: normal;
   overflow-wrap: anywhere;
-}
-
-.username {
-  color: #9d9d9d;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 100;
-  font-style: normal;
-  font-size: 1.2vh;
-  margin-left: 1.5vh;
-  margin-bottom: 0.25vh;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.timestamp {
-  font-size: 1.5vh;
-  color: #818181;
-  font-family: 'Poppins', sans-serif;
-  align-self: flex-end;
-
-  /* Меньше прозрачности, чтобы не отвлекать внимание */
-  font-weight: 300;
 }
 
 .reply {

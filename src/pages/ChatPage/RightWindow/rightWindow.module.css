@@ -16,19 +16,6 @@
   width: 100%;
 }
 
-.loginOrLogoutButton {
-  width: 10vh;
-  height: 5vh;
-  font-size: 2vh;
-  color: rgb(150, 150, 150);
-  border-radius: 20px;
-  border: 1px solid rgb(55, 55, 55);
-  font-family: 'Poppins', sans-serif;
-  font-weight: 100;
-  background-color: #1f1f1f;
-  cursor: pointer;
-}
-
 .boosty {
   text-decoration: none;
   color: white;
@@ -48,27 +35,15 @@
   margin-top: 1.5vh;
   position: relative;
   overflow: hidden;
-  background-color: #121212;
+  background-color: #000000;
   border: #444444 solid 1px;
   border-radius: 2vh;
-  padding: 0 10px 10px 10px;
   width: 69.5vw;
   max-width: 69.5vw;
   height: 97vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.typingDiv {
-  background-color: #282828;
-  position: absolute;
-  bottom: 12vh;
-  padding: 1vh 3vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3vh;
 }
 
 .dot {
@@ -133,4 +108,84 @@
 .onlineListButton:hover {
   box-shadow: 0 0 3vh #0000005e;
   background-color: #222222;
+}
+
+.chatHeader {
+  margin-top: 1.7vh;
+  padding-bottom: 1.7vh;
+  border-bottom: #4e4e4e solid 1px;
+  display: flex;
+  justify-content: space-around;
+  gap: 75%;
+  align-items: center;
+  width: 100%;
+}
+
+.hashtag {
+  color: #636363;
+  font-size: 1.75vh;
+}
+
+.chatName {
+  color: white;
+  font-family: 'Jost', sans-serif;
+  font-size: 1.75vh;
+}
+
+.buttonOther {
+  background-color: #000000;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  font-size: 2.5vh;
+}
+
+.typingDiv {
+  position: absolute;
+  z-index: 10;
+  bottom: 8vh;
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+}
+
+.dot {
+  animation: blink 1.4s infinite;
+  font-weight: bold;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 2vh;
+  line-height: 1;
+  color: #9927ea;
+  transform: translateY(0vh);
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.5;
+    transform: translateY(0vh);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-0.3vh);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateY(0vh);
+  }
+}
+
+.typingText {
+  color: #9927ea;
 }

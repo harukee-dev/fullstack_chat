@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
+import defaultUserIcon from './images/user-default-icon.png'
 
 interface IMessageProps {
   message: IMessage
@@ -94,13 +95,14 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div ref={setRef}>
+    <div className={cl.allMessage} ref={setRef}>
       <motion.div
-      // initial={{ x: 10 }}
-      // animate={{ x: 0 }}
-      // transition={{ duration: 0.4 }}
+        style={{ width: '100%' }}
+        // initial={{ x: 10 }}
+        // animate={{ x: 0 }}
+        // transition={{ duration: 0.4 }}
       >
-        <div onClick={handleClick} className={cl.container}>
+        <div className={cl.container}>
           <AnimatePresence>
             {isInteraction && (
               <motion.div
@@ -120,7 +122,9 @@ export const MyMessage: React.FC<IMessageProps> = ({
               </motion.div>
             )}
           </AnimatePresence>
-
+          <p className={cl.username}>
+            ({time}) {message.username}
+          </p>
           {message.replyMessage && (
             <div className={cl.reply}>
               <p className={cl.replyUsername}>
@@ -145,9 +149,14 @@ export const MyMessage: React.FC<IMessageProps> = ({
               }}
             ></textarea>
           )}
-          <span className={cl.timestamp}>{time}</span>
         </div>
       </motion.div>
+
+      <img
+        className={cl.userIcon}
+        src={defaultUserIcon}
+        alt="default-user-icon"
+      />
     </div>
   )
 }

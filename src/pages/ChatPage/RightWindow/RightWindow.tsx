@@ -117,6 +117,13 @@ export const RightWindow = () => {
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <div className={cl.chatPage}>
+        <div className={cl.chatHeader}>
+          <div style={{ display: 'flex', gap: '.6vh' }}>
+            <p className={cl.hashtag}>#</p>{' '}
+            <p className={cl.chatName}>general chat</p>
+          </div>
+          <button className={cl.buttonOther}>···</button>
+        </div>
         <ChatComponent
           socket={socket}
           chatRef={chatRef}
@@ -127,13 +134,13 @@ export const RightWindow = () => {
         <AnimatePresence>
           {usersTyping.length > 0 && (
             <motion.div
-              id="typing-indicator"
-              className={cl.typingDiv}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
-              exit={{ opacity: 0, y: 10 }}
+              exit={{ opacity: 0 }}
+              className={cl.typingDiv}
             >
+              <span className={cl.typingText}>Someone is typing</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
