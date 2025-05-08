@@ -14,11 +14,22 @@
   overflow-x: hidden;
   padding: 2vh;
   width: 100%;
-  scrollbar-width: none;
+  scrollbar-width: 0.9vh;
 }
 
 .chat::-webkit-scrollbar {
-  display: none;
+  width: 0.9vh; /* Ширина полосы прокрутки */
+}
+
+/* Стили для ползунка (thumb) */
+.chat::-webkit-scrollbar-thumb {
+  background-color: #1d043694; /* Цвет ползунка (темно-фиолетовый) */
+  border-radius: 1vh; /* Закругленные углы ползунка */
+}
+
+/* Стили для дорожки (track) */
+.chat::-webkit-scrollbar-track {
+  background-color: black;
 }
 
 .clearContainer {
