@@ -9,6 +9,7 @@ import { sendMessage } from '../ChatPageUtils'
 import { API_URL } from '../../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
+import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -140,7 +141,7 @@ export const RightWindow = () => {
     if (chatRef.current) {
       chatRef.current.scrollTo({
         top: chatRef.current.scrollHeight,
-        behavior: 'smooth', // ключевая часть!
+        behavior: 'smooth',
       })
     }
   }
@@ -178,6 +179,10 @@ export const RightWindow = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        <ScrollChatButton
+          onClick={scrollToBottom}
+          isVisible={showScrollButton}
+        />
         <Interaction
           socket={socket}
           message={message}
@@ -185,7 +190,6 @@ export const RightWindow = () => {
           sendMessage={() =>
             sendMessage(socket, message, setMessage, replyMessage)
           }
-          scrollFunc={scrollToBottom}
         />
       </div>
     </div>
