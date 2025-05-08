@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
 import { RootState, useAppSelector } from '../../../store'
@@ -73,6 +73,7 @@ export const RightWindow = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
+        setAllMessages((prev) => [...prev, newMessage])
 
         if (document.hidden && notificationSound) {
           notificationSound.pause()
@@ -146,6 +147,38 @@ export const RightWindow = () => {
     }
   }
 
+  const [isShowPinnedMessages, setIsShowPinnedMessages] =
+    useState<boolean>(false)
+
+  const [isPanelOpened, setIsPanelOpened] = useState<boolean>(false)
+
+  const handlePanelOpen = () => {
+    setIsPanelOpened((p) => !p)
+  }
+
+  const handleShowPinned = () => {
+    if (isShowPinnedMessages) {
+      setMessages(allMessages)
+      setIsShowPinnedMessages(false)
+    } else {
+      setMessages((msg) => msg.filter((el) => el.isPinned))
+      setIsShowPinnedMessages(true)
+    }
+  }
+
+  const handleSearch = (event: any) => {
+    if (event.key === 'Enter' && event.target.value !== '') {
+      messages.filter((msg) => msg.text.includes(event.target.value)).length > 0
+        ? setMessages((msg) =>
+            msg.filter((el) => el.text.includes(event.target.value))
+          )
+        : setMessages(messages)
+    }
+    if (event.key === 'Enter' && event.target.value === '') {
+      setMessages(allMessages)
+    }
+  }
+
   return (
     <div style={{ background: '#121212', height: '100vh' }}>
       <div className={cl.chatPage}>
@@ -154,8 +187,16 @@ export const RightWindow = () => {
             <p className={cl.hashtag}>#</p>{' '}
             <p className={cl.chatName}>general chat</p>
           </div>
-          <button className={cl.buttonOther}>···</button>
+          <button onClick={handlePanelOpen} className={cl.buttonOther}>
+            ···
+          </button>
         </div>
+        <ChatPanel
+          isOpened={isPanelOpened}
+          isShowPinned={isShowPinnedMessages}
+          handleShowPinned={handleShowPinned}
+          handleSearch={handleSearch}
+        />
         <ChatComponent
           socket={socket}
           chatRef={chatRef}
@@ -193,5 +234,43 @@ export const RightWindow = () => {
         />
       </div>
     </div>
+  )
+}
+
+interface IChatPanel {
+  isShowPinned: boolean
+  handleShowPinned: () => void
+  handleSearch: (arg: any) => void
+  isOpened: boolean
+}
+
+const ChatPanel: React.FC<IChatPanel> = ({
+  isShowPinned,
+  handleShowPinned,
+  handleSearch,
+  isOpened,
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpened && (
+        <motion.div
+          initial={{ opacity: 0, x: 5, y: -5 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, x: 5, y: -5 }}
+          className={cl.panelContainer}
+        >
+          <button onClick={handleShowPinned} className={cl.panelButton}>
+            Show {isShowPinned ? 'all' : 'pinned'} messages
+          </button>
+          <input
+            onKeyDown={handleSearch}
+            className={cl.panelInput}
+            type="text"
+            placeholder="Search message"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

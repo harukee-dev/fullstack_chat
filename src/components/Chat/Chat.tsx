@@ -7,9 +7,6 @@ import loading from './images/loading.gif'
 import cl from './chat.module.css'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
-import { PinnedMessages } from '../PinnedMessages/PinnedMessages'
-import { SearchButton } from '../SearchButton/SearchButton'
-import { useFetcher } from 'react-router-dom'
 
 interface IChatProps {
   messages: IMessage[]
@@ -57,18 +54,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
     setShowScrollButton(isScrolledUp)
   }
-
-  useEffect(() => {
-    const chatEl = chatRef.current
-    if (!chatEl) return
-
-    chatEl.addEventListener('scroll', handleScroll)
-    handleScroll()
-
-    return () => {
-      chatEl.removeEventListener('scroll', handleScroll)
-    }
-  }, [chatRef])
 
   useEffect(() => {
     const chatEl = chatRef.current
@@ -132,7 +117,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
   }
 
   return (
-    <div className={cl.chat} ref={chatRef}>
+    <div onScroll={handleScroll} className={cl.chat} ref={chatRef}>
       {/* ЗАКРЕПЛЕННЫЕ СООБЩЕИЯ И ПОИСК - БУДУТ ПЕРЕДЕЛЫВАТЬСЯ */}
       {/* {pinnedMessages.length > 0 && (
         <PinnedMessages

@@ -44,6 +44,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
 }
 
 .dot {
@@ -188,4 +189,47 @@
 
 .typingText {
   color: #9927ea;
+}
+
+/* CHAT PANEL STYLES */
+
+.panelContainer {
+  position: absolute;
+  top: 5vh;
+  right: 5vh;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+  width: 15vw;
+  height: 10vh;
+}
+
+.panelButton {
+  height: 5vh;
+  background-color: transparent;
+  color: #aeaeae;
+  border: none;
+  border-bottom: #2b2b2b solid 1px;
+  cursor: pointer;
+}
+
+.panelButton:hover {
+  color: #e2e2e2;
+}
+
+.panelInput {
+  width: 50%;
+  margin: 0 0 1.25vh 3.8vw;
+  height: 2.5vh;
+  background-color: transparent;
+  border: none;
+  text-align: start;
+  outline: none;
+  color: white;
+  border-bottom: #e2e2e2 solid 1px;
 }

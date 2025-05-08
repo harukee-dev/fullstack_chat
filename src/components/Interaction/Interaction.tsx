@@ -72,7 +72,11 @@ export const Interaction: React.FC<Interaction> = ({
   }
 
   return (
-    <div className={cl.allInteraction}>
+    <div
+      className={
+        replyMessage !== null ? cl.allInteraction : cl.allInteractionWithout
+      }
+    >
       {replyMessage !== null && (
         <div className={cl.reply}>
           <div>
