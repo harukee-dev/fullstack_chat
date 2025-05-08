@@ -104,6 +104,9 @@ export const RightWindow = () => {
         setMessages((prevMessages) =>
           prevMessages.filter((message) => message._id !== deletedMessage._id)
         )
+        setAllMessages((prevMessages) =>
+          prevMessages.filter((message) => message._id !== deletedMessage._id)
+        )
       })
 
       return () => {

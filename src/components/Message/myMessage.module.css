@@ -63,6 +63,49 @@
   overflow-wrap: anywhere;
 }
 
+.rainbowText {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+  font-size: 2.1vh;
+  white-space: pre-wrap;
+  max-width: 70%;
+
+  align-self: flex-end;
+  word-wrap: normal;
+  overflow-wrap: anywhere;
+
+  background: linear-gradient(
+    90deg,
+    red,
+    orange,
+    yellow,
+    green,
+    rgb(0, 119, 255),
+    rgb(142, 1, 243),
+    red,
+    orange,
+    yellow,
+    green
+  );
+  background-size: 300% 100%;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  animation: rainbow-gradient 2s linear infinite;
+}
+
+@keyframes rainbow-gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
 .textarea {
   width: 15vw;
   min-height: 2vh;

@@ -126,7 +126,16 @@ export const Message: React.FC<IMessageProps> = ({
               </motion.div>
             )}
           </AnimatePresence>
-          <p className={cl.text}>{message.text}</p>
+          <p
+            className={
+              (message.text.startsWith('/rainbow ') && cl.rainbowText) ||
+              cl.text
+            }
+          >
+            {(message.text.startsWith('/rainbow ') &&
+              message.text.substring(9)) ||
+              message.text}
+          </p>
         </div>
       </motion.div>
     </div>

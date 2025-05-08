@@ -126,7 +126,16 @@ export const MyMessage: React.FC<IMessageProps> = ({
             </p>
           )}
           {!isEditing ? (
-            <p className={cl.text}>{message.text}</p>
+            <p
+              className={
+                (message.text.startsWith('/rainbow ') && cl.rainbowText) ||
+                cl.text
+              }
+            >
+              {(message.text.startsWith('/rainbow ') &&
+                message.text.substring(9)) ||
+                message.text}
+            </p>
           ) : (
             <textarea
               className={cl.textarea}
