@@ -51,6 +51,7 @@ export const sendMessage = (
         replyUser: replyMessage.username,
         replyText: replyMessage.text,
       })
+      socket.emit('stopTyping')
     } else {
       socket.emit('message', { text: buffer })
       socket.emit('stopTyping')

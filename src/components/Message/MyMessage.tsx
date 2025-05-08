@@ -7,6 +7,7 @@ import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
 import defaultUserIcon from './images/user-default-icon.png'
+import replyIcon from './images/reply-render.svg'
 
 interface IMessageProps {
   message: IMessage
@@ -111,16 +112,18 @@ export const MyMessage: React.FC<IMessageProps> = ({
         // transition={{ duration: 0.4 }}
       >
         <div className={cl.container}>
-          <p className={cl.username}>
-            ({time}) {message.username}
-          </p>
-          {message.replyMessage && (
-            <div className={cl.reply}>
-              <p className={cl.replyUsername}>
-                {message.replyMessage.username}
-              </p>
-              <p className={cl.replyText}>{message.replyMessage.text}</p>
-            </div>
+          {message.replyMessage ? (
+            <p className={cl.username}>
+              <div className={cl.reply}>
+                <p className={cl.replyText}>{message.replyMessage.text}</p>
+                <img src={replyIcon} alt="" />
+              </div>
+              ({time}) {message.username}
+            </p>
+          ) : (
+            <p className={cl.username}>
+              ({time}) {message.username}
+            </p>
           )}
           {!isEditing ? (
             <p className={cl.text}>{message.text}</p>
@@ -162,7 +165,9 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
       <img
         className={cl.userIcon}
-        src={defaultUserIcon}
+        // EDIT HERE
+        // src={defaultUserIcon}
+        src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
         alt="default-user-icon"
       />
     </div>

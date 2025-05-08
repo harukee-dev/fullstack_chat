@@ -43,6 +43,8 @@
 .username {
   color: #b4b4b4;
   font-size: 1.8vh;
+  display: flex;
+  align-items: center;
 }
 
 .userIcon {
@@ -70,28 +72,32 @@
 }
 
 .reply {
-  background-color: rgba(240, 240, 240, 0.174);
-  color: white;
-  padding: 0.5vw 1vh;
-  border-radius: 1vh;
-  width: 100%;
+  position: relative; /* Устанавливаем относительное позиционирование */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5vh;
+  background-color: #2a0441;
+  padding: 0.25vh 0.5vh 0.25vh 0.85vh;
+  border-radius: 0.5vh;
+  color: #9927ea;
+  cursor: default;
 }
 
-.replyUsername {
-  font-size: 1.6vh;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-style: normal;
-  color: #ffffff;
+.reply::before {
+  left: 0.1vh;
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.3vh;
+  background-color: #9927ea;
+  border-top-left-radius: 0.5vh;
+  border-bottom-left-radius: 0.5vh;
 }
 
 .replyText {
-  font-size: 1.35vh;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 100;
-  font-style: normal;
-  color: #dedede;
-  width: 100%;
+  max-width: 10vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

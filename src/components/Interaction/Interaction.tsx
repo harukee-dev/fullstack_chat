@@ -74,31 +74,37 @@ export const Interaction: React.FC<Interaction> = ({
   }
 
   return (
-    <div className={cl.container}>
+    <div className={cl.allInteraction}>
       {replyMessage !== null && (
         <div className={cl.reply}>
-          <p className={cl.replyUsername}>{replyMessage?.username}</p>
-          <p className={cl.replyText}>{replyMessage?.text}</p>
+          <div>
+            <p className={cl.replyUsername}>
+              Reply to {replyMessage?.username}
+            </p>
+            <p className={cl.replyText}>{replyMessage?.text}</p>
+          </div>
           <button onClick={handleCancelReply} className={cl.replyButton}>
             <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
           </button>
         </div>
       )}
-      <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
-      <textarea
-        onClick={scrollFunc}
-        className={cl.input}
-        placeholder="Write something..."
-        value={message}
-        onChange={(event) => handleInputChange(event)}
-        onKeyDown={handleKeyDown}
-      />
-      <img
-        onClick={handleEmojiOpen}
-        className={cl.emojiButton}
-        src={emojiIcon}
-        alt="emoji-icon"
-      />
+      <div className={cl.container}>
+        <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
+        <textarea
+          onClick={scrollFunc}
+          className={cl.input}
+          placeholder="Write something..."
+          value={message}
+          onChange={(event) => handleInputChange(event)}
+          onKeyDown={handleKeyDown}
+        />
+        <img
+          onClick={handleEmojiOpen}
+          className={cl.emojiButton}
+          src={emojiIcon}
+          alt="emoji-icon"
+        />
+      </div>
     </div>
   )
 }

@@ -5,8 +5,8 @@ import { IMessage } from '../../types/IMessage'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
-import defaultUserIcon from './images/user-default-icon.png'
 import replyIcon from './images/reply-other-message.svg'
+import replyIconMessage from './images/reply-render.svg'
 
 interface IMessageProps {
   message: IMessage
@@ -82,7 +82,9 @@ export const Message: React.FC<IMessageProps> = ({
     >
       <img
         className={cl.userIcon}
-        src={defaultUserIcon}
+        // EDIT HERE
+        // src={defaultUserIcon}
+        src="https://i.pinimg.com/736x/98/ce/58/98ce5859634960aa9e46154bf1ca1577.jpg"
         alt="default-user-icon"
       />
       <motion.div
@@ -92,9 +94,19 @@ export const Message: React.FC<IMessageProps> = ({
       >
         <div className={cl.container}>
           <AnimatePresence>
-            <p className={cl.username}>
-              {message.username} ({time})
-            </p>
+            {message.replyMessage ? (
+              <p className={cl.username}>
+                <div className={cl.reply}>
+                  <p className={cl.replyText}>{message.replyMessage.text}</p>
+                  <img src={replyIconMessage} alt="" />
+                </div>
+                ({time}) {message.username}
+              </p>
+            ) : (
+              <p className={cl.username}>
+                ({time}) {message.username}
+              </p>
+            )}
             {isInteraction && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -114,18 +126,7 @@ export const Message: React.FC<IMessageProps> = ({
               </motion.div>
             )}
           </AnimatePresence>
-
-          {message.replyMessage && (
-            <div className={cl.reply}>
-              <p className={cl.replyUsername}>
-                {message.replyMessage.username}
-              </p>
-              <p className={cl.replyText}>{message.replyMessage.text}</p>
-            </div>
-          )}
-          <p onBlur={() => setIsInteraction(false)} className={cl.text}>
-            {message.text}
-          </p>
+          <p className={cl.text}>{message.text}</p>
         </div>
       </motion.div>
     </div>

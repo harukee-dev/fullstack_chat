@@ -24,6 +24,15 @@ export const RightWindow = () => {
   const replyMessage = useAppSelector((state) => state.reply.message)
   const searchValue = useAppSelector((state) => state.search.value)
 
+  let notificationSound: HTMLAudioElement | null = null
+
+  window.addEventListener('click', () => {
+    if (!notificationSound) {
+      notificationSound = new Audio('/sounds/notification-sound.mp3')
+      notificationSound.load()
+    }
+  })
+
   const fetchMessages = async () => {
     try {
       const response = await fetch(API_URL + '/auth/messages')
@@ -35,6 +44,17 @@ export const RightWindow = () => {
       console.error('Ошибка загрузки сообщений:', error)
     }
   }
+
+  const originalTitle = document.title
+  let hasNewMessage = false
+
+  // Отслеживаем, когда пользователь возвращается на вкладку
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && hasNewMessage) {
+      document.title = originalTitle
+      hasNewMessage = false
+    }
+  })
 
   // Подключение к серверу
   useEffect(() => {
@@ -52,7 +72,18 @@ export const RightWindow = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
-        console.log(newMessage._id)
+
+        if (document.hidden && notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+        if (document.hidden) {
+          hasNewMessage = true
+          document.title = 'New Message - Omnio'
+        }
       })
 
       newSocket.on('usersTyping', (usernames: string[]) => {
