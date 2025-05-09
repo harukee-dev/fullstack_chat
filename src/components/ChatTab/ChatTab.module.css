@@ -3,8 +3,8 @@
   border-radius: 1vh;
   width: 25vw;
   max-width: 25vw;
-  height: 7vh;
-  max-height: 7vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   display: flex;
   align-items: center;
   gap: 1.5vh;
@@ -47,7 +47,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 30vh;
+  width: 17.5vw;
   transition: 0.15s;
 }
 
@@ -82,4 +82,13 @@
   margin: -2vh 0 0 5.25vh;
   z-index: 1;
   position: relative;
+}
+
+.closeIcon {
+  opacity: 0;
+  transition: 0.15s;
+}
+
+.container:hover .closeIcon {
+  opacity: 1;
 }

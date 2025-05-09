@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ChatTabProps } from './typesChatTab'
 import cl from './ChatTab.module.css'
+import closeIcon from './images/close-chat.svg'
 
 export const ChatTab: React.FC<ChatTabProps> = ({
   username,
@@ -48,6 +49,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({
         )}
       </div>
       <p className={cl.username}>{username}</p>
+      <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
     </div>
   )
 }

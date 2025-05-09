@@ -89,13 +89,13 @@
     red,
     orange,
     yellow,
-    green,
+    #00ff00,
     rgb(0, 119, 255),
     rgb(142, 1, 243),
     red,
     orange,
     yellow,
-    green
+    #00ff00
   );
   background-size: 300% 100%;
 
