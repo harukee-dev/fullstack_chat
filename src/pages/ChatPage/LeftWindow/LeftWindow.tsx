@@ -8,7 +8,7 @@ import friendsIconGray from './images/friends-gray.svg'
 import friendsIconPurple from './images/friends-purple.svg'
 import fluxIconGray from './images/flux-gray.svg'
 import fluxIconPurple from './images/flux-purple.svg'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import micIcon from './images/mic-icon.svg'
 import headphonesIcon from './images/headphones-icon.svg'
 import settingsIcon from './images/settings-icon.svg'
@@ -17,6 +17,17 @@ export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
   const [friendsHover, setFriendsHover] = useState(false)
   const [fluxHover, setFluxHover] = useState(false)
+
+  useEffect(() => {
+    const purpleFriends = new Image()
+    purpleFriends.src = friendsIconPurple
+
+    const purpleMoney = new Image()
+    purpleMoney.src = moneyIconPurple
+
+    const purpleFlux = new Image()
+    purpleFlux.src = fluxIconPurple
+  }, [])
 
   const users = [
     {
