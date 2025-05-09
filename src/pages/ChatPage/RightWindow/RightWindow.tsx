@@ -10,6 +10,7 @@ import { API_URL } from '../../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
 import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
+import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -100,6 +101,22 @@ export const RightWindow = () => {
         )
       })
 
+      newSocket.on('messagePinned', (pinmsg: IMessage) => {
+        setMessages((msg) =>
+          msg.map((el: IMessage) =>
+            el._id === pinmsg._id ? { ...el, isPinned: true } : el
+          )
+        )
+      })
+
+      newSocket.on('messageUnpinned', (unpinmsg: IMessage) => {
+        setMessages((msg) =>
+          msg.map((el: IMessage) =>
+            el._id === unpinmsg._id ? { ...el, isPinned: false } : el
+          )
+        )
+      })
+
       newSocket.on('messageDeleted', (deletedMessage) => {
         setMessages((prevMessages) =>
           prevMessages.filter((message) => message._id !== deletedMessage._id)
@@ -161,13 +178,15 @@ export const RightWindow = () => {
 
   const handleShowPinned = () => {
     if (isShowPinnedMessages) {
-      setMessages(allMessages)
       setIsShowPinnedMessages(false)
+      setMessages(allMessages)
     } else {
-      setMessages((msg) => msg.filter((el) => el.isPinned))
       setIsShowPinnedMessages(true)
+      setMessages((msg) => msg.filter((el) => el.isPinned))
     }
   }
+
+  const [isNotFound, setIsNotFound] = useState<boolean>(false)
 
   const handleSearch = (event: any) => {
     if (event.key === 'Enter' && event.target.value !== '') {
@@ -175,7 +194,7 @@ export const RightWindow = () => {
         ? setMessages((msg) =>
             msg.filter((el) => el.text.includes(event.target.value))
           )
-        : setMessages(messages)
+        : setIsNotFound(true)
     }
     if (event.key === 'Enter' && event.target.value === '') {
       setMessages(allMessages)
@@ -195,6 +214,8 @@ export const RightWindow = () => {
           </button>
         </div>
         <ChatPanel
+          setIsNotFound={setIsNotFound}
+          isNotFound={isNotFound}
           isOpened={isPanelOpened}
           isShowPinned={isShowPinnedMessages}
           handleShowPinned={handleShowPinned}
@@ -216,7 +237,6 @@ export const RightWindow = () => {
               exit={{ opacity: 0 }}
               className={cl.typingDiv}
             >
-              <span className={cl.typingText}>Someone is typing</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
@@ -245,6 +265,8 @@ interface IChatPanel {
   handleShowPinned: () => void
   handleSearch: (arg: any) => void
   isOpened: boolean
+  setIsNotFound: any
+  isNotFound: boolean
 }
 
 const ChatPanel: React.FC<IChatPanel> = ({
@@ -252,28 +274,51 @@ const ChatPanel: React.FC<IChatPanel> = ({
   handleShowPinned,
   handleSearch,
   isOpened,
+  setIsNotFound,
+  isNotFound,
 }) => {
   return (
-    <AnimatePresence>
-      {isOpened && (
-        <motion.div
-          initial={{ opacity: 0, x: 5, y: -5 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.2 }}
-          exit={{ opacity: 0, x: 5, y: -5 }}
-          className={cl.panelContainer}
-        >
-          <button onClick={handleShowPinned} className={cl.panelButton}>
-            Show {isShowPinned ? 'all' : 'pinned'} messages
-          </button>
-          <input
-            onKeyDown={handleSearch}
-            className={cl.panelInput}
-            type="text"
-            placeholder="Search message"
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div>
+      <AnimatePresence>
+        {isOpened && (
+          <motion.div
+            initial={{ opacity: 0, x: 5, y: -5 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, x: 5, y: -5 }}
+            className={cl.panelContainer}
+          >
+            <button onClick={handleShowPinned} className={cl.panelButton}>
+              Show {isShowPinned ? 'all' : 'pinned'} messages
+            </button>
+            <input
+              onKeyDown={handleSearch}
+              className={cl.panelInput}
+              type="text"
+              placeholder="Search message"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isNotFound && (
+          <motion.div
+            className={cl.notFoundWindowContainer}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0 }}
+          >
+            <button
+              onClick={() => setIsNotFound(false)}
+              className={cl.notFoundWindowButton}
+            >
+              <img src={closeNotFoundWindowIcon} alt="" />
+            </button>
+            <p className={cl.notFoundWindowText}>No messages found</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

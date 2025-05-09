@@ -31,11 +31,9 @@ class authController {
 
         if (hasLowercase && hasUppercase && hasDigit && hasSpecialChar) {
           const hashPassword = bcrypt.hashSync(password, 5)
-          const userRole = await Role.findOne({ value: 'USER' })
           const user = new User({
             username,
             password: hashPassword,
-            roles: [userRole.value],
           })
           await user.save()
           return response.json({

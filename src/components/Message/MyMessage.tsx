@@ -6,7 +6,6 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
-import defaultUserIcon from './images/user-default-icon.png'
 import replyIcon from './images/reply-render.svg'
 
 interface IMessageProps {
@@ -138,6 +137,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
             </p>
           ) : (
             <textarea
+              maxLength={1000}
               className={cl.textarea}
               onBlur={handleBlur}
               value={textareaValue}

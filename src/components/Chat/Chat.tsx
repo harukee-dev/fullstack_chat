@@ -50,7 +50,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (!chatEl) return
 
     const isScrolledUp =
-      chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 10
+      chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 300
 
     setShowScrollButton(isScrolledUp)
   }
