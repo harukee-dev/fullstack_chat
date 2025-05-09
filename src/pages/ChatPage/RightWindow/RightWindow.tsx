@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
 import { RootState, useAppSelector } from '../../../store'
@@ -9,6 +9,7 @@ import { sendMessage } from '../ChatPageUtils'
 import { API_URL } from '../../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
+import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -24,6 +25,15 @@ export const RightWindow = () => {
   const replyMessage = useAppSelector((state) => state.reply.message)
   const searchValue = useAppSelector((state) => state.search.value)
 
+  let notificationSound: HTMLAudioElement | null = null
+
+  window.addEventListener('click', () => {
+    if (!notificationSound) {
+      notificationSound = new Audio('/sounds/notification-sound.mp3')
+      notificationSound.load()
+    }
+  })
+
   const fetchMessages = async () => {
     try {
       const response = await fetch(API_URL + '/auth/messages')
@@ -35,6 +45,17 @@ export const RightWindow = () => {
       console.error('Ошибка загрузки сообщений:', error)
     }
   }
+
+  const originalTitle = document.title
+  let hasNewMessage = false
+
+  // Отслеживаем, когда пользователь возвращается на вкладку
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && hasNewMessage) {
+      document.title = originalTitle
+      hasNewMessage = false
+    }
+  })
 
   // Подключение к серверу
   useEffect(() => {
@@ -52,7 +73,19 @@ export const RightWindow = () => {
 
       newSocket.on('message', (newMessage: IMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage])
-        console.log(newMessage._id)
+        setAllMessages((prev) => [...prev, newMessage])
+
+        if (document.hidden && notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+        if (document.hidden) {
+          hasNewMessage = true
+          document.title = 'New Message - Omnio'
+        }
       })
 
       newSocket.on('usersTyping', (usernames: string[]) => {
@@ -69,6 +102,9 @@ export const RightWindow = () => {
 
       newSocket.on('messageDeleted', (deletedMessage) => {
         setMessages((prevMessages) =>
+          prevMessages.filter((message) => message._id !== deletedMessage._id)
+        )
+        setAllMessages((prevMessages) =>
           prevMessages.filter((message) => message._id !== deletedMessage._id)
         )
       })
@@ -109,14 +145,61 @@ export const RightWindow = () => {
     if (chatRef.current) {
       chatRef.current.scrollTo({
         top: chatRef.current.scrollHeight,
-        behavior: 'smooth', // ключевая часть!
+        behavior: 'smooth',
       })
     }
   }
 
+  const [isShowPinnedMessages, setIsShowPinnedMessages] =
+    useState<boolean>(false)
+
+  const [isPanelOpened, setIsPanelOpened] = useState<boolean>(false)
+
+  const handlePanelOpen = () => {
+    setIsPanelOpened((p) => !p)
+  }
+
+  const handleShowPinned = () => {
+    if (isShowPinnedMessages) {
+      setMessages(allMessages)
+      setIsShowPinnedMessages(false)
+    } else {
+      setMessages((msg) => msg.filter((el) => el.isPinned))
+      setIsShowPinnedMessages(true)
+    }
+  }
+
+  const handleSearch = (event: any) => {
+    if (event.key === 'Enter' && event.target.value !== '') {
+      messages.filter((msg) => msg.text.includes(event.target.value)).length > 0
+        ? setMessages((msg) =>
+            msg.filter((el) => el.text.includes(event.target.value))
+          )
+        : setMessages(messages)
+    }
+    if (event.key === 'Enter' && event.target.value === '') {
+      setMessages(allMessages)
+    }
+  }
+
   return (
-    <div style={{ background: '#121212', height: '100vh' }}>
+    <div style={{ background: 'black', height: '100vh' }}>
       <div className={cl.chatPage}>
+        <div className={cl.chatHeader}>
+          <div style={{ display: 'flex', gap: '.6vh' }}>
+            <p className={cl.hashtag}>#</p>{' '}
+            <p className={cl.chatName}>general chat</p>
+          </div>
+          <button onClick={handlePanelOpen} className={cl.buttonOther}>
+            ···
+          </button>
+        </div>
+        <ChatPanel
+          isOpened={isPanelOpened}
+          isShowPinned={isShowPinnedMessages}
+          handleShowPinned={handleShowPinned}
+          handleSearch={handleSearch}
+        />
         <ChatComponent
           socket={socket}
           chatRef={chatRef}
@@ -127,19 +210,23 @@ export const RightWindow = () => {
         <AnimatePresence>
           {usersTyping.length > 0 && (
             <motion.div
-              id="typing-indicator"
-              className={cl.typingDiv}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
-              exit={{ opacity: 0, y: 10 }}
+              exit={{ opacity: 0 }}
+              className={cl.typingDiv}
             >
+              <span className={cl.typingText}>Someone is typing</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
               <span className={cl.dot}>.</span>
             </motion.div>
           )}
         </AnimatePresence>
+        <ScrollChatButton
+          onClick={scrollToBottom}
+          isVisible={showScrollButton}
+        />
         <Interaction
           socket={socket}
           message={message}
@@ -147,9 +234,46 @@ export const RightWindow = () => {
           sendMessage={() =>
             sendMessage(socket, message, setMessage, replyMessage)
           }
-          scrollFunc={scrollToBottom}
         />
       </div>
     </div>
+  )
+}
+
+interface IChatPanel {
+  isShowPinned: boolean
+  handleShowPinned: () => void
+  handleSearch: (arg: any) => void
+  isOpened: boolean
+}
+
+const ChatPanel: React.FC<IChatPanel> = ({
+  isShowPinned,
+  handleShowPinned,
+  handleSearch,
+  isOpened,
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpened && (
+        <motion.div
+          initial={{ opacity: 0, x: 5, y: -5 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, x: 5, y: -5 }}
+          className={cl.panelContainer}
+        >
+          <button onClick={handleShowPinned} className={cl.panelButton}>
+            Show {isShowPinned ? 'all' : 'pinned'} messages
+          </button>
+          <input
+            onKeyDown={handleSearch}
+            className={cl.panelInput}
+            type="text"
+            placeholder="Search message"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

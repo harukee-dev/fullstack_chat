@@ -101,6 +101,10 @@ io.on('connection', (socket) => {
     }
   })
 
+  socket.on('closeInteractions', (messageId) => {
+    socket.emit('openedInteraction', messageId._id)
+  })
+
   socket.on('typing', () => {
     typingUsers.add(socket.user.username)
     socket.broadcast.emit('usersTyping', Array.from(typingUsers))

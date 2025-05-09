@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'Poppins Black';
+  src: url('/fonts/Poppins/Poppins-Black.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins Light';
+  src: url('/fonts/Poppins/Poppins-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins ExtraLight';
+  src: url('/fonts/Poppins/Poppins-ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'FF Mark Black';
+  src: url('/fonts/FF-Mark/MarkPro-Black.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost Bold';
+  src: url('/fonts/Jost-Font/Jost-Bold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost ExtraBold';
+  src: url('/fonts/Jost-Font/Jost-ExtraBold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost ExtraLight';
+  src: url('/fonts/Jost-Font/Jost-ExtraLight.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost Regular';
+  src: url('/fonts/Jost-Font/Jost-Regular.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost Thin';
+  src: url('/fonts/Jost-Font/Jost-Thin.ttf') format('opentype');
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  background-color: #121212;
+}

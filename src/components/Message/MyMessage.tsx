@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react'
 import cl from './myMessage.module.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
-import { API_URL } from '../../constants'
-import { useSwipeable } from 'react-swipeable'
 import { useDispatch } from 'react-redux'
-import { AppDispatch, useAppSelector } from '../../store'
+import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
+import defaultUserIcon from './images/user-default-icon.png'
+import replyIcon from './images/reply-render.svg'
 
 interface IMessageProps {
   message: IMessage
@@ -45,6 +45,11 @@ export const MyMessage: React.FC<IMessageProps> = ({
         setIsPinned(false)
       }
     })
+    socket.on('openedInteraction', (id: string) => {
+      if (id !== message._id) {
+        setIsInteraction(false)
+      }
+    })
   }, [socket])
 
   const handlePin = () => {
@@ -67,9 +72,15 @@ export const MyMessage: React.FC<IMessageProps> = ({
     console.log('request to delete, _id: ' + message._id)
   }
 
-  const handleClick = () => {
-    setIsInteraction((interaction) => !interaction)
+  // WORK HERE
+
+  const handleMouseEnter = () => {
+    setIsInteraction(() => true)
     setCache(textareaValue)
+  }
+
+  const handleMouseLeave = () => {
+    setIsInteraction(() => false)
   }
 
   const handleBlur = async () => {
@@ -78,7 +89,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
     if (
       /[a-zA-Zа-яА-Я0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(textareaValue)
     ) {
-      // Есть хотя бы один валидный симво
       socket.emit('editMessage', {
         _id: message._id,
         text: textareaValue,
@@ -89,43 +99,43 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div ref={setRef}>
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cl.allMessage}
+      ref={setRef}
+    >
       <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
+        style={{ width: '100%' }}
+        // initial={{ x: 10 }}
+        // animate={{ x: 0 }}
+        // transition={{ duration: 0.4 }}
       >
-        <div onClick={handleClick} className={cl.container}>
-          <AnimatePresence>
-            {isInteraction && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }} // добавляем анимацию выхода
-                transition={{ duration: 0.2 }}
-                className={cl.interactionContainer}
-              >
-                <MessageInteraction
-                  isPinned={isPinned}
-                  editFunc={() => setIsEditing(true)}
-                  deleteFunc={handleDelete}
-                  pinFunc={handlePin}
-                  replyFunc={handleReply}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {message.replyMessage && (
-            <div className={cl.reply}>
-              <p className={cl.replyUsername}>
-                {message.replyMessage.username}
-              </p>
-              <p className={cl.replyText}>{message.replyMessage.text}</p>
-            </div>
+        <div className={cl.container}>
+          {message.replyMessage ? (
+            <p className={cl.username}>
+              <div className={cl.reply}>
+                <p className={cl.replyText}>{message.replyMessage.text}</p>
+                <img src={replyIcon} alt="" />
+              </div>
+              ({time}) {message.username}
+            </p>
+          ) : (
+            <p className={cl.username}>
+              ({time}) {message.username}
+            </p>
           )}
           {!isEditing ? (
-            <p className={cl.text}>{message.text}</p>
+            <p
+              className={
+                (message.text.startsWith('/rainbow ') && cl.rainbowText) ||
+                cl.text
+              }
+            >
+              {(message.text.startsWith('/rainbow ') &&
+                message.text.substring(9)) ||
+                message.text}
+            </p>
           ) : (
             <textarea
               className={cl.textarea}
@@ -140,9 +150,35 @@ export const MyMessage: React.FC<IMessageProps> = ({
               }}
             ></textarea>
           )}
-          <span className={cl.timestamp}>{time}</span>
+          <AnimatePresence>
+            {isInteraction && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className={cl.interactionContainer}
+              >
+                <MessageInteraction
+                  isPinned={isPinned}
+                  editFunc={() => setIsEditing(true)}
+                  deleteFunc={handleDelete}
+                  pinFunc={handlePin}
+                  replyFunc={handleReply}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
+
+      <img
+        className={cl.userIcon}
+        // EDIT HERE
+        // src={defaultUserIcon}
+        src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+        alt="default-user-icon"
+      />
     </div>
   )
 }

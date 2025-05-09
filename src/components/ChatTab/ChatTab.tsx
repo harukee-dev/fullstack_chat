@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ChatTabProps } from './typesChatTab'
 import cl from './ChatTab.module.css'
+import closeIcon from './images/close-chat.svg'
 
 export const ChatTab: React.FC<ChatTabProps> = ({
   username,
@@ -34,7 +35,11 @@ export const ChatTab: React.FC<ChatTabProps> = ({
     <div className={cl.container}>
       <div>
         {avatar ? (
-          <img className={cl.avatar} src={avatar} alt="avatar" />
+          <img
+            className={isOnline ? cl.avatarOnline : cl.avatarOffline}
+            src={avatar}
+            alt="avatar"
+          />
         ) : (
           <div className={cl.defaultAvatar}>
             <p className={cl.defaultAvatarText}>
@@ -42,13 +47,9 @@ export const ChatTab: React.FC<ChatTabProps> = ({
             </p>
           </div>
         )}
-        {isOnline ? (
-          <div className={cl.onlineStatus} />
-        ) : (
-          <div className={cl.offlineStatus} />
-        )}
       </div>
       <p className={cl.username}>{username}</p>
+      <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
     </div>
   )
 }

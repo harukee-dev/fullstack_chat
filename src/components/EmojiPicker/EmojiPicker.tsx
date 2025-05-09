@@ -27,12 +27,32 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className={cl.picker}
+          initial={{
+            clipPath: 'inset(10% 0% 0% 10%)',
+            opacity: 0,
+            scale: 0.95,
+            transformOrigin: 'bottom right',
+          }}
+          animate={{
+            clipPath: 'inset(0% 0% 0% 0%)',
+            opacity: 1,
+            scale: 1,
+            transition: {
+              duration: 0.15,
+              ease: 'easeOut',
+            },
+          }}
+          exit={{
+            clipPath: 'inset(10% 0% 0% 10%)',
+            opacity: 0,
+            scale: 0.95,
+            transition: {
+              duration: 0.15,
+              ease: 'easeIn',
+            },
+          }}
           style={{ width: pickerWidth }}
+          className={cl.picker}
         >
           <Picker
             onEmojiSelect={(emoji: any) => onSelect(emoji.native)}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import cl from './interaction.module.css'
 import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
@@ -12,7 +12,6 @@ interface Interaction {
   setMessage: any
   sendMessage: any
   socket: any
-  scrollFunc: () => void
 }
 
 export const Interaction: React.FC<Interaction> = ({
@@ -20,13 +19,20 @@ export const Interaction: React.FC<Interaction> = ({
   setMessage,
   sendMessage,
   socket,
-  scrollFunc,
 }) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const replyMessage = useAppSelector((state) => state.reply.message)
   const dispatch = useDispatch<AppDispatch>()
   const [isEmojiOpened, setIsEmojiOpened] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (!socket) return
+    socket.on('message', () => {
+      if (!!typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+      setIsTyping(false)
+    })
+  }, [socket])
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -66,31 +72,40 @@ export const Interaction: React.FC<Interaction> = ({
   }
 
   return (
-    <div className={cl.container}>
+    <div
+      className={
+        replyMessage !== null ? cl.allInteraction : cl.allInteractionWithout
+      }
+    >
       {replyMessage !== null && (
         <div className={cl.reply}>
-          <p className={cl.replyUsername}>{replyMessage?.username}</p>
-          <p className={cl.replyText}>{replyMessage?.text}</p>
+          <div>
+            <p className={cl.replyUsername}>
+              Reply to {replyMessage?.username}
+            </p>
+            <p className={cl.replyText}>{replyMessage?.text}</p>
+          </div>
           <button onClick={handleCancelReply} className={cl.replyButton}>
             <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
           </button>
         </div>
       )}
-      <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
-      <textarea
-        onClick={scrollFunc}
-        className={cl.input}
-        placeholder="Write something..."
-        value={message}
-        onChange={(event) => handleInputChange(event)}
-        onKeyDown={handleKeyDown}
-      />
-      <img
-        onClick={handleEmojiOpen}
-        className={cl.emojiButton}
-        src={emojiIcon}
-        alt="emoji-icon"
-      />
+      <div className={cl.container}>
+        <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
+        <textarea
+          className={cl.input}
+          placeholder="Write something..."
+          value={message}
+          onChange={(event) => handleInputChange(event)}
+          onKeyDown={handleKeyDown}
+        />
+        <img
+          onClick={handleEmojiOpen}
+          className={cl.emojiButton}
+          src={emojiIcon}
+          alt="emoji-icon"
+        />
+      </div>
     </div>
   )
 }

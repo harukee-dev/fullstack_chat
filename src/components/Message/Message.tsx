@@ -5,7 +5,8 @@ import { IMessage } from '../../types/IMessage'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
-import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
+import replyIcon from './images/reply-other-message.svg'
+import replyIconMessage from './images/reply-render.svg'
 
 interface IMessageProps {
   message: IMessage
@@ -40,6 +41,13 @@ export const Message: React.FC<IMessageProps> = ({
         setIsPinned(false)
       }
     })
+    socket.on('openedInteraction', (id: string) => {
+      if (id !== message._id) {
+        setIsInteraction(false)
+        console.log(id)
+        console.log(message._id)
+      }
+    })
   }, [socket])
 
   const handlePin = () => {
@@ -57,51 +65,77 @@ export const Message: React.FC<IMessageProps> = ({
     }
   }
 
-  const handleClick = () => {
-    setIsInteraction((interaction) => !interaction)
+  const handleMouseEnter = () => {
+    setIsInteraction(() => true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsInteraction(() => false)
   }
 
   return (
-    <div ref={setRef}>
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cl.allMessage}
+      ref={setRef}
+    >
+      <img
+        className={cl.userIcon}
+        // EDIT HERE
+        // src={defaultUserIcon}
+        src="https://i.pinimg.com/736x/98/ce/58/98ce5859634960aa9e46154bf1ca1577.jpg"
+        alt="default-user-icon"
+      />
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
+      // initial={{ x: -10 }}
+      // animate={{ x: 0 }}
+      // transition={{ duration: 0.4 }}
       >
-        <p className={cl.username}>{message.username}</p>
-        <div onClick={handleClick} className={cl.container}>
+        <div className={cl.container}>
           <AnimatePresence>
+            {message.replyMessage ? (
+              <p className={cl.username}>
+                <div className={cl.reply}>
+                  <p className={cl.replyText}>{message.replyMessage.text}</p>
+                  <img src={replyIconMessage} alt="" />
+                </div>
+                ({time}) {message.username}
+              </p>
+            ) : (
+              <p className={cl.username}>
+                ({time}) {message.username}
+              </p>
+            )}
             {isInteraction && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className={cl.interactionContainer}
               >
-                <MessageInteraction
-                  isPinned={isPinned}
-                  editFunc={null}
-                  deleteFunc={null}
-                  pinFunc={handlePin}
-                  replyFunc={handleReply}
-                />
+                <div onClick={handleReply} className={cl.replyButton}>
+                  <p className={cl.replyButtonText}>Reply message</p>
+                  <img
+                    className={cl.replyButtonIcon}
+                    src={replyIcon}
+                    alt="reply-icon"
+                  />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
-
-          {message.replyMessage && (
-            <div className={cl.reply}>
-              <p className={cl.replyUsername}>
-                {message.replyMessage.username}
-              </p>
-              <p className={cl.replyText}>{message.replyMessage.text}</p>
-            </div>
-          )}
-          <p onBlur={() => setIsInteraction(false)} className={cl.text}>
-            {message.text}
+          <p
+            className={
+              (message.text.startsWith('/rainbow ') && cl.rainbowText) ||
+              cl.text
+            }
+          >
+            {(message.text.startsWith('/rainbow ') &&
+              message.text.substring(9)) ||
+              message.text}
           </p>
-          <span className={cl.timestamp}>{time}</span>
         </div>
       </motion.div>
     </div>
