@@ -5,7 +5,7 @@
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  height: 61vh;
+  height: 60vh;
   gap: 1.5vh;
   margin-top: -2vh;
 }
