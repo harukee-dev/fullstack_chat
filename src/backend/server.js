@@ -13,7 +13,7 @@ const Message = require('./models/Message')
 
 app.use(
   cors({
-    origin: 'https://omnio-web.netlify.app/login',
+    origin: 'https://omnio-web.netlify.app',
   })
 )
 
