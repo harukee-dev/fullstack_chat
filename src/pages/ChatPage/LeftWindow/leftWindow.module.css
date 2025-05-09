@@ -1,9 +1,7 @@
 .leftContainer {
   width: 28vw;
   height: 97vh;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow: none;
   margin: 1.5vh 0 0 1.5vh;
   border: #444444 solid 1px;
   border-radius: 1vh;
@@ -107,4 +105,43 @@
   height: 1px;
   background-color: #444444;
   margin-top: -1vh;
+}
+
+.voiceSettingsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-top: #4e4e4e solid 1px;
+  background-color: black;
+  height: 8vh;
+  border-bottom-left-radius: 1vh;
+  border-bottom-right-radius: 1vh;
+}
+
+.yourAvatar {
+  margin-left: 2.15vw;
+  width: 5vh;
+  height: 5vh;
+  border-radius: 100%;
+  padding: 0.3vh;
+  border: #9927ea solid 0.2vh;
+  cursor: pointer;
+}
+
+.subUsername {
+  font-family: 'Jost Regular', sans-serif;
+  font-size: 1.75vh;
+  color: white;
+}
+
+.subStatus {
+  font-family: 'Jost Regular', sans-serif;
+  font-size: 1.75vh;
+  color: #9927ea;
+  cursor: pointer;
+}
+
+.settingsIcon {
+  cursor: pointer;
 }

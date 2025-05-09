@@ -19,7 +19,7 @@
   flex-shrink: 0;
   position: relative;
   display: flex;
-  justify-content: end;
+  justify-content: start;
 
   flex-direction: column;
   gap: 0.5vh;
@@ -61,12 +61,13 @@
   color: white;
   font-family: 'Jost ExtraLight', sans-serif;
   font-weight: 100;
-  font-style: normal;
+  /* font-style: normal; */
   font-size: 2.1vh;
   white-space: pre-wrap;
-  max-width: 70%;
+  /* width: 70%; */
+  max-width: 50vw;
 
-  align-self: flex-start; /* Текст выравнивается влево */
+  align-self: flex-start;
 
   word-wrap: normal;
   overflow-wrap: anywhere;

@@ -9,6 +9,9 @@ import friendsIconPurple from './images/friends-purple.svg'
 import fluxIconGray from './images/flux-gray.svg'
 import fluxIconPurple from './images/flux-purple.svg'
 import { useState } from 'react'
+import micIcon from './images/mic-icon.svg'
+import headphonesIcon from './images/headphones-icon.svg'
+import settingsIcon from './images/settings-icon.svg'
 
 export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
@@ -84,6 +87,44 @@ export const LeftWindow = () => {
         <div className={cl.hr}></div>
 
         <ChatsList users={users} />
+
+        <div className={cl.voiceSettingsContainer}>
+          <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
+            <img
+              className={cl.yourAvatar}
+              src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+              alt="avatar"
+            />
+            <div className={cl.usernameAndStatus}>
+              <p className={cl.subUsername}>harukee</p>
+              <p className={cl.subStatus}>Online</p>
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '.5vw',
+              marginRight: '2.15vw',
+            }}
+          >
+            <img
+              className={cl.settingsIcon}
+              src={micIcon}
+              alt="microphone-icon"
+            />
+            <img
+              className={cl.settingsIcon}
+              src={headphonesIcon}
+              alt="headphones-icon"
+            />
+            <img
+              className={cl.settingsIcon}
+              src={settingsIcon}
+              alt="settings-icon"
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

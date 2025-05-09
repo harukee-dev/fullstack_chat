@@ -60,7 +60,7 @@
   font-style: normal;
   font-size: 2.1vh;
   white-space: pre-wrap;
-  max-width: 70%;
+  max-width: 50vw;
 
   align-self: flex-end; /* Текст выравнивается влево */
 
