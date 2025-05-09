@@ -34,18 +34,17 @@ export const ChatTab: React.FC<ChatTabProps> = ({
     <div className={cl.container}>
       <div>
         {avatar ? (
-          <img className={cl.avatar} src={avatar} alt="avatar" />
+          <img
+            className={isOnline ? cl.avatarOnline : cl.avatarOffline}
+            src={avatar}
+            alt="avatar"
+          />
         ) : (
           <div className={cl.defaultAvatar}>
             <p className={cl.defaultAvatarText}>
               {username.charAt(0).toUpperCase()}
             </p>
           </div>
-        )}
-        {isOnline ? (
-          <div className={cl.onlineStatus} />
-        ) : (
-          <div className={cl.offlineStatus} />
         )}
       </div>
       <p className={cl.username}>{username}</p>

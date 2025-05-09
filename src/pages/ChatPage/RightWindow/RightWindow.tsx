@@ -183,7 +183,7 @@ export const RightWindow = () => {
   }
 
   return (
-    <div style={{ background: '#121212', height: '100vh' }}>
+    <div style={{ background: 'black', height: '100vh' }}>
       <div className={cl.chatPage}>
         <div className={cl.chatHeader}>
           <div style={{ display: 'flex', gap: '.6vh' }}>

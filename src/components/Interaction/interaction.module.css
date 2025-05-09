@@ -24,6 +24,7 @@
 }
 
 .input {
+  font-family: 'Jost ExtraLight', sans-serif;
   padding: 2vh 0 0 1vh;
   margin-left: 0.3vw;
   width: 94%;
@@ -60,8 +61,9 @@
 }
 
 .replyUsername {
+  font-family: 'Jost ExtraLight', sans-serif;
   font-size: 1.7vh;
-  font-family: 'Poppins', sans-serif;
+
   font-weight: 500;
   font-style: normal;
   color: white;
@@ -73,7 +75,7 @@
 
 .replyText {
   font-size: 1.7vh;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Jost ExtraLight', sans-serif;
   font-weight: 100;
   font-style: normal;
   color: white;

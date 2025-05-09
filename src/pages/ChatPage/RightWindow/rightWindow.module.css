@@ -4,7 +4,7 @@
 }
 
 .header {
-  background-color: #141414;
+  background-color: #000000;
   height: 7.5vh;
   display: flex;
   align-items: center;
@@ -37,7 +37,7 @@
   overflow: hidden;
   background-color: #000000;
   border: #444444 solid 1px;
-  border-radius: 2vh;
+  border-radius: 1vh;
   width: 69.5vw;
   max-width: 69.5vw;
   height: 97vh;
@@ -125,11 +125,12 @@
 .hashtag {
   color: #636363;
   font-size: 1.75vh;
+  font-family: 'Jost Regular', sans-serif;
 }
 
 .chatName {
   color: white;
-  font-family: 'Jost', sans-serif;
+  font-family: 'Jost Regular', sans-serif;
   font-size: 1.75vh;
 }
 
@@ -155,8 +156,8 @@
 .dot {
   animation: blink 1.4s infinite;
   font-weight: bold;
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 2vh;
+  font-family: 'Jost Regular', sans-serif;
+  font-size: 2.5vh;
   line-height: 1;
   color: #9927ea;
   transform: translateY(0vh);

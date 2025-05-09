@@ -6,7 +6,7 @@
   -ms-overflow-style: none;
   margin: 1.5vh 0 0 1.5vh;
   border: #444444 solid 1px;
-  border-radius: 2vh;
+  border-radius: 1vh;
 }
 
 .leftContainer::-webkit-scrollbar {
@@ -14,7 +14,7 @@
 }
 
 .buttonsContainer {
-  margin-top: 3vh;
+  margin-top: 2vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,73 +22,89 @@
 }
 
 .boostyButton {
-  width: 25vw;
-  max-width: 25vw;
-  height: 7vh;
-  max-height: 7vh;
-  background-color: #151518;
-  border: #696fa9 solid 1px;
-  border-radius: 2.5vh;
-  color: #8ba0cd;
-  font-family: serif 'FF Mark Black';
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 5.5vh;
+  max-height: 5.5vh;
+  background-color: #000000;
+  border: none;
+  border-radius: 1vh;
+  color: #7e7e7e;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
   font-size: 2vh;
   cursor: pointer;
-  transition: 0.5s;
+  transition: 0.1s;
+  text-align: start;
 }
 
 .friendsButton {
-  width: 20vw;
-  max-width: 25vw;
-  height: 7vh;
-  max-height: 7vh;
-  background-color: #191919;
-  border: #444444 solid 1px;
-  border-radius: 2.5vh;
-  color: white;
-  font-family: serif 'FF Mark Black';
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 5.5vh;
+  max-height: 5.5vh;
+  background-color: black;
+  border: none;
+  border-radius: 1vh;
+  color: #7e7e7e;
+  text-align: start;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
   font-size: 2vh;
   cursor: pointer;
-  transition: 0.5s;
+  transition: 0.1s;
+}
+.icon {
+  width: 3.4vh;
 }
 
 .settingsButton {
-  width: 4.2vw;
-  max-width: 25vw;
-  height: 7vh;
-  max-height: 7vh;
-  background-color: #191919;
-  border: #444444 solid 1px;
-  border-radius: 2.5vh;
-  color: white;
-  font-family: serif 'FF Mark Black';
-  font-weight: 800;
-  font-size: 2vh;
-  cursor: pointer;
-  transition: 0.5s;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 5.5vh;
+  max-height: 5.5vh;
+  background-color: black;
+  border: none;
+  border-radius: 1vh;
+  color: #7e7e7e;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.1s;
+  text-align: start;
 }
 
 .boostyButton:hover {
-  background-color: #16171b;
-  box-shadow: #696fa94e 0 0 2vh;
-  text-shadow: #696fa993 0 0 0.3vh;
+  background-color: #140617;
+  color: #944fbf;
 }
 
 .friendsButton:hover {
-  background-color: #222222;
+  background-color: #140617;
+  color: #944fbf;
 }
 
 .settingsButton:hover {
-  background-color: #222222;
+  background-color: #140617;
+  color: #944fbf;
 }
 
 .hr {
-  width: 17.5vw;
+  width: 28vw;
   height: 1px;
   background-color: #444444;
-  margin: 0 auto;
+  margin-top: -1vh;
 }

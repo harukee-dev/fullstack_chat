@@ -2,8 +2,19 @@ import { ChatsList } from '../../../components/ChatsList/ChatsList'
 import cl from './leftWindow.module.css'
 import settings from './images/settings-icon.png'
 import { TIP_URL } from '../../../constants'
+import moneyIconGray from './images/money-gray.svg'
+import moneyIconPurple from './images/money-purple.svg'
+import friendsIconGray from './images/friends-gray.svg'
+import friendsIconPurple from './images/friends-purple.svg'
+import fluxIconGray from './images/flux-gray.svg'
+import fluxIconPurple from './images/flux-purple.svg'
+import { useState } from 'react'
 
 export const LeftWindow = () => {
+  const [moneyHover, setMoneyHover] = useState(false)
+  const [friendsHover, setFriendsHover] = useState(false)
+  const [fluxHover, setFluxHover] = useState(false)
+
   const users = [
     {
       username: 'harukee',
@@ -29,17 +40,46 @@ export const LeftWindow = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3vh' }}>
         <div className={cl.buttonsContainer}>
           <button
+            onMouseEnter={() => setMoneyHover(true)}
+            onMouseLeave={() => setMoneyHover(false)}
             onClick={() => window.open(TIP_URL, '_blank')}
             className={cl.boostyButton}
           >
+            {(moneyHover && (
+              <img className={cl.icon} src={moneyIconPurple} alt="money-gray" />
+            )) || (
+              <img className={cl.icon} src={moneyIconGray} alt="money-gray" />
+            )}
             Support the project with a tip
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5vw' }}>
-            <button className={cl.settingsButton}>
-              <img style={{ width: '2vw' }} src={settings} alt="settings" />
-            </button>
-            <button className={cl.friendsButton}>Friends</button>
-          </div>
+          <button
+            onMouseEnter={() => setFriendsHover(true)}
+            onMouseLeave={() => setFriendsHover(false)}
+            className={cl.friendsButton}
+          >
+            {(friendsHover && (
+              <img
+                className={cl.icon}
+                src={friendsIconPurple}
+                alt="money-gray"
+              />
+            )) || (
+              <img className={cl.icon} src={friendsIconGray} alt="money-gray" />
+            )}
+            Friends
+          </button>
+          <button
+            onMouseEnter={() => setFluxHover(true)}
+            onMouseLeave={() => setFluxHover(false)}
+            className={cl.settingsButton}
+          >
+            {(fluxHover && (
+              <img className={cl.icon} src={fluxIconPurple} alt="money-gray" />
+            )) || (
+              <img className={cl.icon} src={fluxIconGray} alt="money-gray" />
+            )}
+            Flux
+          </button>
         </div>
         <div className={cl.hr}></div>
 

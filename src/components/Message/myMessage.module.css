@@ -1,3 +1,7 @@
+* {
+  font-family: 'Jost Regular', sans-serif;
+}
+
 .allMessage {
   display: flex;
   flex-direction: row;
@@ -37,6 +41,7 @@
   font-size: 1.8vh;
   display: flex;
   align-items: center;
+  font-family: 'Jost Regular', sans-serif;
 }
 
 .userIcon {
@@ -50,7 +55,7 @@
 
 .text {
   color: white;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Jost ExtraLight', sans-serif;
   font-weight: 100;
   font-style: normal;
   font-size: 2.1vh;
@@ -64,7 +69,7 @@
 }
 
 .rainbowText {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Jost ExtraLight', sans-serif;
   font-weight: 100;
   font-style: normal;
   font-size: 2.1vh;
@@ -107,6 +112,7 @@
 }
 
 .textarea {
+  font-family: 'Jost ExtraLight', sans-serif;
   width: 15vw;
   min-height: 2vh;
   padding: 0.5vh;
@@ -152,6 +158,7 @@
 }
 
 .replyText {
+  font-family: 'Jost Regular', sans-serif;
   max-width: 10vw;
   overflow: hidden;
   text-overflow: ellipsis;

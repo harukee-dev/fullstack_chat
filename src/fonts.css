@@ -18,6 +18,31 @@
   src: url('/fonts/FF-Mark/MarkPro-Black.otf') format('opentype');
 }
 
+@font-face {
+  font-family: 'Jost Bold';
+  src: url('/fonts/Jost-Font/Jost-Bold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost ExtraBold';
+  src: url('/fonts/Jost-Font/Jost-ExtraBold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost ExtraLight';
+  src: url('/fonts/Jost-Font/Jost-ExtraLight.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost Regular';
+  src: url('/fonts/Jost-Font/Jost-Regular.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Jost Thin';
+  src: url('/fonts/Jost-Font/Jost-Thin.ttf') format('opentype');
+}
+
 html,
 body {
   margin: 0;
