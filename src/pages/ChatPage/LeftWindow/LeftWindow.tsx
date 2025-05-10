@@ -48,6 +48,12 @@ export const LeftWindow = () => {
         'https://i.pinimg.com/736x/a0/a2/9d/a0a29d22137558a897215f40f88b403e.jpg',
       isOnline: true,
     },
+    {
+      username: 'general chat',
+      avatar:
+        'https://i.pinimg.com/originals/41/b2/cc/41b2cc482076e1f988453413a93b07bd.gif',
+      isOnline: true,
+    },
   ]
   return (
     <div className={cl.leftContainer}>
