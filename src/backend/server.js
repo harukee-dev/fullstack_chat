@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 const { secret } = require('./config')
 const server = http.createServer(app)
 const Message = require('./models/Message')
+const friendsRouter = require('./routes/friends')
 
 // const CLIENT_URL = 'http://localhost:3000'
 // const CLIENT_URL = 'https://harukee.netlify.app'
@@ -188,6 +189,7 @@ io.on('connection', (socket) => {
 })
 app.use(express.json())
 app.use('/auth', authRouter)
+app.use('/friends', friendsRouter)
 
 app.get('/', (request, response) => {
   response.send('server')

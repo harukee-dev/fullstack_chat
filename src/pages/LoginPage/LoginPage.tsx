@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
 import { API_URL } from '../../constants'
+import { setUser } from '../../slices/currentUserSlice'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -41,7 +42,7 @@ export const LoginPage = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token)
-        localStorage.setItem('username', login)
+        dispatch(setUser(data.user))
         dispatch(setToken(data.token))
         navigate('/chat')
       } else {

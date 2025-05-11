@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import replyReducer from './slices/replyMessageSlice'
 import searchReducer from './slices/searchMessageSlice'
+import currentUserReducer from './slices/currentUserSlice'
 import { TypedUseSelectorHook, useSelector } from 'react-redux'
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authReducer,
     reply: replyReducer,
     search: searchReducer,
+    currentUser: currentUserReducer,
   },
 })
 

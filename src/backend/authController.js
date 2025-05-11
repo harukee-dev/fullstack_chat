@@ -80,7 +80,7 @@ class authController {
         secret,
         { expiresIn: '24h' }
       )
-      return response.json({ token })
+      return response.json({ token, user })
     } catch (e) {
       console.log(e)
       response.status(400).json({ message: 'Login error' })

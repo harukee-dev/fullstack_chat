@@ -31,24 +31,6 @@ export const LeftWindow = () => {
 
   const users = [
     {
-      username: 'harukee',
-      avatar:
-        'https://i.pinimg.com/736x/86/cd/4d/86cd4d0117de1304028a08fa0bfdd2cf.jpg',
-      isOnline: false,
-    },
-    {
-      username: 'jerue',
-      avatar:
-        'https://i.pinimg.com/736x/f9/f4/82/f9f4829ec9f56b3883acf4d104431766.jpg',
-      isOnline: true,
-    },
-    {
-      username: 'htabos prime era les fukin go ma sssssssssssssss',
-      avatar:
-        'https://i.pinimg.com/736x/a0/a2/9d/a0a29d22137558a897215f40f88b403e.jpg',
-      isOnline: true,
-    },
-    {
       username: 'general chat',
       avatar:
         'https://i.pinimg.com/originals/41/b2/cc/41b2cc482076e1f988453413a93b07bd.gif',

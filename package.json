@@ -13,6 +13,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",
     "emoji-mart": "^5.6.0",
