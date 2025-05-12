@@ -112,13 +112,15 @@ export const MyMessage: React.FC<IMessageProps> = ({
       >
         <div className={cl.container}>
           {message.replyMessage ? (
-            <p className={cl.username}>
+            <div>
               <div className={cl.reply}>
                 <p className={cl.replyText}>{message.replyMessage.text}</p>
                 <img src={replyIcon} alt="" />
               </div>
-              ({time}) {message.username}
-            </p>
+              <p className={cl.username}>
+                ({time}) {message.username}
+              </p>
+            </div>
           ) : (
             <p className={cl.username}>
               ({time}) {message.username}

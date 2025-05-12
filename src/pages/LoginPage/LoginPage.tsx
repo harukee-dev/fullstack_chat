@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from '../../store'
+import { AppDispatch, useAppSelector } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
@@ -15,6 +15,7 @@ export const LoginPage = () => {
   const navigate = useNavigate()
   const loginRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+  const currentUser = useAppSelector((state) => state.currentUser.user)
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -44,7 +45,11 @@ export const LoginPage = () => {
         localStorage.setItem('token', data.token)
         dispatch(setUser(data.user))
         dispatch(setToken(data.token))
-        navigate('/chat')
+
+        localStorage.setItem('user-id', data.user._id)
+        console.log(localStorage.getItem('user-id'))
+
+        navigate('/main')
       } else {
         console.error('Ошибка:', data.message)
         setError(data.message)

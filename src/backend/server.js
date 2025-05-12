@@ -66,6 +66,7 @@ io.on('connection', (socket) => {
       username: socket.user.username,
       text: message.text,
       timestamp: Date.now(),
+      senderId: message.senderId,
     })
 
     if (reply.username !== null && reply.text !== null) {
@@ -74,6 +75,7 @@ io.on('connection', (socket) => {
         text: message.text,
         timestamp: Date.now(),
         replyMessage: { username: reply.username, text: reply.text },
+        senderId: message.senderId,
       })
     }
 

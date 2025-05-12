@@ -35,6 +35,7 @@ export const LeftWindow = () => {
       avatar:
         'https://i.pinimg.com/originals/41/b2/cc/41b2cc482076e1f988453413a93b07bd.gif',
       isOnline: true,
+      navigate: '/main/chat',
     },
   ]
   return (

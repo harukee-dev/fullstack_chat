@@ -11,6 +11,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
 import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
 import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
+import { Route, Routes } from 'react-router-dom'
+import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -153,11 +155,6 @@ export const RightWindow = () => {
     }
   }, [searchValue, allMessages])
 
-  const [onlineListIsOpened, setOnlineListIsOpened] = useState<boolean>(false)
-  const handleOnlineButton = () => {
-    setOnlineListIsOpened(!onlineListIsOpened)
-  }
-
   const scrollToBottom = () => {
     if (chatRef.current) {
       chatRef.current.scrollTo({
@@ -201,62 +198,76 @@ export const RightWindow = () => {
     }
   }
 
+  const currentUserId = localStorage.getItem('user-id')
+
   return (
-    <div style={{ background: 'black', height: '100vh' }}>
-      <div className={cl.chatPage}>
-        <div className={cl.chatHeader}>
-          <div style={{ display: 'flex', gap: '.6vh' }}>
-            <p className={cl.hashtag}>#</p>{' '}
-            <p className={cl.chatName}>general chat</p>
+    <Routes>
+      <Route
+        path="chat"
+        element={
+          <div style={{ background: 'black', height: '100vh' }}>
+            <div className={cl.chatPage}>
+              <div className={cl.chatHeader}>
+                <div style={{ display: 'flex', gap: '.6vh' }}>
+                  <p className={cl.hashtag}>#</p>{' '}
+                  <p className={cl.chatName}>general chat</p>
+                </div>
+                <button onClick={handlePanelOpen} className={cl.buttonOther}>
+                  ···
+                </button>
+              </div>
+              <ChatPanel
+                setIsNotFound={setIsNotFound}
+                isNotFound={isNotFound}
+                isOpened={isPanelOpened}
+                isShowPinned={isShowPinnedMessages}
+                handleShowPinned={handleShowPinned}
+                handleSearch={handleSearch}
+              />
+              <ChatComponent
+                socket={socket}
+                chatRef={chatRef}
+                setShowScrollButton={setShowScrollButton}
+                messages={messages}
+                isClear={messages.length === 0}
+              />
+              <AnimatePresence>
+                {usersTyping.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0 }}
+                    className={cl.typingDiv}
+                  >
+                    <span className={cl.dot}>.</span>
+                    <span className={cl.dot}>.</span>
+                    <span className={cl.dot}>.</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <ScrollChatButton
+                onClick={scrollToBottom}
+                isVisible={showScrollButton}
+              />
+              <Interaction
+                socket={socket}
+                message={message}
+                setMessage={setMessage}
+                sendMessage={() =>
+                  sendMessage(socket, message, setMessage, replyMessage)
+                }
+              />
+            </div>
           </div>
-          <button onClick={handlePanelOpen} className={cl.buttonOther}>
-            ···
-          </button>
-        </div>
-        <ChatPanel
-          setIsNotFound={setIsNotFound}
-          isNotFound={isNotFound}
-          isOpened={isPanelOpened}
-          isShowPinned={isShowPinnedMessages}
-          handleShowPinned={handleShowPinned}
-          handleSearch={handleSearch}
-        />
-        <ChatComponent
-          socket={socket}
-          chatRef={chatRef}
-          setShowScrollButton={setShowScrollButton}
-          messages={messages}
-          isClear={messages.length === 0}
-        />
-        <AnimatePresence>
-          {usersTyping.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              exit={{ opacity: 0 }}
-              className={cl.typingDiv}
-            >
-              <span className={cl.dot}>.</span>
-              <span className={cl.dot}>.</span>
-              <span className={cl.dot}>.</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <ScrollChatButton
-          onClick={scrollToBottom}
-          isVisible={showScrollButton}
-        />
-        <Interaction
-          socket={socket}
-          message={message}
-          setMessage={setMessage}
-          sendMessage={() =>
-            sendMessage(socket, message, setMessage, replyMessage)
-          }
-        />
-      </div>
-    </div>
+        }
+      />
+      <Route
+        path="friends"
+        element={<FriendRequestSender currentUserId={currentUserId} />}
+      />
+      <Route path="flux-subscription" element={<div />} />
+    </Routes>
   )
 }
 
