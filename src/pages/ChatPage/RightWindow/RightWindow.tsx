@@ -263,7 +263,7 @@ export const RightWindow = () => {
         }
       />
       <Route
-        path="friends"
+        path="friends/*"
         element={<FriendRequestSender currentUserId={currentUserId} />}
       />
       <Route path="flux-subscription" element={<div />} />

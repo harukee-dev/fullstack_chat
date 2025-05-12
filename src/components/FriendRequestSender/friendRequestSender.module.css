@@ -1,0 +1,56 @@
+.friendsPage {
+  margin-top: 1.5vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #000000;
+  border: #444444 solid 1px;
+  border-radius: 1vh;
+  width: 69.5vw;
+  max-width: 69.5vw;
+  height: 97vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header {
+  padding: 2.5vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3vh;
+}
+
+.friendsTitle {
+  font-family: 'Jost Regular', sans-serif;
+  color: #7e7e7e;
+  font-size: 2.1vh;
+}
+
+.headerButton {
+  font-size: 1.8vh;
+  color: #757575;
+  background-color: transparent;
+  border: none;
+  padding: 0.5vh 1.7vh;
+  border-radius: 0.7vh;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.headerButton:hover {
+  color: white;
+  background-color: #191919;
+}
+
+.headerActiveButton {
+  font-size: 1.8vh;
+  color: white;
+  background-color: #191919;
+  border: none;
+  padding: 0.5vh 1.7vh;
+  border-radius: 0.7vh;
+  cursor: pointer;
+  transition: 0.2s;
+}

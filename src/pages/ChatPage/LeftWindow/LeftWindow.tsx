@@ -12,11 +12,14 @@ import { useEffect, useState } from 'react'
 import micIcon from './images/mic-icon.svg'
 import headphonesIcon from './images/headphones-icon.svg'
 import settingsIcon from './images/settings-icon.svg'
+import { useNavigate } from 'react-router-dom'
 
 export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
   const [friendsHover, setFriendsHover] = useState(false)
   const [fluxHover, setFluxHover] = useState(false)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const purpleFriends = new Image()
@@ -59,6 +62,7 @@ export const LeftWindow = () => {
             onMouseEnter={() => setFriendsHover(true)}
             onMouseLeave={() => setFriendsHover(false)}
             className={cl.friendsButton}
+            onClick={() => navigate('/main/friends')}
           >
             {(friendsHover && (
               <img
