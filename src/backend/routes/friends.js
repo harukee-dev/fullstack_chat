@@ -10,7 +10,7 @@ router.post('/send-request', async (req, res) => {
 
     const recipient = await User.findOne({ username: recipientUsername })
     if (!recipient) {
-      return res.status(404).json({ message: 'Пользователь не найден' })
+      return res.status(404).json({ message: 'User not found' })
     }
 
     const existing = await Friendship.findOne({
@@ -19,7 +19,7 @@ router.post('/send-request', async (req, res) => {
     })
     if (existing) {
       return res.status(400).json({
-        message: 'Заявка уже отправлена или пользователь уже в друзьях',
+        message: 'Request has already been sent',
       })
     }
 
@@ -31,10 +31,10 @@ router.post('/send-request', async (req, res) => {
 
     await friendship.save()
 
-    res.json({ message: 'Заявка отправлена' })
+    res.json({ message: 'Request sent!' })
   } catch (err) {
-    console.error('Ошибка при отправке заявки:', err)
-    res.status(500).json({ message: 'Внутренняя ошибка сервера' })
+    console.error('Error sending request: ', err)
+    res.status(500).json({ message: 'Server error' })
   }
 })
 
@@ -49,8 +49,71 @@ router.get('/requests/:userId', async (req, res) => {
 
     res.json(requests)
   } catch (error) {
-    console.error('Ошибка при получении заявок:', error)
-    res.status(500).json({ message: 'Ошибка сервера' })
+    console.error('Error fetching requests', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+router.post('/accept', async (req, res) => {
+  const { requesterId, recipientId } = req.body
+
+  try {
+    await Friendship.findOneAndUpdate(
+      { requesterId, recipientId, status: 'pending' },
+      { status: 'accepted' }
+    )
+
+    res.json({ message: 'Accepted!' })
+  } catch (error) {
+    console.error('Application error')
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+router.post('/decline', async (req, res) => {
+  const { requesterId, recipientId } = req.body
+
+  try {
+    await Friendship.findOneAndDelete({
+      requesterId,
+      recipientId,
+      status: 'pending',
+    })
+
+    res.json({ message: 'Request rejected' })
+  } catch (error) {
+    console.error('Reject error: ', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+router.get('/list/:userId', async (req, res) => {
+  const { userId } = req.params
+
+  try {
+    const friendships = await Friendship.find({
+      $or: [
+        { requesterId: userId, status: 'accepted' },
+        { recipientId: userId, status: 'accepted' },
+      ],
+    })
+      .populate('requesterId', 'username avatar')
+      .populate('recipientId', 'username avatar')
+
+    const friends = friendships.map((f) => {
+      const friend =
+        f.requesterId._id.toString() === userId ? f.recipientId : f.requesterId
+      return {
+        id: friend._id,
+        username: friend.username,
+        avatar: friend.avatar,
+      }
+    })
+
+    res.json(friends)
+  } catch (error) {
+    console.error('Fetching friends error:', error)
+    res.status(500).json({ message: 'Server error' })
   }
 })
 
