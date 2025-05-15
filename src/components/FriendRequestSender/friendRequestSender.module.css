@@ -54,3 +54,52 @@
   cursor: pointer;
   transition: 0.2s;
 }
+
+.friendsList {
+  width: 100%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 4%;
+}
+
+.friendContainer {
+  display: flex;
+  gap: 1vw;
+  width: 97%;
+  margin-left: 0.9%;
+  align-items: center;
+}
+
+.avatarOnline {
+  width: 5vh;
+  height: 5vh;
+  margin-left: 1.25vh;
+  border-radius: 100%;
+  position: relative;
+  z-index: -0;
+  padding: 0.3vh;
+  border: #9927ea solid 0.2vh;
+}
+.avatarOffline {
+  height: 5vh;
+  width: 5vh;
+  margin-left: 1.25vh;
+  border-radius: 100%;
+  position: relative;
+  z-index: -0;
+  padding: 0.3vh;
+  border: #545454 solid 0.2vh;
+}
+
+.deleteFriendButton {
+  height: 4vh;
+  cursor: pointer;
+  padding: 0.8vh;
+  border-radius: 100%;
+  transition: 0.2s;
+}
+
+.deleteFriendButton:hover {
+  background-color: rgb(11, 11, 11);
+}

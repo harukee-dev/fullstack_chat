@@ -3,6 +3,8 @@ import { API_URL } from '../../constants'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import friendsIcon from './images/friends-gray.svg'
 import cl from './friendRequestSender.module.css'
+import messageIcon from './images/message-icon.svg'
+import deleteFriendIcon from './images/delete-friend-icon.svg'
 
 interface IProps {
   currentUserId: any
@@ -156,16 +158,44 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
     fetchFriends(currentUserId)
   }, [])
   return (
-    <div>
-      <h1 style={{ color: 'white' }}>Friends</h1>
-      //{' '}
+    <div className={cl.friendsList}>
+      {' '}
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <div>
-            <img src={el.avatar} alt="" />
-            <p key={el.username} style={{ color: 'white' }}>
-              {el.username}
-            </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className={cl.friendContainer}>
+              <img
+                src={el.avatar}
+                className={cl.avatarOnline}
+                alt="user-avatar"
+              />
+              <p
+                key={el.username}
+                className={cl.friendUsername}
+                style={{ color: 'white' }}
+              >
+                {el.username}
+              </p>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                marginRight: '10vh',
+                gap: '3vh',
+                alignItems: 'center',
+              }}
+            >
+              <img
+                className={cl.deleteFriendButton}
+                src={messageIcon}
+                alt="message-icon"
+              />
+              <img
+                className={cl.deleteFriendButton}
+                src={deleteFriendIcon}
+                alt="delete-friend-icon"
+              />
+            </div>
           </div>
         ))
       ) : (
