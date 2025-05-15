@@ -146,12 +146,14 @@ export const ChatComponent: React.FC<IChatProps> = ({
           messageRefs.current[el._id] = ref
         }
 
+        const username = localStorage.getItem('username')
+
         return (
           <Fragment key={el._id || index}>
             {shouldShowDate && (
               <DateSeparator date={formatDateLabel(currentMessageDate)} />
             )}
-            {el.username === localStorage.getItem('username') ? (
+            {el.senderId.username === username ? (
               <MyMessage
                 socket={socket}
                 message={el}

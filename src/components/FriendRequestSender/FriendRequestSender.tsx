@@ -14,7 +14,7 @@ interface IRequest {
 }
 
 export const FriendRequestSender: React.FC<IProps> = ({ currentUserId }) => {
-  const [headerTab, setHeaderTab] = useState<string>()
+  const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
   const navigate = useNavigate()
 
@@ -152,6 +152,7 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
   }
 
   useEffect(() => {
+    console.log(currentUserId)
     fetchFriends(currentUserId)
   }, [])
   return (
@@ -160,9 +161,12 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
       //{' '}
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <p key={el.username} style={{ color: 'white' }}>
-            {el.username}
-          </p>
+          <div>
+            <img src={el.avatar} alt="" />
+            <p key={el.username} style={{ color: 'white' }}>
+              {el.username}
+            </p>
+          </div>
         ))
       ) : (
         <p style={{ color: 'white' }}>Loading</p>

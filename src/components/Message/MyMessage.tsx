@@ -112,18 +112,20 @@ export const MyMessage: React.FC<IMessageProps> = ({
       >
         <div className={cl.container}>
           {message.replyMessage ? (
-            <div>
+            <div
+              style={{ display: 'flex', gap: '.35vw', alignItems: 'center' }}
+            >
               <div className={cl.reply}>
                 <p className={cl.replyText}>{message.replyMessage.text}</p>
-                <img src={replyIcon} alt="" />
+                <img src={replyIcon} alt="reply-icon" />
               </div>
               <p className={cl.username}>
-                ({time}) {message.username}
+                ({time}) {message.senderId.username}
               </p>
             </div>
           ) : (
             <p className={cl.username}>
-              ({time}) {message.username}
+              ({time}) {message.senderId.username}
             </p>
           )}
           {!isEditing ? (
@@ -178,7 +180,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
-        src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+        src={message.senderId.avatar}
         alt="default-user-icon"
       />
     </div>

@@ -18,6 +18,8 @@ export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
   const [friendsHover, setFriendsHover] = useState(false)
   const [fluxHover, setFluxHover] = useState(false)
+  const currentUsername = localStorage.getItem('username')
+  const currentUserAvatar = localStorage.getItem('avatar')
 
   const navigate = useNavigate()
 
@@ -62,7 +64,7 @@ export const LeftWindow = () => {
             onMouseEnter={() => setFriendsHover(true)}
             onMouseLeave={() => setFriendsHover(false)}
             className={cl.friendsButton}
-            onClick={() => navigate('/main/friends')}
+            onClick={() => navigate('/main/friends/list')}
           >
             {(friendsHover && (
               <img
@@ -96,11 +98,14 @@ export const LeftWindow = () => {
           <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
             <img
               className={cl.yourAvatar}
-              src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+              src={
+                currentUserAvatar ||
+                'https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg'
+              }
               alt="avatar"
             />
             <div className={cl.usernameAndStatus}>
-              <p className={cl.subUsername}>harukee</p>
+              <p className={cl.subUsername}>{currentUsername}</p>
               <p className={cl.subStatus}>Online</p>
             </div>
           </div>

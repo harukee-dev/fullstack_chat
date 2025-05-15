@@ -119,7 +119,10 @@ class authController {
   }
   async getMessages(request, response) {
     try {
-      const messages = await Message.find() // Получаем все сообщения из БД
+      const messages = await Message.find().populate(
+        'senderId',
+        'username avatar'
+      ) // Получаем все сообщения из БД
       response.json(messages)
     } catch (e) {
       console.log(e)

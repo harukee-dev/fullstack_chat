@@ -2,8 +2,6 @@ import { jwtDecode } from 'jwt-decode'
 import { IMessage } from '../../types/IMessage'
 import { useAppSelector } from '../../store'
 
-const currentUserId = localStorage.getItem('user-id')
-
 export const isTokenValid = (token: any) => {
   if (!token) {
     return false
@@ -22,6 +20,7 @@ export const sendMessage = (
   setMessage: any,
   replyMessage: IMessage | null
 ) => {
+  const currentUserId = localStorage.getItem('user-id')
   if (!socket || message.trim() === '') {
     console.log('Ошибка: сообщение пустое или сокет не подключен')
     return
@@ -53,7 +52,7 @@ export const sendMessage = (
     if (replyMessage !== null) {
       socket.emit('message', {
         text: buffer,
-        replyUser: replyMessage.username,
+        replyUser: replyMessage.senderId.username,
         replyText: replyMessage.text,
         senderId: currentUserId,
       })

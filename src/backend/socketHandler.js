@@ -21,7 +21,7 @@ function authenticateSocket(socket, next) {
 }
 
 // Обработчики событий
-function handleMessage(io, socket, message) {
+async function handleMessage(io, socket, message) {
   if (!message || !message.text) return
 
   const reply = {
@@ -29,31 +29,41 @@ function handleMessage(io, socket, message) {
     text: message.replyText || null,
   }
 
-  let newMessage = new Message({
-    username: socket.user.username,
+  const newMessageData = {
     text: message.text,
     timestamp: Date.now(),
-    senderId: message.senderId,
-  })
-
-  if (reply.username && reply.text) {
-    newMessage.replyMessage = reply
+    senderId: message.senderId, // должен быть ObjectId
   }
 
-  newMessage
-    .save()
-    .then(() => {
-      io.emit('message', {
-        _id: newMessage._id.toString(),
-        username: socket.user.username,
-        text: newMessage.text,
-        timestamp: newMessage.timestamp,
-        ...(reply.username && reply.text ? { replyMessage: reply } : {}),
-      })
-    })
-    .catch((error) => {
-      console.error('Ошибка при сохранении сообщения:', error)
-    })
+  if (reply.username && reply.text) {
+    newMessageData.replyMessage = reply
+  }
+
+  try {
+    const newMessage = new Message(newMessageData)
+    const savedMessage = await newMessage.save()
+
+    const populatedMessage = await savedMessage.populate(
+      'senderId',
+      'username avatar'
+    )
+
+    const emittedMessage = {
+      _id: populatedMessage._id.toString(),
+      text: populatedMessage.text,
+      timestamp: populatedMessage.timestamp,
+      senderId: {
+        _id: populatedMessage.senderId._id,
+        username: populatedMessage.senderId.username,
+        avatar: populatedMessage.senderId.avatar,
+      },
+      ...(reply.username && reply.text && { replyMessage: reply }),
+    }
+
+    io.emit('message', emittedMessage)
+  } catch (error) {
+    console.error('Ошибка при сохранении сообщения:', error)
+  }
 }
 
 function handlePin(io, _id) {

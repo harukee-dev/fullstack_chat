@@ -84,7 +84,7 @@ export const Message: React.FC<IMessageProps> = ({
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
-        src="https://i.pinimg.com/736x/98/ce/58/98ce5859634960aa9e46154bf1ca1577.jpg"
+        src={message.senderId.avatar}
         alt="default-user-icon"
       />
       <motion.div
@@ -95,16 +95,20 @@ export const Message: React.FC<IMessageProps> = ({
         <div className={cl.container}>
           <AnimatePresence>
             {message.replyMessage ? (
-              <p className={cl.username}>
+              <div
+                style={{ display: 'flex', gap: '.35vw', alignItems: 'center' }}
+              >
+                <p className={cl.username}>
+                  ({time}) {message.senderId.username}
+                </p>
                 <div className={cl.reply}>
                   <p className={cl.replyText}>{message.replyMessage.text}</p>
-                  <img src={replyIconMessage} alt="" />
+                  <img src={replyIconMessage} alt="reply-icon" />
                 </div>
-                ({time}) {message.username}
-              </p>
+              </div>
             ) : (
               <p className={cl.username}>
-                ({time}) {message.username}
+                ({time}) {message.senderId.username}
               </p>
             )}
             {isInteraction && (

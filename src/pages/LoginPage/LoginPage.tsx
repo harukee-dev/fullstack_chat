@@ -46,8 +46,12 @@ export const LoginPage = () => {
         dispatch(setUser(data.user))
         dispatch(setToken(data.token))
 
+        localStorage.removeItem('user-id')
+        localStorage.removeItem('username')
+        localStorage.removeItem('avatar')
         localStorage.setItem('user-id', data.user._id)
-        console.log(localStorage.getItem('user-id'))
+        localStorage.setItem('username', data.user.username)
+        localStorage.setItem('avatar', data.user.avatar)
 
         navigate('/main')
       } else {
