@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice'
 import replyReducer from './slices/replyMessageSlice'
 import searchReducer from './slices/searchMessageSlice'
 import currentUserReducer from './slices/currentUserSlice'
+import friendsReducer from './slices/friendsSlice'
 import { TypedUseSelectorHook, useSelector } from 'react-redux'
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     reply: replyReducer,
     search: searchReducer,
     currentUser: currentUserReducer,
+    friends: friendsReducer,
   },
 })
 

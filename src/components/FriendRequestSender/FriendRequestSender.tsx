@@ -5,6 +5,7 @@ import friendsIcon from './images/friends-gray.svg'
 import cl from './friendRequestSender.module.css'
 import messageIcon from './images/message-icon.svg'
 import deleteFriendIcon from './images/delete-friend-icon.svg'
+import { useAppSelector } from '../../store'
 
 interface IProps {
   currentUserId: any
@@ -146,23 +147,17 @@ interface IFriendsList {
 }
 
 const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
-  const [friends, setFriends] = useState<any>([])
+  const { friends } = useAppSelector((state) => state.friends)
 
-  const fetchFriends = async (userId: string) => {
-    const response = await fetch(API_URL + '/friends/list/' + userId)
-    setFriends(response.ok ? await response.json() : [])
-  }
-
-  useEffect(() => {
-    console.log(currentUserId)
-    fetchFriends(currentUserId)
-  }, [])
   return (
     <div className={cl.friendsList}>
       {' '}
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            key={el.username}
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+          >
             <div className={cl.friendContainer}>
               <img
                 src={el.avatar}
@@ -187,11 +182,6 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
             >
               <img
                 className={cl.deleteFriendButton}
-                src={messageIcon}
-                alt="message-icon"
-              />
-              <img
-                className={cl.deleteFriendButton}
                 src={deleteFriendIcon}
                 alt="delete-friend-icon"
               />
@@ -199,7 +189,7 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
           </div>
         ))
       ) : (
-        <p style={{ color: 'white' }}>Loading</p>
+        <p style={{ color: 'white' }}>Oops.. something went wrong</p>
       )}
     </div>
   )
