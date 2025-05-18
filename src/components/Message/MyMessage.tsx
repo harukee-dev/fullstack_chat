@@ -98,7 +98,10 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0.5, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cl.allMessage}
@@ -183,6 +186,6 @@ export const MyMessage: React.FC<IMessageProps> = ({
         src={message.senderId.avatar}
         alt="default-user-icon"
       />
-    </div>
+    </motion.div>
   )
 }
