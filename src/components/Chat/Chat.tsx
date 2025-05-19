@@ -25,6 +25,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
 }) => {
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const username = localStorage.getItem('username')
 
   useEffect(() => {
     if (!socket) return
@@ -145,8 +146,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
         const setRef = (ref: HTMLDivElement | null) => {
           messageRefs.current[el._id] = ref
         }
-
-        const username = localStorage.getItem('username')
 
         return (
           <Fragment key={el._id || index}>

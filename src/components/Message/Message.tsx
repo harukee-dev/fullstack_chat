@@ -75,9 +75,9 @@ export const Message: React.FC<IMessageProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0.5, y: 15 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+      transition={{ duration: 0.3, delay: 0.25 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cl.allMessage}
