@@ -10,8 +10,6 @@ export const TestPage = () => {
   console.log(currentUserId)
 
   return (
-    <div>
-      <FriendRequestSender currentUserId={currentUserId} />
-    </div>
+    <div>{/* <FriendRequestSender currentUserId={currentUserId} /> */}</div>
   )
 }

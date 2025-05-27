@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken')
 const Message = require('./models/Message')
 const { secret } = require('./config')
+const Friendship = require('./models/Friendship')
+const User = require('./models/User')
 
 // Множества пользователей
 const typingUsers = new Set()
@@ -109,14 +111,53 @@ function handleEdit(io, _id, text) {
     })
 }
 
+const userSockets = new Map()
+
 // Основная инициализация сокетов
 function setupSocketHandlers(io) {
   io.use(authenticateSocket)
 
   io.on('connection', (socket) => {
+    const userId = socket.user.id
+    userSockets.set(userId.toString(), socket.id)
     // Подключение пользователя
     onlineUsers.add(socket.user.username)
     io.emit('onlineUsers', Array.from(onlineUsers))
+
+    socket.on('joinPersonalRoom', (userId) => {
+      socket.join(userId)
+    })
+
+    socket.on('sendFriendDeleted', ({ user1, user2 }) => {
+      io.to(user1).emit('friendshipDeleted', { user1, user2 })
+      io.to(user2).emit('friendshipDeleted', { user1, user2 })
+    })
+
+    socket.on('addedFriendship', async ({ user1, user2 }) => {
+      try {
+        const [userOne, userTwo] = await Promise.all([
+          User.findById(user1).select('username avatar'),
+          User.findById(user2).select('username avatar'),
+        ])
+
+        if (userOne && userTwo) {
+          // Отправляем каждому информацию о другом
+          io.to(user1).emit('friendAdded', {
+            id: userTwo._id,
+            username: userTwo.username,
+            avatar: userTwo.avatar,
+          })
+
+          io.to(user2).emit('friendAdded', {
+            id: userOne._id,
+            username: userOne.username,
+            avatar: userOne.avatar,
+          })
+        }
+      } catch (err) {
+        console.error('Ошибка при отправке friendAdded:', err)
+      }
+    })
 
     // События чата
     socket.on('message', (msg) => handleMessage(io, socket, msg))
@@ -130,6 +171,16 @@ function setupSocketHandlers(io) {
     socket.on('newPin', ({ _id }) => handlePin(io, _id))
     socket.on('unpin', ({ _id }) => handleUnpin(io, _id))
 
+    socket.on('friendshipDeleted', async ({ user1, user2 }) => {
+      console.log('friendshipDeleted socket server', user1, user2)
+      console.log(user1, user2)
+
+      io.to(user1.toString(), user2.toString()).emit('friendshipDeleted', {
+        user1,
+        user2,
+      })
+    })
+
     // Статус печатания
     socket.on('typing', () => {
       typingUsers.add(socket.user.username)
@@ -142,6 +193,7 @@ function setupSocketHandlers(io) {
 
     // Отключение
     socket.on('disconnect', () => {
+      userSockets.delete(userId.toString())
       typingUsers.delete(socket.user.username)
       onlineUsers.delete(socket.user.username)
       io.emit('onlineUsers', Array.from(onlineUsers))

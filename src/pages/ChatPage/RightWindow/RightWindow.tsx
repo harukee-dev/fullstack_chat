@@ -27,6 +27,7 @@ export const RightWindow = () => {
   const chatRef = useRef<HTMLDivElement>(null)
   const replyMessage = useAppSelector((state) => state.reply.message)
   const searchValue = useAppSelector((state) => state.search.value)
+  const currentUserId = localStorage.getItem('user-id')
 
   let notificationSound: HTMLAudioElement | null = null
 
@@ -134,6 +135,12 @@ export const RightWindow = () => {
     }
   }, [isAuth, token])
 
+  useEffect(() => {
+    if (socket && currentUserId) {
+      socket.emit('joinPersonalRoom', currentUserId)
+    }
+  }, [socket, currentUserId])
+
   // Загрузка сообщений из БД при открытии страницы
   useEffect(() => {
     fetchMessages()
@@ -197,8 +204,6 @@ export const RightWindow = () => {
       setMessages(allMessages)
     }
   }
-
-  const currentUserId = localStorage.getItem('user-id')
 
   return (
     <Routes>
@@ -264,7 +269,9 @@ export const RightWindow = () => {
       />
       <Route
         path="friends/*"
-        element={<FriendRequestSender currentUserId={currentUserId} />}
+        element={
+          <FriendRequestSender currentUserId={currentUserId} socket={socket} />
+        }
       />
       <Route path="flux-subscription" element={<div />} />
     </Routes>

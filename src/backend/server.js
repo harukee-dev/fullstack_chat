@@ -55,7 +55,7 @@ const onlineUsers = new Set()
 
 app.use(express.json())
 app.use('/auth', authRouter)
-app.use('/friends', friendsRouter)
+app.use('/friends', friendsRouter(io))
 
 app.get('/', (request, response) => {
   response.send('server')

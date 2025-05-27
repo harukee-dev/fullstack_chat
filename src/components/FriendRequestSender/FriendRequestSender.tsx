@@ -5,10 +5,13 @@ import friendsIcon from './images/friends-gray.svg'
 import cl from './friendRequestSender.module.css'
 import messageIcon from './images/message-icon.svg'
 import deleteFriendIcon from './images/delete-friend-icon.svg'
-import { useAppSelector } from '../../store'
+import { AppDispatch, useAppSelector } from '../../store'
+import { useDispatch } from 'react-redux'
+import { setFriends } from '../../slices/friendsSlice'
 
 interface IProps {
   currentUserId: any
+  socket: any
 }
 
 interface IRequest {
@@ -16,7 +19,10 @@ interface IRequest {
   username: string
 }
 
-export const FriendRequestSender: React.FC<IProps> = ({ currentUserId }) => {
+export const FriendRequestSender: React.FC<IProps> = ({
+  currentUserId,
+  socket,
+}) => {
   const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
   const navigate = useNavigate()
@@ -119,12 +125,18 @@ export const FriendRequestSender: React.FC<IProps> = ({ currentUserId }) => {
       <Routes>
         <Route
           path={'/list'}
-          element={<FriendsList currentUserId={currentUserId} />}
+          element={
+            <FriendsList currentUserId={currentUserId} socket={socket} />
+          }
         />
         <Route
           path={'/pending'}
           element={
-            <Pending currentUserId={currentUserId} setStatus={setStatus} />
+            <Pending
+              socket={socket}
+              currentUserId={currentUserId}
+              setStatus={setStatus}
+            />
           }
         />
         <Route
@@ -144,10 +156,75 @@ export const FriendRequestSender: React.FC<IProps> = ({ currentUserId }) => {
 
 interface IFriendsList {
   currentUserId: string
+  socket: any
 }
 
-const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
+const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
   const { friends } = useAppSelector((state) => state.friends)
+  const dispatch = useDispatch<AppDispatch>()
+
+  console.log(friends)
+
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on(
+      'friendAdded',
+      (friendData: { _id: string; avatar: string; username: string }) => {
+        dispatch(
+          setFriends([
+            ...friends,
+            {
+              avatar: friendData.avatar,
+              id: friendData._id,
+              username: friendData.username,
+            },
+          ])
+        )
+        console.log('friend data: ', friendData)
+      }
+    )
+
+    socket.on(
+      'friendshipDeleted',
+      (payload: { user1: string; user2: string }) => {
+        const { user1, user2 } = payload
+        dispatch(
+          setFriends(
+            friends.filter(
+              (el: any) =>
+                (el.requesterId !== user1 && el.recipientId !== user2) ||
+                (el.requesterId !== user2 && el.recipientId !== user1)
+            )
+          )
+        )
+        console.log('deletet ' + user1, user2)
+      }
+    )
+  }, [socket])
+
+  const handleDeleteFriend = async (
+    requesterId: string,
+    recipientId: string
+  ) => {
+    try {
+      console.log(requesterId, recipientId)
+      await fetch(API_URL + '/friends/deleteFriend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipientId, requesterId }),
+      })
+      socket.emit('joinPersonalRoom', currentUserId)
+      socket.emit('sendFriendDeleted', {
+        user1: requesterId,
+        user2: recipientId,
+      })
+    } catch (e) {
+      console.log('Error fetching post "DELETE-FRIEND": ', e)
+    }
+  }
 
   return (
     <div className={cl.friendsList}>
@@ -182,6 +259,7 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
             >
               <img
                 className={cl.deleteFriendButton}
+                onClick={() => handleDeleteFriend(el.id, currentUserId)}
                 src={deleteFriendIcon}
                 alt="delete-friend-icon"
               />
@@ -198,9 +276,10 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId }) => {
 interface IPending {
   currentUserId: string
   setStatus: any
+  socket: any
 }
 
-const Pending: React.FC<IPending> = ({ currentUserId, setStatus }) => {
+const Pending: React.FC<IPending> = ({ currentUserId, setStatus, socket }) => {
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
 
   async function fetchFriendRequests(userId: string) {
@@ -226,7 +305,7 @@ const Pending: React.FC<IPending> = ({ currentUserId, setStatus }) => {
       requests.forEach((req: any) => {
         setAllRequests((r) => [
           ...r,
-          { id: req.requesterId, username: req.requesterId.username },
+          { id: req.requesterId._id, username: req.requesterId.username },
         ])
       })
     }
@@ -234,10 +313,16 @@ const Pending: React.FC<IPending> = ({ currentUserId, setStatus }) => {
   }, [])
 
   const handleAccept = async (requesterId: string, recipientId: string) => {
+    console.log('1: ' + requesterId + ' 2: ' + recipientId)
     const response = await fetch(API_URL + '/friends/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requesterId, recipientId }),
+    })
+
+    socket.emit('addedFriendship', {
+      user1: requesterId,
+      user2: recipientId,
     })
 
     const data = await response.json()
