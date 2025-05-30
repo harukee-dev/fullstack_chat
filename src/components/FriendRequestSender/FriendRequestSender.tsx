@@ -9,19 +9,23 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { setFriends } from '../../slices/friendsSlice'
 
-interface IProps {
-  currentUserId: any
-  socket: any
-}
-
 interface IRequest {
   id: string
   username: string
 }
 
+interface IProps {
+  currentUserId: any
+  socket: any
+  allRequests: IRequest[]
+  setAllRequests: any
+}
+
 export const FriendRequestSender: React.FC<IProps> = ({
   currentUserId,
   socket,
+  allRequests,
+  setAllRequests,
 }) => {
   const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
@@ -133,6 +137,8 @@ export const FriendRequestSender: React.FC<IProps> = ({
           path={'/pending'}
           element={
             <Pending
+              allRequests={allRequests}
+              setAllRequests={setAllRequests}
               socket={socket}
               currentUserId={currentUserId}
               setStatus={setStatus}
@@ -277,40 +283,20 @@ interface IPending {
   currentUserId: string
   setStatus: any
   socket: any
+  allRequests: IRequest[]
+  setAllRequests: any
 }
 
-const Pending: React.FC<IPending> = ({ currentUserId, setStatus, socket }) => {
-  const [allRequests, setAllRequests] = useState<IRequest[]>([])
-
-  async function fetchFriendRequests(userId: string) {
-    const response = await fetch(`${API_URL}/friends/requests/${userId}`)
-    const data = await response.json()
-
-    if (response.ok) {
-      return data // массив заявок
-    } else {
-      console.error('Ошибка при получении заявок:', data.message)
-      return []
-    }
+const Pending: React.FC<IPending> = ({
+  currentUserId,
+  setStatus,
+  socket,
+  allRequests,
+  setAllRequests,
+}) => {
+  const filterRequests = (id: string) => {
+    setAllRequests((r: IRequest[]) => r.filter((el) => el.id !== id))
   }
-
-  useEffect(() => {
-    setAllRequests([])
-    async function loadRequests() {
-      if (!currentUserId) return
-
-      const requests = await fetchFriendRequests(currentUserId)
-
-      console.log(requests)
-      requests.forEach((req: any) => {
-        setAllRequests((r) => [
-          ...r,
-          { id: req.requesterId._id, username: req.requesterId.username },
-        ])
-      })
-    }
-    loadRequests()
-  }, [])
 
   const handleAccept = async (requesterId: string, recipientId: string) => {
     console.log('1: ' + requesterId + ' 2: ' + recipientId)
@@ -327,6 +313,7 @@ const Pending: React.FC<IPending> = ({ currentUserId, setStatus, socket }) => {
 
     const data = await response.json()
     setStatus(data.message)
+    filterRequests(requesterId)
   }
 
   const handleReject = async (requesterId: string, recipientId: string) => {
@@ -339,6 +326,7 @@ const Pending: React.FC<IPending> = ({ currentUserId, setStatus, socket }) => {
     const data = await response.json()
 
     setStatus(data.message)
+    filterRequests(requesterId)
   }
 
   return (

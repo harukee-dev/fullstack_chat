@@ -14,6 +14,11 @@ import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 import { Route, Routes } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
 
+interface IRequest {
+  id: string
+  username: string
+}
+
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
   const [allMessages, setAllMessages] = useState<IMessage[]>([]) // ← оригинальный список
@@ -28,6 +33,36 @@ export const RightWindow = () => {
   const replyMessage = useAppSelector((state) => state.reply.message)
   const searchValue = useAppSelector((state) => state.search.value)
   const currentUserId = localStorage.getItem('user-id')
+  const [allRequests, setAllRequests] = useState<IRequest[]>([])
+
+  async function fetchFriendRequests(userId: string) {
+    const response = await fetch(`${API_URL}/friends/requests/${userId}`)
+    const data = await response.json()
+
+    if (response.ok) {
+      return data // массив заявок
+    } else {
+      console.error('Ошибка при получении заявок:', data.message)
+      return []
+    }
+  }
+
+  useEffect(() => {
+    setAllRequests([])
+    async function loadRequests() {
+      if (!currentUserId) return
+
+      const requests = await fetchFriendRequests(currentUserId)
+
+      requests.forEach((req: any) => {
+        setAllRequests((r) => [
+          ...r,
+          { id: req.requesterId._id, username: req.requesterId.username },
+        ])
+      })
+    }
+    loadRequests()
+  }, [])
 
   let notificationSound: HTMLAudioElement | null = null
 
@@ -270,7 +305,12 @@ export const RightWindow = () => {
       <Route
         path="friends/*"
         element={
-          <FriendRequestSender currentUserId={currentUserId} socket={socket} />
+          <FriendRequestSender
+            allRequests={allRequests}
+            setAllRequests={setAllRequests}
+            currentUserId={currentUserId}
+            socket={socket}
+          />
         }
       />
       <Route path="flux-subscription" element={<div />} />
