@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { API_URL } from '../../constants'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import friendsIcon from './images/friends-gray.svg'
@@ -8,8 +8,10 @@ import deleteFriendIcon from './images/delete-friend-icon.svg'
 import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { setFriends } from '../../slices/friendsSlice'
+import acceptIcon from './images/accept-icon.svg'
 
 interface IRequest {
+  avatar: string
   id: string
   username: string
 }
@@ -30,6 +32,8 @@ export const FriendRequestSender: React.FC<IProps> = ({
   const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const friends = useAppSelector((state) => state.friends.friends)
 
   // HEADER HANDLERS
 
@@ -49,41 +53,6 @@ export const FriendRequestSender: React.FC<IProps> = ({
   }
 
   return (
-    // <div>
-    //   <input
-    //     type="text"
-    //     placeholder="Username"
-    //     value={username}
-    //     onChange={(e) => setUsername(e.target.value)}
-    //   />
-    //   <button onClick={sendRequest}>Send friend request</button>
-    //   <p style={{ color: 'white' }}>{status}</p>
-    //   <p style={{ color: 'white' }}>Requests:</p>
-    //   {allRequests.map((el) => (
-    //     <div>
-    //       <p key={el.id} style={{ color: 'white' }}>
-    //         {el.username}
-    //       </p>
-    //       <button onClick={() => handleAccept(el.id, currentUserId)}>
-    //         accept
-    //       </button>
-    //       <button onClick={() => handleReject(el.id, currentUserId)}>
-    //         reject
-    //       </button>
-    //     </div>
-    //   ))}
-    //   <h1 style={{ color: 'white' }}>Friends</h1>
-    //   <button onClick={() => fetchFriends(currentUserId)}>fetch</button>
-    //   {friends.length > 0 ? (
-    //     friends.map((el: any) => (
-    //       <p key={el.username} style={{ color: 'white' }}>
-    //         {el.username}
-    //       </p>
-    //     ))
-    //   ) : (
-    //     <p style={{ color: 'white' }}>you dont have friends</p>
-    //   )}
-    // </div>
     <div className={cl.friendsPage}>
       <header className={cl.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1vh' }}>
@@ -149,6 +118,8 @@ export const FriendRequestSender: React.FC<IProps> = ({
           path={'/add'}
           element={
             <AddFriend
+              setAllRequests={setAllRequests}
+              socket={socket}
               setStatus={setStatus}
               status={status}
               currentUserId={currentUserId}
@@ -166,10 +137,14 @@ interface IFriendsList {
 }
 
 const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
-  const { friends } = useAppSelector((state) => state.friends)
+  const friends = useAppSelector((state) => state.friends.friends)
   const dispatch = useDispatch<AppDispatch>()
 
-  console.log(friends)
+  const friendsRef = useRef(friends)
+
+  useEffect(() => {
+    friendsRef.current = friends
+  }, [friends])
 
   useEffect(() => {
     if (!socket) return
@@ -177,16 +152,7 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     socket.on(
       'friendAdded',
       (friendData: { _id: string; avatar: string; username: string }) => {
-        dispatch(
-          setFriends([
-            ...friends,
-            {
-              avatar: friendData.avatar,
-              id: friendData._id,
-              username: friendData.username,
-            },
-          ])
-        )
+        dispatch(setFriends([...friends, friendData]))
         console.log('friend data: ', friendData)
       }
     )
@@ -195,16 +161,14 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
       'friendshipDeleted',
       (payload: { user1: string; user2: string }) => {
         const { user1, user2 } = payload
-        dispatch(
-          setFriends(
-            friends.filter(
-              (el: any) =>
-                (el.requesterId !== user1 && el.recipientId !== user2) ||
-                (el.requesterId !== user2 && el.recipientId !== user1)
-            )
-          )
+
+        const updatedFriends = friendsRef.current.filter(
+          (el: any) => el.id !== user1 && el.id !== user2
         )
-        console.log('deletet ' + user1, user2)
+        console.log(`UPD: ${updatedFriends}`)
+        dispatch(setFriends(updatedFriends))
+
+        console.log(`CURRENT FRIENDS: ${friends}`)
       }
     )
   }, [socket])
@@ -234,46 +198,52 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
 
   return (
     <div className={cl.friendsList}>
-      {' '}
       {friends.length > 0 ? (
         friends.map((el: any) => (
           <div
             key={el.username}
-            style={{ display: 'flex', justifyContent: 'space-between' }}
+            className={cl.friendContainer}
+            onClick={() => handleDeleteFriend(el.id, currentUserId)}
+            onMouseMove={(e) => {
+              const card = e.currentTarget as HTMLDivElement
+              const rect = card.getBoundingClientRect()
+              const x = e.clientX - rect.left
+              const y = e.clientY - rect.top
+
+              const centerX = rect.width / 2
+              const centerY = rect.height / 2
+
+              const rotateX = ((y - centerY) / centerY) * -20
+              const rotateY = ((x - centerX) / centerX) * 20
+
+              card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+
+              // Блик
+              const glare = card.querySelector('::before') as HTMLElement
+              const percentX = (x / rect.width) * 100
+              const percentY = (y / rect.height) * 100
+              card.style.setProperty('--glare-x', `${percentX}%`)
+              card.style.setProperty('--glare-y', `${percentY}%`)
+              card.style.setProperty('--glare-opacity', `1`)
+            }}
+            onMouseLeave={(e) => {
+              const card = e.currentTarget as HTMLDivElement
+              card.style.transform = 'rotateX(0deg) rotateY(0deg)'
+              card.style.setProperty('--glare-opacity', `0`)
+            }}
           >
-            <div className={cl.friendContainer}>
-              <img
-                src={el.avatar}
-                className={cl.avatarOnline}
-                alt="user-avatar"
-              />
-              <p
-                key={el.username}
-                className={cl.friendUsername}
-                style={{ color: 'white' }}
-              >
-                {el.username}
-              </p>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                marginRight: '10vh',
-                gap: '3vh',
-                alignItems: 'center',
-              }}
-            >
-              <img
-                className={cl.deleteFriendButton}
-                onClick={() => handleDeleteFriend(el.id, currentUserId)}
-                src={deleteFriendIcon}
-                alt="delete-friend-icon"
-              />
-            </div>
+            <img
+              src={el.avatar}
+              className={cl.avatarOnline}
+              alt="user-avatar"
+            />
+            <p className={cl.friendUsername} style={{ color: 'white' }}>
+              {el.username}
+            </p>
           </div>
         ))
       ) : (
-        <p style={{ color: 'white' }}>Oops.. something went wrong</p>
+        <p className={cl.clearTitle}>It looks like you don't have friends...</p>
       )}
     </div>
   )
@@ -329,20 +299,32 @@ const Pending: React.FC<IPending> = ({
     filterRequests(requesterId)
   }
 
+  console.log(allRequests)
+
   return (
-    <div>
-      <p style={{ color: 'white' }}>Requests:</p>
+    <div className={cl.pendingContainer}>
       {allRequests.map((el) => (
-        <div>
-          <p key={el.id} style={{ color: 'white' }}>
-            {el.username}
-          </p>
-          <button onClick={() => handleAccept(el.id, currentUserId)}>
-            accept
-          </button>
-          <button onClick={() => handleReject(el.id, currentUserId)}>
-            reject
-          </button>
+        <div className={cl.pendingUser} key={el.id}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1vw' }}>
+            <img className={cl.pendingAvatar} src={el.avatar} alt="avatar" />
+            <p className={cl.pendingUsername} style={{ color: 'white' }}>
+              {el.username}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '3vh' }}>
+            <button
+              className={cl.buttonAccept}
+              onClick={() => handleAccept(el.id, currentUserId)}
+            >
+              <img src={acceptIcon} alt="" />
+            </button>
+            <button
+              className={cl.buttonReject}
+              onClick={() => handleReject(el.id, currentUserId)}
+            >
+              <img src={deleteFriendIcon} alt="" />
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -353,12 +335,16 @@ interface IAddFriend {
   currentUserId: string
   setStatus: any
   status: string
+  socket: any
+  setAllRequests: any
 }
 
 const AddFriend: React.FC<IAddFriend> = ({
   currentUserId,
   setStatus,
   status,
+  socket,
+  setAllRequests,
 }) => {
   const [username, setUsername] = useState<string>('')
 
@@ -379,6 +365,10 @@ const AddFriend: React.FC<IAddFriend> = ({
 
       if (response.ok) {
         setStatus(data.message)
+        socket.emit('newRequest', {
+          requesterId: currentUserId,
+          recipientUsername: username,
+        })
       } else {
         setStatus(data.message || 'Error occured')
       }
@@ -388,15 +378,24 @@ const AddFriend: React.FC<IAddFriend> = ({
   }
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <button onClick={sendRequest}>Send friend request</button>
-      <p style={{ color: 'white' }}>{status}</p>
+    <div style={{ width: '95%', height: '100%' }}>
+      <div className={cl.containerAddFriend}>
+        <input
+          className={cl.inputAddFriend}
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <button
+          disabled={username.length <= 0}
+          className={cl.buttonAddFriend}
+          onClick={sendRequest}
+        >
+          Send Invite
+        </button>
+      </div>
+      <p className={cl.statusAddFriend}>{status}</p>
     </div>
   )
 }

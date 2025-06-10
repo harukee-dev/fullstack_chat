@@ -14,6 +14,12 @@
   justify-content: space-between;
 }
 
+.clearTitle {
+  color: rgb(209, 209, 209);
+  font-size: 1.75vh;
+  margin: 1% 0 0 2%;
+}
+
 .header {
   padding: 2.5vh;
   width: 100%;
@@ -56,35 +62,83 @@
 }
 
 .friendsList {
-  width: 100%;
+  width: 96.5%;
   height: 90%;
   display: flex;
-  flex-direction: column;
-  gap: 4%;
+  gap: 2%;
+  padding: 3vh 0;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+
+.friendsList::-webkit-scrollbar {
+  display: none;
 }
 
 .friendContainer {
   display: flex;
-  gap: 1vw;
-  width: 97%;
-  margin-left: 0.9%;
+  flex-direction: column;
+  gap: 1vh;
+  width: 15%;
+  height: 27%;
   align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(54, 54, 54);
+  border-radius: 2vh;
+  box-shadow: 0 0 4vh #fffdff1e;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+  will-change: transform;
+  perspective: 1000px;
+}
+
+.friendContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(
+    circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.138),
+    transparent 60%
+  );
+  opacity: var(--glare-opacity, 0);
+  pointer-events: none;
+  transition: opacity 0.2s, background 0.1s;
 }
 
 .avatarOnline {
-  width: 5vh;
-  height: 5vh;
-  margin-left: 1.25vh;
+  width: 10vh;
+  height: 10vh;
   border-radius: 100%;
   position: relative;
   z-index: -0;
-  padding: 0.3vh;
-  border: #9927ea solid 0.2vh;
+  box-shadow: 0 0 5vh #ffffff77;
 }
 .avatarOffline {
   height: 5vh;
   width: 5vh;
-  margin-left: 1.25vh;
+
   border-radius: 100%;
   position: relative;
   z-index: -0;
@@ -92,14 +146,124 @@
   border: #545454 solid 0.2vh;
 }
 
+.friendUsername {
+  font-family: 'Jost Bold', sans-serif;
+  font-size: 2.3vh;
+}
+
 .deleteFriendButton {
-  height: 4vh;
+  height: 4.25vh;
+  width: 4.25vh;
   cursor: pointer;
   padding: 0.8vh;
   border-radius: 100%;
+  border: 1px solid black;
   transition: 0.2s;
 }
 
 .deleteFriendButton:hover {
-  background-color: rgb(11, 11, 11);
+  border: 1px solid #545454;
+}
+
+.pendingContainer {
+  margin-top: 1.5vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  height: 100%;
+  overflow-y: auto;
+  width: 98%;
+  padding: 0 1%;
+}
+
+.pendingTitle {
+  font-family: 'Jost Bold', sans-serif;
+  font-size: 5vh;
+}
+
+.pendingUser {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 77%;
+}
+
+.pendingAvatar {
+  width: 5vh;
+  height: 5vh;
+  border-radius: 100%;
+}
+
+.buttonAccept {
+  padding: 0.5vh;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 100%;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.buttonAccept:hover {
+  box-shadow: 0px 0px 1.5vh #fcfcfcae;
+}
+
+.buttonReject {
+  padding: 0.5vh;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 100%;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.buttonReject:hover {
+  box-shadow: 0px 0px 1.5vh #fcfcfcae;
+}
+
+.containerAddFriend {
+  width: 100%;
+  display: flex;
+  background-color: #101010;
+  border: 1px solid rgb(59, 59, 59);
+  border-radius: 1vh;
+  justify-content: space-between;
+  padding: 0.75vh;
+}
+
+.inputAddFriend {
+  width: 88%;
+  padding: 0 1%;
+  background-color: transparent;
+  font-size: 1.75vh;
+  color: rgb(209, 209, 209);
+  border: none;
+  outline: none;
+}
+
+.buttonAddFriend {
+  width: 10%;
+  height: 4vh;
+  border-radius: 1vh;
+  background-color: rgb(200, 200, 200);
+  border: none;
+  color: rgb(39, 39, 39);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.buttonAddFriend:disabled {
+  background-color: rgb(62, 62, 62);
+  color: rgb(93, 93, 93);
+  cursor: not-allowed;
+}
+
+.statusAddFriend {
+  color: rgb(209, 209, 209);
+  margin: 1% 0 0 0.5%;
 }

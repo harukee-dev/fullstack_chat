@@ -15,6 +15,7 @@ import { Route, Routes } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
 
 interface IRequest {
+  avatar: string
   id: string
   username: string
 }
@@ -57,7 +58,11 @@ export const RightWindow = () => {
       requests.forEach((req: any) => {
         setAllRequests((r) => [
           ...r,
-          { id: req.requesterId._id, username: req.requesterId.username },
+          {
+            id: req.requesterId._id,
+            username: req.requesterId.username,
+            avatar: req.requesterId.avatar,
+          },
         ])
       })
     }
@@ -129,6 +134,22 @@ export const RightWindow = () => {
 
       newSocket.on('usersTyping', (usernames: string[]) => {
         setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
+      })
+
+      newSocket.on('newRequest', (message: IRequest) => {
+        setAllRequests((r) => [...r, message])
+        console.log(message)
+        if (document.hidden && notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+        if (document.hidden) {
+          hasNewMessage = true
+          document.title = 'New Request - Omnio'
+        }
       })
 
       newSocket.on('messageEdited', (updatedMessage: IMessage) => {

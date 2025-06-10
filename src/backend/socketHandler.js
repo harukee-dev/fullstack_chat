@@ -159,6 +159,17 @@ function setupSocketHandlers(io) {
       }
     })
 
+    socket.on('newRequest', async ({ requesterId, recipientUsername }) => {
+      const requester = await User.findOne({ _id: requesterId })
+      const recipient = await User.findOne({ username: recipientUsername })
+      if (!recipient || !requester) return
+      io.to(recipient._id.toString()).emit('newRequest', {
+        avatar: requester.avatar,
+        id: requesterId,
+        username: requester.username,
+      })
+    })
+
     // События чата
     socket.on('message', (msg) => handleMessage(io, socket, msg))
     socket.on('editMessage', ({ _id, text }) => handleEdit(io, _id, text))
