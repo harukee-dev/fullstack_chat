@@ -9,6 +9,7 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { setFriends } from '../../slices/friendsSlice'
 import acceptIcon from './images/accept-icon.svg'
+import { FriendCard } from './Components/FriendCard'
 
 interface IRequest {
   avatar: string
@@ -200,47 +201,11 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     <div className={cl.friendsList}>
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <div
-            key={el.username}
-            className={cl.friendContainer}
-            onClick={() => handleDeleteFriend(el.id, currentUserId)}
-            onMouseMove={(e) => {
-              const card = e.currentTarget as HTMLDivElement
-              const rect = card.getBoundingClientRect()
-              const x = e.clientX - rect.left
-              const y = e.clientY - rect.top
-
-              const centerX = rect.width / 2
-              const centerY = rect.height / 2
-
-              const rotateX = ((y - centerY) / centerY) * -20
-              const rotateY = ((x - centerX) / centerX) * 20
-
-              card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
-
-              // Блик
-              const glare = card.querySelector('::before') as HTMLElement
-              const percentX = (x / rect.width) * 100
-              const percentY = (y / rect.height) * 100
-              card.style.setProperty('--glare-x', `${percentX}%`)
-              card.style.setProperty('--glare-y', `${percentY}%`)
-              card.style.setProperty('--glare-opacity', `1`)
-            }}
-            onMouseLeave={(e) => {
-              const card = e.currentTarget as HTMLDivElement
-              card.style.transform = 'rotateX(0deg) rotateY(0deg)'
-              card.style.setProperty('--glare-opacity', `0`)
-            }}
-          >
-            <img
-              src={el.avatar}
-              className={cl.avatarOnline}
-              alt="user-avatar"
-            />
-            <p className={cl.friendUsername} style={{ color: 'white' }}>
-              {el.username}
-            </p>
-          </div>
+          <FriendCard
+            deleteFunc={handleDeleteFriend}
+            currentUserId={currentUserId}
+            friendData={el}
+          />
         ))
       ) : (
         <p className={cl.clearTitle}>It looks like you don't have friends...</p>

@@ -62,7 +62,7 @@
 }
 
 .friendsList {
-  width: 96.5%;
+  width: 90%;
   height: 90%;
   display: flex;
   gap: 2%;
@@ -89,80 +89,6 @@
 
 .friendsList::-webkit-scrollbar {
   display: none;
-}
-
-.friendContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
-  width: 15%;
-  height: 27%;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgb(54, 54, 54);
-  border-radius: 2vh;
-  box-shadow: 0 0 4vh #fffdff1e;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.1s ease;
-  will-change: transform;
-  perspective: 1000px;
-}
-
-.friendContainer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(
-    circle at var(--glare-x, 50%) var(--glare-y, 50%),
-    rgba(255, 255, 255, 0.138),
-    transparent 60%
-  );
-  opacity: var(--glare-opacity, 0);
-  pointer-events: none;
-  transition: opacity 0.2s, background 0.1s;
-}
-
-.avatarOnline {
-  width: 10vh;
-  height: 10vh;
-  border-radius: 100%;
-  position: relative;
-  z-index: -0;
-  box-shadow: 0 0 5vh #ffffff77;
-}
-.avatarOffline {
-  height: 5vh;
-  width: 5vh;
-
-  border-radius: 100%;
-  position: relative;
-  z-index: -0;
-  padding: 0.3vh;
-  border: #545454 solid 0.2vh;
-}
-
-.friendUsername {
-  font-family: 'Jost Bold', sans-serif;
-  font-size: 2.3vh;
-}
-
-.deleteFriendButton {
-  height: 4.25vh;
-  width: 4.25vh;
-  cursor: pointer;
-  padding: 0.8vh;
-  border-radius: 100%;
-  border: 1px solid black;
-  transition: 0.2s;
-}
-
-.deleteFriendButton:hover {
-  border: 1px solid #545454;
 }
 
 .pendingContainer {
