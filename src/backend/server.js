@@ -14,7 +14,7 @@ const friendsRouter = require('./routes/friends')
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: 'https://harukee.netlify.app',
   })
 )
 
