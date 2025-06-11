@@ -25,16 +25,36 @@ export const MessageInteraction: React.FC<IMessageInteractionProps> = ({
     return (
       <div className={cl.container}>
         <button onClick={replyFunc} className={cl.button}>
-          <img className={cl.icon} src={replyIcon} alt="reply-icon" />
+          <img
+            draggable={false}
+            className={cl.icon}
+            src={replyIcon}
+            alt="reply-icon"
+          />
         </button>
         <button onClick={pinFunc} className={cl.button}>
-          <img className={cl.icon} src={pinIcon} alt="pin-icon" />
+          <img
+            draggable={false}
+            className={cl.icon}
+            src={pinIcon}
+            alt="pin-icon"
+          />
         </button>
         <button onClick={editFunc} className={cl.button}>
-          <img className={cl.icon} src={editIcon} alt="edit-icon" />
+          <img
+            draggable={false}
+            className={cl.icon}
+            src={editIcon}
+            alt="edit-icon"
+          />
         </button>
         <button onClick={deleteFunc} className={cl.button}>
-          <img className={cl.icon} src={deleteIcon} alt="delete-icon" />
+          <img
+            draggable={false}
+            className={cl.icon}
+            src={deleteIcon}
+            alt="delete-icon"
+          />
         </button>
       </div>
     )

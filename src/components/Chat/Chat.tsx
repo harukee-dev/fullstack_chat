@@ -111,7 +111,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     return (
       <div className={cl.chat}>
         <div className={cl.clearContainer}>
-          <img src={loading} className={cl.isClear} />
+          <img draggable={false} src={loading} className={cl.isClear} />
         </div>
       </div>
     )

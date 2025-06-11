@@ -84,6 +84,7 @@ export const Message: React.FC<IMessageProps> = ({
       ref={setRef}
     >
       <img
+        draggable={false}
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
@@ -106,7 +107,11 @@ export const Message: React.FC<IMessageProps> = ({
                 </p>
                 <div className={cl.reply}>
                   <p className={cl.replyText}>{message.replyMessage.text}</p>
-                  <img src={replyIconMessage} alt="reply-icon" />
+                  <img
+                    draggable={false}
+                    src={replyIconMessage}
+                    alt="reply-icon"
+                  />
                 </div>
               </div>
             ) : (
@@ -125,6 +130,7 @@ export const Message: React.FC<IMessageProps> = ({
                 <div onClick={handleReply} className={cl.replyButton}>
                   <p className={cl.replyButtonText}>Reply message</p>
                   <img
+                    draggable={false}
                     className={cl.replyButtonIcon}
                     src={replyIcon}
                     alt="reply-icon"

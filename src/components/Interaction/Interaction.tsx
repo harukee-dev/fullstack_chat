@@ -86,7 +86,12 @@ export const Interaction: React.FC<Interaction> = ({
             <p className={cl.replyText}>{replyMessage?.text}</p>
           </div>
           <button onClick={handleCancelReply} className={cl.replyButton}>
-            <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
+            <img
+              draggable={false}
+              className={cl.closeIcon}
+              src={closeIcon}
+              alt="close-icon"
+            />
           </button>
         </div>
       )}
@@ -100,6 +105,7 @@ export const Interaction: React.FC<Interaction> = ({
           onKeyDown={handleKeyDown}
         />
         <img
+          draggable={false}
           onClick={handleEmojiOpen}
           className={cl.emojiButton}
           src={emojiIcon}

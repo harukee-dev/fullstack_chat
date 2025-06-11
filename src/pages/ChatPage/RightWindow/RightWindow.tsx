@@ -392,7 +392,7 @@ const ChatPanel: React.FC<IChatPanel> = ({
               onClick={() => setIsNotFound(false)}
               className={cl.notFoundWindowButton}
             >
-              <img src={closeNotFoundWindowIcon} alt="" />
+              <img draggable={false} src={closeNotFoundWindowIcon} alt="" />
             </button>
             <p className={cl.notFoundWindowText}>No messages found</p>
           </motion.div>

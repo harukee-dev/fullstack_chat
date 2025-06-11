@@ -59,6 +59,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
       <header className={cl.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1vh' }}>
           <img
+            draggable={false}
             style={{ height: '3.5vh' }}
             src={friendsIcon}
             alt="friends-icon"
@@ -235,7 +236,6 @@ const Pending: React.FC<IPending> = ({
   }
 
   const handleAccept = async (requesterId: string, recipientId: string) => {
-    console.log('1: ' + requesterId + ' 2: ' + recipientId)
     const response = await fetch(API_URL + '/friends/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -273,7 +273,7 @@ const Pending: React.FC<IPending> = ({
         <PendingCard
           pending={el}
           handleAccept={handleAccept}
-          handleReject={handleAccept}
+          handleReject={handleReject}
           currentUserId={currentUserId}
         />
       ))}
@@ -333,7 +333,7 @@ const AddFriend: React.FC<IAddFriend> = ({
         <input
           className={cl.inputAddFriend}
           type="text"
-          placeholder="Username"
+          placeholder="You can add friends with their username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />

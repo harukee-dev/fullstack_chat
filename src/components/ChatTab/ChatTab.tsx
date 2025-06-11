@@ -39,6 +39,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({
       <div>
         {avatar ? (
           <img
+            draggable={false}
             className={isOnline ? cl.avatarOnline : cl.avatarOffline}
             src={avatar}
             alt="avatar"
@@ -52,7 +53,12 @@ export const ChatTab: React.FC<ChatTabProps> = ({
         )}
       </div>
       <p className={cl.username}>{username}</p>
-      <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
+      <img
+        draggable={false}
+        className={cl.closeIcon}
+        src={closeIcon}
+        alt="close-icon"
+      />
     </div>
   )
 }

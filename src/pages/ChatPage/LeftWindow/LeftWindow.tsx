@@ -54,9 +54,19 @@ export const LeftWindow = () => {
             className={cl.boostyButton}
           >
             {(moneyHover && (
-              <img className={cl.icon} src={moneyIconPurple} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={moneyIconPurple}
+                alt="money-gray"
+              />
             )) || (
-              <img className={cl.icon} src={moneyIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={moneyIconGray}
+                alt="money-gray"
+              />
             )}
             Support the project with a tip
           </button>
@@ -68,12 +78,18 @@ export const LeftWindow = () => {
           >
             {(friendsHover && (
               <img
+                draggable={false}
                 className={cl.icon}
                 src={friendsIconPurple}
                 alt="money-gray"
               />
             )) || (
-              <img className={cl.icon} src={friendsIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={friendsIconGray}
+                alt="money-gray"
+              />
             )}
             Friends
           </button>
@@ -83,9 +99,19 @@ export const LeftWindow = () => {
             className={cl.settingsButton}
           >
             {(fluxHover && (
-              <img className={cl.icon} src={fluxIconPurple} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={fluxIconPurple}
+                alt="money-gray"
+              />
             )) || (
-              <img className={cl.icon} src={fluxIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={fluxIconGray}
+                alt="money-gray"
+              />
             )}
             Flux
           </button>
@@ -97,6 +123,7 @@ export const LeftWindow = () => {
         <div className={cl.voiceSettingsContainer}>
           <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
             <img
+              draggable={false}
               className={cl.yourAvatar}
               src={
                 currentUserAvatar ||
@@ -118,16 +145,19 @@ export const LeftWindow = () => {
             }}
           >
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={micIcon}
               alt="microphone-icon"
             />
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={headphonesIcon}
               alt="headphones-icon"
             />
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={settingsIcon}
               alt="settings-icon"

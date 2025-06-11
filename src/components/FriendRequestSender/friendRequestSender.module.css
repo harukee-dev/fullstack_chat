@@ -92,71 +92,40 @@
 }
 
 .pendingContainer {
-  margin-top: 1.5vh;
+  width: 90%;
+  height: 90%;
   display: flex;
-  flex-direction: column;
-  gap: 1.5vh;
-  height: 100%;
+  gap: 2%;
+  padding: 3vh 0;
+  flex-wrap: wrap;
   overflow-y: auto;
-  width: 98%;
-  padding: 0 1%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
 }
 
-.pendingTitle {
-  font-family: 'Jost Bold', sans-serif;
-  font-size: 5vh;
-}
-
-.pendingUser {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 77%;
-}
-
-.pendingAvatar {
-  width: 5vh;
-  height: 5vh;
-  border-radius: 100%;
-}
-
-.buttonAccept {
-  padding: 0.5vh;
-  display: flex;
-  align-items: center;
-  background-color: transparent;
-  border: 1px solid white;
-  color: white;
-  border-radius: 100%;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-.buttonAccept:hover {
-  box-shadow: 0px 0px 1.5vh #fcfcfcae;
-}
-
-.buttonReject {
-  padding: 0.5vh;
-  display: flex;
-  align-items: center;
-  background-color: transparent;
-  border: 1px solid white;
-  color: white;
-  border-radius: 100%;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-.buttonReject:hover {
-  box-shadow: 0px 0px 1.5vh #fcfcfcae;
+.pendingContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .containerAddFriend {
   width: 100%;
   display: flex;
   background-color: #101010;
-  border: 1px solid rgb(59, 59, 59);
+  border: 1px solid rgb(91, 154, 98);
   border-radius: 1vh;
   justify-content: space-between;
   padding: 0.75vh;
@@ -176,16 +145,21 @@
   width: 10%;
   height: 4vh;
   border-radius: 1vh;
-  background-color: rgb(200, 200, 200);
+  background-color: rgb(121, 218, 132);
   border: none;
-  color: rgb(39, 39, 39);
+  color: white;
   cursor: pointer;
   transition: 0.2s;
 }
 
+.buttonAddFriend:hover {
+  background-color: rgb(98, 218, 112);
+  box-shadow: 0 0 4vh rgba(98, 218, 112, 0.497);
+}
+
 .buttonAddFriend:disabled {
-  background-color: rgb(62, 62, 62);
-  color: rgb(93, 93, 93);
+  background-color: rgb(43, 90, 49);
+  color: rgb(72, 120, 85);
   cursor: not-allowed;
 }
 
