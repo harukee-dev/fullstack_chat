@@ -2,15 +2,18 @@ import React, { useState } from 'react'
 import { ChatTabProps } from './typesChatTab'
 import cl from './ChatTab.module.css'
 import closeIcon from './images/close-chat.svg'
+import { useNavigate } from 'react-router-dom'
 
 export const ChatTab: React.FC<ChatTabProps> = ({
   username,
   avatar,
   isOnline,
+  navigate,
 }) => {
   const [onlineStatus, setOnlineStatus] = useState<string>(
     isOnline ? 'Online' : 'Offline'
   )
+  const navigateFunc = useNavigate()
   return (
     // <div className={cl.container}>
     //   {avatar ? (
@@ -32,10 +35,11 @@ export const ChatTab: React.FC<ChatTabProps> = ({
     //   </div>
     // </div>
 
-    <div className={cl.container}>
+    <div onClick={() => navigateFunc(navigate)} className={cl.container}>
       <div>
         {avatar ? (
           <img
+            draggable={false}
             className={isOnline ? cl.avatarOnline : cl.avatarOffline}
             src={avatar}
             alt="avatar"
@@ -49,7 +53,12 @@ export const ChatTab: React.FC<ChatTabProps> = ({
         )}
       </div>
       <p className={cl.username}>{username}</p>
-      <img className={cl.closeIcon} src={closeIcon} alt="close-icon" />
+      <img
+        draggable={false}
+        className={cl.closeIcon}
+        src={closeIcon}
+        alt="close-icon"
+      />
     </div>
   )
 }

@@ -146,21 +146,25 @@
 .typingDiv {
   position: absolute;
   z-index: 10;
-  bottom: 8vh;
+  bottom: 9.5vh;
   display: flex;
   justify-content: center;
-
-  width: 100%;
+  background-color: rgba(0, 0, 0, 0.525);
+  padding: 0 1vw;
+  backdrop-filter: blur(0.15vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+  width: 4vw;
 }
 
 .dot {
   animation: blink 1.4s infinite;
   font-weight: bold;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 2.5vh;
+  font-size: 4vh;
   line-height: 1;
-  color: #9927ea;
-  transform: translateY(0vh);
+  color: #5e5e5e;
+  transform: translateY(-1.55vh);
 }
 
 .dot:nth-child(1) {
@@ -176,15 +180,15 @@
 @keyframes blink {
   0% {
     opacity: 0.5;
-    transform: translateY(0vh);
+    transform: translateY(-1.55vh);
   }
   50% {
     opacity: 1;
-    transform: translateY(-0.3vh);
+    transform: translateY(-1vh);
   }
   100% {
     opacity: 0.5;
-    transform: translateY(0vh);
+    transform: translateY(-1.55vh);
   }
 }
 
@@ -234,4 +238,44 @@
   outline: none;
   color: #aeaeae;
   border-bottom: #aeaeae solid 1px;
+}
+
+.notFoundWindowContainer {
+  z-index: 13;
+  top: 17vh;
+  right: 5vh;
+  position: absolute;
+  display: flex;
+  width: 15vw;
+  height: 4vh;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+}
+
+.notFoundWindowButton {
+  font-family: 'Jost Regular', sans-serif;
+
+  position: absolute;
+  top: -1.25vh;
+  left: -1.25vh;
+  width: 2.5vh;
+  height: 2.5vh;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  cursor: pointer;
+}
+
+.notFoundWindowText {
+  font-family: 'Jost Regular', sans-serif;
+  color: white;
 }

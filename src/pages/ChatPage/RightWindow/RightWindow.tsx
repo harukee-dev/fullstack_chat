@@ -10,6 +10,15 @@ import { API_URL } from '../../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
 import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
+import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
+import { Route, Routes } from 'react-router-dom'
+import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
+
+interface IRequest {
+  avatar: string
+  id: string
+  username: string
+}
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
@@ -24,6 +33,41 @@ export const RightWindow = () => {
   const chatRef = useRef<HTMLDivElement>(null)
   const replyMessage = useAppSelector((state) => state.reply.message)
   const searchValue = useAppSelector((state) => state.search.value)
+  const currentUserId = localStorage.getItem('user-id')
+  const [allRequests, setAllRequests] = useState<IRequest[]>([])
+
+  async function fetchFriendRequests(userId: string) {
+    const response = await fetch(`${API_URL}/friends/requests/${userId}`)
+    const data = await response.json()
+
+    if (response.ok) {
+      return data // массив заявок
+    } else {
+      console.error('Ошибка при получении заявок:', data.message)
+      return []
+    }
+  }
+
+  useEffect(() => {
+    setAllRequests([])
+    async function loadRequests() {
+      if (!currentUserId) return
+
+      const requests = await fetchFriendRequests(currentUserId)
+
+      requests.forEach((req: any) => {
+        setAllRequests((r) => [
+          ...r,
+          {
+            id: req.requesterId._id,
+            username: req.requesterId.username,
+            avatar: req.requesterId.avatar,
+          },
+        ])
+      })
+    }
+    loadRequests()
+  }, [])
 
   let notificationSound: HTMLAudioElement | null = null
 
@@ -92,10 +136,42 @@ export const RightWindow = () => {
         setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
       })
 
+      newSocket.on('newRequest', (message: IRequest) => {
+        setAllRequests((r) => [...r, message])
+        console.log(message)
+        if (document.hidden && notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+        if (document.hidden) {
+          hasNewMessage = true
+          document.title = 'New Request - Omnio'
+        }
+      })
+
       newSocket.on('messageEdited', (updatedMessage: IMessage) => {
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
             msg._id === updatedMessage._id ? updatedMessage : msg
+          )
+        )
+      })
+
+      newSocket.on('messagePinned', (pinmsg: IMessage) => {
+        setMessages((msg) =>
+          msg.map((el: IMessage) =>
+            el._id === pinmsg._id ? { ...el, isPinned: true } : el
+          )
+        )
+      })
+
+      newSocket.on('messageUnpinned', (unpinmsg: IMessage) => {
+        setMessages((msg) =>
+          msg.map((el: IMessage) =>
+            el._id === unpinmsg._id ? { ...el, isPinned: false } : el
           )
         )
       })
@@ -114,6 +190,12 @@ export const RightWindow = () => {
       }
     }
   }, [isAuth, token])
+
+  useEffect(() => {
+    if (socket && currentUserId) {
+      socket.emit('joinPersonalRoom', currentUserId)
+    }
+  }, [socket, currentUserId])
 
   // Загрузка сообщений из БД при открытии страницы
   useEffect(() => {
@@ -136,11 +218,6 @@ export const RightWindow = () => {
     }
   }, [searchValue, allMessages])
 
-  const [onlineListIsOpened, setOnlineListIsOpened] = useState<boolean>(false)
-  const handleOnlineButton = () => {
-    setOnlineListIsOpened(!onlineListIsOpened)
-  }
-
   const scrollToBottom = () => {
     if (chatRef.current) {
       chatRef.current.scrollTo({
@@ -161,13 +238,15 @@ export const RightWindow = () => {
 
   const handleShowPinned = () => {
     if (isShowPinnedMessages) {
-      setMessages(allMessages)
       setIsShowPinnedMessages(false)
+      setMessages(allMessages)
     } else {
-      setMessages((msg) => msg.filter((el) => el.isPinned))
       setIsShowPinnedMessages(true)
+      setMessages((msg) => msg.filter((el) => el.isPinned))
     }
   }
+
+  const [isNotFound, setIsNotFound] = useState<boolean>(false)
 
   const handleSearch = (event: any) => {
     if (event.key === 'Enter' && event.target.value !== '') {
@@ -175,7 +254,7 @@ export const RightWindow = () => {
         ? setMessages((msg) =>
             msg.filter((el) => el.text.includes(event.target.value))
           )
-        : setMessages(messages)
+        : setIsNotFound(true)
     }
     if (event.key === 'Enter' && event.target.value === '') {
       setMessages(allMessages)
@@ -183,60 +262,80 @@ export const RightWindow = () => {
   }
 
   return (
-    <div style={{ background: 'black', height: '100vh' }}>
-      <div className={cl.chatPage}>
-        <div className={cl.chatHeader}>
-          <div style={{ display: 'flex', gap: '.6vh' }}>
-            <p className={cl.hashtag}>#</p>{' '}
-            <p className={cl.chatName}>general chat</p>
+    <Routes>
+      <Route
+        path="chat"
+        element={
+          <div style={{ background: 'black', height: '100vh' }}>
+            <div className={cl.chatPage}>
+              <div className={cl.chatHeader}>
+                <div style={{ display: 'flex', gap: '.6vh' }}>
+                  <p className={cl.hashtag}>#</p>{' '}
+                  <p className={cl.chatName}>general chat</p>
+                </div>
+                <button onClick={handlePanelOpen} className={cl.buttonOther}>
+                  ···
+                </button>
+              </div>
+              <ChatPanel
+                setIsNotFound={setIsNotFound}
+                isNotFound={isNotFound}
+                isOpened={isPanelOpened}
+                isShowPinned={isShowPinnedMessages}
+                handleShowPinned={handleShowPinned}
+                handleSearch={handleSearch}
+              />
+              <ChatComponent
+                socket={socket}
+                chatRef={chatRef}
+                setShowScrollButton={setShowScrollButton}
+                messages={messages}
+                isClear={messages.length === 0}
+              />
+              <AnimatePresence>
+                {usersTyping.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0 }}
+                    className={cl.typingDiv}
+                  >
+                    <span className={cl.dot}>.</span>
+                    <span className={cl.dot}>.</span>
+                    <span className={cl.dot}>.</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <ScrollChatButton
+                onClick={scrollToBottom}
+                isVisible={showScrollButton}
+              />
+              <Interaction
+                socket={socket}
+                message={message}
+                setMessage={setMessage}
+                sendMessage={() =>
+                  sendMessage(socket, message, setMessage, replyMessage)
+                }
+              />
+            </div>
           </div>
-          <button onClick={handlePanelOpen} className={cl.buttonOther}>
-            ···
-          </button>
-        </div>
-        <ChatPanel
-          isOpened={isPanelOpened}
-          isShowPinned={isShowPinnedMessages}
-          handleShowPinned={handleShowPinned}
-          handleSearch={handleSearch}
-        />
-        <ChatComponent
-          socket={socket}
-          chatRef={chatRef}
-          setShowScrollButton={setShowScrollButton}
-          messages={messages}
-          isClear={messages.length === 0}
-        />
-        <AnimatePresence>
-          {usersTyping.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              exit={{ opacity: 0 }}
-              className={cl.typingDiv}
-            >
-              <span className={cl.typingText}>Someone is typing</span>
-              <span className={cl.dot}>.</span>
-              <span className={cl.dot}>.</span>
-              <span className={cl.dot}>.</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <ScrollChatButton
-          onClick={scrollToBottom}
-          isVisible={showScrollButton}
-        />
-        <Interaction
-          socket={socket}
-          message={message}
-          setMessage={setMessage}
-          sendMessage={() =>
-            sendMessage(socket, message, setMessage, replyMessage)
-          }
-        />
-      </div>
-    </div>
+        }
+      />
+      <Route
+        path="friends/*"
+        element={
+          <FriendRequestSender
+            allRequests={allRequests}
+            setAllRequests={setAllRequests}
+            currentUserId={currentUserId}
+            socket={socket}
+          />
+        }
+      />
+      <Route path="flux-subscription" element={<div />} />
+    </Routes>
   )
 }
 
@@ -245,6 +344,8 @@ interface IChatPanel {
   handleShowPinned: () => void
   handleSearch: (arg: any) => void
   isOpened: boolean
+  setIsNotFound: any
+  isNotFound: boolean
 }
 
 const ChatPanel: React.FC<IChatPanel> = ({
@@ -252,28 +353,51 @@ const ChatPanel: React.FC<IChatPanel> = ({
   handleShowPinned,
   handleSearch,
   isOpened,
+  setIsNotFound,
+  isNotFound,
 }) => {
   return (
-    <AnimatePresence>
-      {isOpened && (
-        <motion.div
-          initial={{ opacity: 0, x: 5, y: -5 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.2 }}
-          exit={{ opacity: 0, x: 5, y: -5 }}
-          className={cl.panelContainer}
-        >
-          <button onClick={handleShowPinned} className={cl.panelButton}>
-            Show {isShowPinned ? 'all' : 'pinned'} messages
-          </button>
-          <input
-            onKeyDown={handleSearch}
-            className={cl.panelInput}
-            type="text"
-            placeholder="Search message"
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div>
+      <AnimatePresence>
+        {isOpened && (
+          <motion.div
+            initial={{ opacity: 0, x: 5, y: -5 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, x: 5, y: -5 }}
+            className={cl.panelContainer}
+          >
+            <button onClick={handleShowPinned} className={cl.panelButton}>
+              Show {isShowPinned ? 'all' : 'pinned'} messages
+            </button>
+            <input
+              onKeyDown={handleSearch}
+              className={cl.panelInput}
+              type="text"
+              placeholder="Search message"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isNotFound && (
+          <motion.div
+            className={cl.notFoundWindowContainer}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0 }}
+          >
+            <button
+              onClick={() => setIsNotFound(false)}
+              className={cl.notFoundWindowButton}
+            >
+              <img draggable={false} src={closeNotFoundWindowIcon} alt="" />
+            </button>
+            <p className={cl.notFoundWindowText}>No messages found</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

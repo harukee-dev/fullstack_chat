@@ -1,0 +1,169 @@
+.friendsPage {
+  margin-top: 1.5vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #000000;
+  border: #444444 solid 1px;
+  border-radius: 1vh;
+  width: 69.5vw;
+  max-width: 69.5vw;
+  height: 97vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clearTitle {
+  color: rgb(209, 209, 209);
+  font-size: 1.75vh;
+  margin: 1% 0 0 2%;
+}
+
+.header {
+  padding: 2.5vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3vh;
+}
+
+.friendsTitle {
+  font-family: 'Jost Regular', sans-serif;
+  color: #7e7e7e;
+  font-size: 2.1vh;
+}
+
+.headerButton {
+  font-size: 1.8vh;
+  color: #757575;
+  background-color: transparent;
+  border: none;
+  padding: 0.5vh 1.7vh;
+  border-radius: 0.7vh;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.headerButton:hover {
+  color: white;
+  background-color: #191919;
+}
+
+.headerActiveButton {
+  font-size: 1.8vh;
+  color: white;
+  background-color: #191919;
+  border: none;
+  padding: 0.5vh 1.7vh;
+  border-radius: 0.7vh;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.friendsList {
+  width: 90%;
+  height: 90%;
+  display: flex;
+  gap: 2%;
+  padding: 3vh 0;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+
+.friendsList::-webkit-scrollbar {
+  display: none;
+}
+
+.pendingContainer {
+  width: 90%;
+  height: 90%;
+  display: flex;
+  gap: 2%;
+  padding: 3vh 0;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+
+.pendingContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.containerAddFriend {
+  width: 100%;
+  display: flex;
+  background-color: #101010;
+  border: 1px solid rgb(91, 154, 98);
+  border-radius: 1vh;
+  justify-content: space-between;
+  padding: 0.75vh;
+}
+
+.inputAddFriend {
+  width: 88%;
+  padding: 0 1%;
+  background-color: transparent;
+  font-size: 1.75vh;
+  color: rgb(209, 209, 209);
+  border: none;
+  outline: none;
+}
+
+.buttonAddFriend {
+  width: 10%;
+  height: 4vh;
+  border-radius: 1vh;
+  background-color: rgb(121, 218, 132);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.buttonAddFriend:hover {
+  background-color: rgb(98, 218, 112);
+  box-shadow: 0 0 4vh rgba(98, 218, 112, 0.497);
+}
+
+.buttonAddFriend:disabled {
+  background-color: rgb(43, 90, 49);
+  color: rgb(72, 120, 85);
+  cursor: not-allowed;
+}
+
+.statusAddFriend {
+  color: rgb(209, 209, 209);
+  margin: 1% 0 0 0.5%;
+}

@@ -1,11 +1,20 @@
-const { Schema, model } = require('mongoose')
+const { Schema, Types, model } = require('mongoose')
 
-const MessageSchema = new Schema({
-  username: { type: String, required: true },
-  text: { type: String, required: true },
-  timestamp: { type: Date, required: false },
-  replyMessage: { type: { username: String, text: String }, required: false },
-  isPinned: { type: Boolean, required: false },
+const messageSchema = new Schema({
+  text: String,
+  timestamp: { type: Date, default: Date.now },
+  senderId: {
+    type: Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  replyMessage: {
+    username: String,
+    text: String,
+  },
+  isPinned: Boolean,
 })
 
-module.exports = model('Message', MessageSchema)
+const Message = model('Message', messageSchema)
+
+module.exports = Message

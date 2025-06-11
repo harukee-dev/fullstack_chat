@@ -6,7 +6,6 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
-import defaultUserIcon from './images/user-default-icon.png'
 import replyIcon from './images/reply-render.svg'
 
 interface IMessageProps {
@@ -99,7 +98,10 @@ export const MyMessage: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.25 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cl.allMessage}
@@ -113,16 +115,20 @@ export const MyMessage: React.FC<IMessageProps> = ({
       >
         <div className={cl.container}>
           {message.replyMessage ? (
-            <p className={cl.username}>
+            <div
+              style={{ display: 'flex', gap: '.35vw', alignItems: 'center' }}
+            >
               <div className={cl.reply}>
                 <p className={cl.replyText}>{message.replyMessage.text}</p>
-                <img src={replyIcon} alt="" />
+                <img draggable={false} src={replyIcon} alt="reply-icon" />
               </div>
-              ({time}) {message.username}
-            </p>
+              <p className={cl.username}>
+                ({time}) {message.senderId.username}
+              </p>
+            </div>
           ) : (
             <p className={cl.username}>
-              ({time}) {message.username}
+              ({time}) {message.senderId.username}
             </p>
           )}
           {!isEditing ? (
@@ -138,6 +144,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
             </p>
           ) : (
             <textarea
+              maxLength={1000}
               className={cl.textarea}
               onBlur={handleBlur}
               value={textareaValue}
@@ -173,12 +180,13 @@ export const MyMessage: React.FC<IMessageProps> = ({
       </motion.div>
 
       <img
+        draggable={false}
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
-        src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+        src={message.senderId.avatar}
         alt="default-user-icon"
       />
-    </div>
+    </motion.div>
   )
 }

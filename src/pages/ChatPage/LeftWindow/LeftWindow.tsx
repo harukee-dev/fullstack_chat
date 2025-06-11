@@ -12,11 +12,16 @@ import { useEffect, useState } from 'react'
 import micIcon from './images/mic-icon.svg'
 import headphonesIcon from './images/headphones-icon.svg'
 import settingsIcon from './images/settings-icon.svg'
+import { useNavigate } from 'react-router-dom'
 
 export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
   const [friendsHover, setFriendsHover] = useState(false)
   const [fluxHover, setFluxHover] = useState(false)
+  const currentUsername = localStorage.getItem('username')
+  const currentUserAvatar = localStorage.getItem('avatar')
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const purpleFriends = new Image()
@@ -31,22 +36,11 @@ export const LeftWindow = () => {
 
   const users = [
     {
-      username: 'harukee',
+      username: 'general chat',
       avatar:
-        'https://i.pinimg.com/736x/86/cd/4d/86cd4d0117de1304028a08fa0bfdd2cf.jpg',
-      isOnline: false,
-    },
-    {
-      username: 'jerue',
-      avatar:
-        'https://i.pinimg.com/736x/f9/f4/82/f9f4829ec9f56b3883acf4d104431766.jpg',
+        'https://i.pinimg.com/originals/41/b2/cc/41b2cc482076e1f988453413a93b07bd.gif',
       isOnline: true,
-    },
-    {
-      username: 'htabos prime era les fukin go ma sssssssssssssss',
-      avatar:
-        'https://i.pinimg.com/736x/a0/a2/9d/a0a29d22137558a897215f40f88b403e.jpg',
-      isOnline: true,
+      navigate: '/main/chat',
     },
   ]
   return (
@@ -60,9 +54,19 @@ export const LeftWindow = () => {
             className={cl.boostyButton}
           >
             {(moneyHover && (
-              <img className={cl.icon} src={moneyIconPurple} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={moneyIconPurple}
+                alt="money-gray"
+              />
             )) || (
-              <img className={cl.icon} src={moneyIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={moneyIconGray}
+                alt="money-gray"
+              />
             )}
             Support the project with a tip
           </button>
@@ -70,15 +74,22 @@ export const LeftWindow = () => {
             onMouseEnter={() => setFriendsHover(true)}
             onMouseLeave={() => setFriendsHover(false)}
             className={cl.friendsButton}
+            onClick={() => navigate('/main/friends/list')}
           >
             {(friendsHover && (
               <img
+                draggable={false}
                 className={cl.icon}
                 src={friendsIconPurple}
                 alt="money-gray"
               />
             )) || (
-              <img className={cl.icon} src={friendsIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={friendsIconGray}
+                alt="money-gray"
+              />
             )}
             Friends
           </button>
@@ -88,9 +99,19 @@ export const LeftWindow = () => {
             className={cl.settingsButton}
           >
             {(fluxHover && (
-              <img className={cl.icon} src={fluxIconPurple} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={fluxIconPurple}
+                alt="money-gray"
+              />
             )) || (
-              <img className={cl.icon} src={fluxIconGray} alt="money-gray" />
+              <img
+                draggable={false}
+                className={cl.icon}
+                src={fluxIconGray}
+                alt="money-gray"
+              />
             )}
             Flux
           </button>
@@ -102,12 +123,16 @@ export const LeftWindow = () => {
         <div className={cl.voiceSettingsContainer}>
           <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
             <img
+              draggable={false}
               className={cl.yourAvatar}
-              src="https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg"
+              src={
+                currentUserAvatar ||
+                'https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg'
+              }
               alt="avatar"
             />
             <div className={cl.usernameAndStatus}>
-              <p className={cl.subUsername}>harukee</p>
+              <p className={cl.subUsername}>{currentUsername}</p>
               <p className={cl.subStatus}>Online</p>
             </div>
           </div>
@@ -120,16 +145,19 @@ export const LeftWindow = () => {
             }}
           >
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={micIcon}
               alt="microphone-icon"
             />
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={headphonesIcon}
               alt="headphones-icon"
             />
             <img
+              draggable={false}
               className={cl.settingsIcon}
               src={settingsIcon}
               alt="settings-icon"

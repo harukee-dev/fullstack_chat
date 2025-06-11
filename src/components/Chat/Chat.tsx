@@ -25,6 +25,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
 }) => {
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const username = localStorage.getItem('username')
 
   useEffect(() => {
     if (!socket) return
@@ -50,7 +51,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     if (!chatEl) return
 
     const isScrolledUp =
-      chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 10
+      chatEl.scrollTop + chatEl.clientHeight < chatEl.scrollHeight - 300
 
     setShowScrollButton(isScrolledUp)
   }
@@ -110,7 +111,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
     return (
       <div className={cl.chat}>
         <div className={cl.clearContainer}>
-          <img src={loading} className={cl.isClear} />
+          <img draggable={false} src={loading} className={cl.isClear} />
         </div>
       </div>
     )
@@ -151,7 +152,7 @@ export const ChatComponent: React.FC<IChatProps> = ({
             {shouldShowDate && (
               <DateSeparator date={formatDateLabel(currentMessageDate)} />
             )}
-            {el.username === localStorage.getItem('username') ? (
+            {el.senderId.username === username ? (
               <MyMessage
                 socket={socket}
                 message={el}

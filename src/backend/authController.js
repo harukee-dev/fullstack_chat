@@ -31,11 +31,9 @@ class authController {
 
         if (hasLowercase && hasUppercase && hasDigit && hasSpecialChar) {
           const hashPassword = bcrypt.hashSync(password, 5)
-          const userRole = await Role.findOne({ value: 'USER' })
           const user = new User({
             username,
             password: hashPassword,
-            roles: [userRole.value],
           })
           await user.save()
           return response.json({
@@ -82,7 +80,7 @@ class authController {
         secret,
         { expiresIn: '24h' }
       )
-      return response.json({ token })
+      return response.json({ token, user })
     } catch (e) {
       console.log(e)
       response.status(400).json({ message: 'Login error' })
@@ -121,7 +119,10 @@ class authController {
   }
   async getMessages(request, response) {
     try {
-      const messages = await Message.find() // Получаем все сообщения из БД
+      const messages = await Message.find().populate(
+        'senderId',
+        'username avatar'
+      ) // Получаем все сообщения из БД
       response.json(messages)
     } catch (e) {
       console.log(e)

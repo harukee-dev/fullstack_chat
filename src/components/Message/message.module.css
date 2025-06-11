@@ -50,10 +50,11 @@
 
 .userIcon {
   margin-top: 0.2vh;
-  width: 6vh;
-  height: 6vh;
-  padding: 0.4vh;
-  border: 0.2vh solid #9927ea;
+  width: 5.5vh;
+  height: 5.5vh;
+  box-shadow: 0 0 4vh #fffdff67;
+  /* padding: 0.4vh; */
+  /* border: 0.2vh solid #9927ea; */
   border-radius: 100%;
 }
 

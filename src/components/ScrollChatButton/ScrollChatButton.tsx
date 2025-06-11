@@ -24,7 +24,7 @@ export const ScrollChatButton: React.FC<IScrollChatButtonProps> = ({
           onClick={onClick}
           className={cl.button}
         >
-          <img src={buttonIcon} alt="scroll-icon" />
+          <img draggable={false} src={buttonIcon} alt="scroll-icon" />
         </motion.button>
       )}
     </AnimatePresence>

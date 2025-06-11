@@ -74,17 +74,21 @@ export const Message: React.FC<IMessageProps> = ({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.25 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cl.allMessage}
       ref={setRef}
     >
       <img
+        draggable={false}
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
-        src="https://i.pinimg.com/736x/98/ce/58/98ce5859634960aa9e46154bf1ca1577.jpg"
+        src={message.senderId.avatar}
         alt="default-user-icon"
       />
       <motion.div
@@ -95,16 +99,24 @@ export const Message: React.FC<IMessageProps> = ({
         <div className={cl.container}>
           <AnimatePresence>
             {message.replyMessage ? (
-              <p className={cl.username}>
+              <div
+                style={{ display: 'flex', gap: '.35vw', alignItems: 'center' }}
+              >
+                <p className={cl.username}>
+                  ({time}) {message.senderId.username}
+                </p>
                 <div className={cl.reply}>
                   <p className={cl.replyText}>{message.replyMessage.text}</p>
-                  <img src={replyIconMessage} alt="" />
+                  <img
+                    draggable={false}
+                    src={replyIconMessage}
+                    alt="reply-icon"
+                  />
                 </div>
-                ({time}) {message.username}
-              </p>
+              </div>
             ) : (
               <p className={cl.username}>
-                ({time}) {message.username}
+                ({time}) {message.senderId.username}
               </p>
             )}
             {isInteraction && (
@@ -118,6 +130,7 @@ export const Message: React.FC<IMessageProps> = ({
                 <div onClick={handleReply} className={cl.replyButton}>
                   <p className={cl.replyButtonText}>Reply message</p>
                   <img
+                    draggable={false}
                     className={cl.replyButtonIcon}
                     src={replyIcon}
                     alt="reply-icon"
@@ -138,6 +151,6 @@ export const Message: React.FC<IMessageProps> = ({
           </p>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }

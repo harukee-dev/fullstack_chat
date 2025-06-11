@@ -15,6 +15,7 @@ export const ChatsList: React.FC<ChatsListProps> = ({ users }) => {
           username={el.username}
           avatar={el.avatar}
           isOnline={el.isOnline}
+          navigate={el.navigate}
         />
       ))}
     </div>
