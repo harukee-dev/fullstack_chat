@@ -13,6 +13,12 @@ module.exports = function (io) {
         return res.status(404).json({ message: 'User not found' })
       }
 
+      if (recipient._id.toString() === requesterId.toString()) {
+        return res.status(400).json({
+          message: "You can't send a request to yourself",
+        })
+      }
+
       const existing = await Friendship.findOne({
         requesterId,
         recipientId: recipient._id,
@@ -63,7 +69,7 @@ module.exports = function (io) {
         { status: 'accepted' }
       )
 
-      res.json({ message: 'Accepted!' })
+      res.json({ message: 'Accepted' })
     } catch (error) {
       console.error('Application error')
       res.status(500).json({ message: 'Server error' })
@@ -79,8 +85,7 @@ module.exports = function (io) {
         recipientId,
         status: 'pending',
       })
-
-      res.json({ message: 'Request rejected' })
+      res.json({ message: 'Declined' })
     } catch (error) {
       console.error('Reject error: ', error)
       res.status(500).json({ message: 'Server error' })

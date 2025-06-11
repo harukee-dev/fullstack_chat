@@ -75,7 +75,10 @@ export const FriendCard: React.FC<IFriendCard> = ({
         </div>
         <div onClick={handleClick} className={cl.friendContainerBack}>
           <button
-            onClick={() => deleteFunc(friendData.id, currentUserId)}
+            onClick={(e) => {
+              deleteFunc(friendData.id, currentUserId)
+              e.stopPropagation()
+            }}
             className={cl.deleteFriendButton}
           >
             <img
