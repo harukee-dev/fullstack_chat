@@ -9,7 +9,8 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { setFriends } from '../../slices/friendsSlice'
 import acceptIcon from './images/accept-icon.svg'
-import { FriendCard } from './Components/FriendCard'
+import { FriendCard } from './Components/FriendCard/FriendCard'
+import { PendingCard } from './Components/PendingCard/PendingCard'
 
 interface IRequest {
   avatar: string
@@ -269,28 +270,12 @@ const Pending: React.FC<IPending> = ({
   return (
     <div className={cl.pendingContainer}>
       {allRequests.map((el) => (
-        <div className={cl.pendingUser} key={el.id}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1vw' }}>
-            <img className={cl.pendingAvatar} src={el.avatar} alt="avatar" />
-            <p className={cl.pendingUsername} style={{ color: 'white' }}>
-              {el.username}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '3vh' }}>
-            <button
-              className={cl.buttonAccept}
-              onClick={() => handleAccept(el.id, currentUserId)}
-            >
-              <img src={acceptIcon} alt="" />
-            </button>
-            <button
-              className={cl.buttonReject}
-              onClick={() => handleReject(el.id, currentUserId)}
-            >
-              <img src={deleteFriendIcon} alt="" />
-            </button>
-          </div>
-        </div>
+        <PendingCard
+          pending={el}
+          handleAccept={handleAccept}
+          handleReject={handleAccept}
+          currentUserId={currentUserId}
+        />
       ))}
     </div>
   )

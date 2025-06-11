@@ -120,7 +120,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
             >
               <div className={cl.reply}>
                 <p className={cl.replyText}>{message.replyMessage.text}</p>
-                <img src={replyIcon} alt="reply-icon" />
+                <img draggable={false} src={replyIcon} alt="reply-icon" />
               </div>
               <p className={cl.username}>
                 ({time}) {message.senderId.username}
@@ -180,6 +180,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
       </motion.div>
 
       <img
+        draggable={false}
         className={cl.userIcon}
         // EDIT HERE
         // src={defaultUserIcon}
