@@ -17,4 +17,6 @@ router.post('/editMessage', controller.editMessage)
 
 router.get('/getMessage/:id', controller.getMessageById)
 
+router.post('/changeAvatar', controller.changeAvatar)
+
 module.exports = router
