@@ -70,8 +70,6 @@ module.exports = function (io) {
         { requesterId, recipientId, status: 'pending' },
         { status: 'accepted' }
       )
-
-      res.json({ message: 'Accepted' })
     } catch (error) {
       console.error('Application error')
       res.status(500).json({ message: 'Server error' })
@@ -142,11 +140,11 @@ module.exports = function (io) {
       }
 
       io.to(requesterId.toString()).emit(
-        'friendRemoved',
+        'friendshipDeleted',
         recipientId.toString()
       )
       io.to(recipientId.toString()).emit(
-        'friendRemoved',
+        'friendshipDeleted',
         requesterId.toString()
       )
 
