@@ -20,8 +20,10 @@ module.exports = function (io) {
       }
 
       const existing = await Friendship.findOne({
-        requesterId,
-        recipientId: recipient._id,
+        $or: [
+          { requesterId, recipientId: recipient._id },
+          { requesterId: recipient._id, recipientId: requesterId },
+        ],
       })
       if (existing) {
         return res.status(400).json({
