@@ -87,6 +87,26 @@ class authController {
     }
   }
 
+  async changeAvatar(request, response) {
+    const { userId, avatar } = request.body
+
+    if (!userId || !avatar) {
+      return response
+        .status(400)
+        .json({ message: 'userId или avatar не указан' })
+    }
+
+    try {
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: userId },
+        { avatar: avatar.toString() },
+        { new: true }
+      )
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   async getUsers(request, response) {
     try {
       const users = await User.find()

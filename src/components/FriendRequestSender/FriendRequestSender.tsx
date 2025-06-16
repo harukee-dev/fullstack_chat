@@ -155,8 +155,9 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     socket.on(
       'friendAdded',
       (friendData: { _id: string; avatar: string; username: string }) => {
-        dispatch(setFriends([...friends, friendData]))
-        console.log('friend data: ', friendData)
+        const updatedFriends = [...friendsRef.current, friendData]
+        friendsRef.current = updatedFriends
+        dispatch(setFriends(updatedFriends))
       }
     )
 

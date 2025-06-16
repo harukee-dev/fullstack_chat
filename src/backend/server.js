@@ -14,7 +14,7 @@ const friendsRouter = require('./routes/friends')
 
 app.use(
   cors({
-    origin: 'https://omnio-web.netlify.app',
+    origin: 'http://localhost:3000',
   })
 )
 
