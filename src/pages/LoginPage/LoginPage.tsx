@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, useAppSelector } from '../../store'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
 import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
+import background from './images/background.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -93,17 +94,34 @@ export const LoginPage = () => {
       </div> */}
       <div className={cl.leftContainer}>
         <h1 className={cl.welcomeText}>Welcome again.</h1>
-        <input className={cl.input} type="text" placeholder="login" />
+        <input
+          className={cl.input}
+          type="text"
+          placeholder="login"
+          ref={loginRef}
+          onBlur={(e) => setLogin(e.target.value)}
+        />
         <div className={cl.passwordAndButtonDiv}>
-          <input className={cl.input} type="password" placeholder="password" />
-          <button className={cl.loginButton}></button>
+          <input
+            className={cl.input}
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+            ref={passwordRef}
+            placeholder="password"
+          />
+          <button className={cl.loginButton} onClick={handleLogin}></button>
         </div>
         <Link className={cl.register} to={'/register'}>
           Dont have account? Sign up
         </Link>
+        <p className={cl.error}>{error}</p>
       </div>
       <div className={cl.rightContainer}>
-        <img className={cl.rightContainerImage} src="" alt="" />
+        <img
+          className={cl.rightContainerImage}
+          src={background}
+          alt="background"
+        />
       </div>
     </div>
   )
