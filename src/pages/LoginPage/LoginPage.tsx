@@ -15,7 +15,6 @@ export const LoginPage = () => {
   const navigate = useNavigate()
   const loginRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
-  const currentUser = useAppSelector((state) => state.currentUser.user)
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -65,7 +64,7 @@ export const LoginPage = () => {
 
   return (
     <div className={cl.allPage}>
-      <div className={cl.registerContainer}>
+      {/* <div className={cl.registerContainer}>
         <div className={cl.welcomeDiv}>
           <h1 className={cl.firstWelcomeText}>Hello.</h1>
           <p className={cl.secondWelcomeText}>Welcome back</p>
@@ -91,6 +90,20 @@ export const LoginPage = () => {
           I dont have account
         </Link>
         <p className={cl.error}>{error}</p>
+      </div> */}
+      <div className={cl.leftContainer}>
+        <h1 className={cl.welcomeText}>Welcome again.</h1>
+        <input className={cl.input} type="text" placeholder="login" />
+        <div className={cl.passwordAndButtonDiv}>
+          <input className={cl.input} type="password" placeholder="password" />
+          <button className={cl.loginButton}></button>
+        </div>
+        <Link className={cl.register} to={'/register'}>
+          Dont have account? Sign up
+        </Link>
+      </div>
+      <div className={cl.rightContainer}>
+        <img className={cl.rightContainerImage} src="" alt="" />
       </div>
     </div>
   )
