@@ -7,6 +7,7 @@ import cl from './LoginPage.module.css'
 import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
 import background from './images/background.png'
+import arrowIcon from './images/arrow-icon.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -16,6 +17,7 @@ export const LoginPage = () => {
   const navigate = useNavigate()
   const loginRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+  const isButtonHidden = password !== '' && login !== ''
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -93,9 +95,14 @@ export const LoginPage = () => {
         <p className={cl.error}>{error}</p>
       </div> */}
       <div className={cl.leftContainer}>
-        <h1 className={cl.welcomeText}>Welcome again.</h1>
+        <div>
+          <h1 className={cl.welcomeText}>Welcome again.</h1>
+          <Link className={cl.register} to={'/register'}>
+            Dont have account? Sign up
+          </Link>
+        </div>
         <input
-          className={cl.input}
+          className={cl.userInput}
           type="text"
           placeholder="login"
           ref={loginRef}
@@ -103,17 +110,23 @@ export const LoginPage = () => {
         />
         <div className={cl.passwordAndButtonDiv}>
           <input
-            className={cl.input}
+            className={cl.userInput}
             type="password"
             onChange={(e) => setPassword(e.target.value)}
             ref={passwordRef}
             placeholder="password"
           />
-          <button className={cl.loginButton} onClick={handleLogin}></button>
+          <button
+            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
+            onClick={handleLogin}
+          >
+            <img
+              className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
+              src={arrowIcon}
+              alt="arrow-icon"
+            />
+          </button>
         </div>
-        <Link className={cl.register} to={'/register'}>
-          Dont have account? Sign up
-        </Link>
         <p className={cl.error}>{error}</p>
       </div>
       <div className={cl.rightContainer}>
