@@ -10,6 +10,7 @@ export const Register = () => {
   const [password, setPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
+  const [showPassword, setShowPassword] = useState<boolean>(false)
   const navigate = useNavigate()
   const isButtonHidden =
     password !== '' && login !== '' && password === confirmPassword
@@ -70,14 +71,18 @@ export const Register = () => {
         />
         <input
           className={cl.userInput}
-          type="password"
+          type={showPassword ? 'text' : 'password'}
+          onMouseEnter={() => setShowPassword(true)}
+          onMouseLeave={() => setShowPassword(false)}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="password"
         />
         <div className={cl.passwordAndButtonDiv}>
           <input
             className={cl.userInput}
-            type="password"
+            type={showPassword ? 'text' : 'password'}
+            onMouseEnter={() => setShowPassword(true)}
+            onMouseLeave={() => setShowPassword(false)}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="confirm password"
           />
