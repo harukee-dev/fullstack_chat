@@ -8,9 +8,11 @@ import arrowIcon from '../LoginPage/images/arrow-icon.png'
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
-  const isButtonHidden = password !== '' && login !== ''
+  const isButtonHidden =
+    password !== '' && login !== '' && password === confirmPassword
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -66,12 +68,18 @@ export const Register = () => {
           placeholder="login"
           onBlur={(e) => setLogin(e.target.value)}
         />
+        <input
+          className={cl.userInput}
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="password"
+        />
         <div className={cl.passwordAndButtonDiv}>
           <input
             className={cl.userInput}
             type="password"
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="password"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="confirm password"
           />
           <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
