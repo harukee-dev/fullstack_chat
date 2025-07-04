@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
 import { API_URL } from '../../constants'
+import background from '../LoginPage/images/background.png'
+import arrowIcon from '../LoginPage/images/arrow-icon.png'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const navigate = useNavigate()
+  const isButtonHidden = password !== '' && login !== ''
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -50,30 +53,45 @@ export const Register = () => {
 
   return (
     <div className={cl.allPage}>
-      <div className={cl.registerContainer}>
-        <div className={cl.welcomeDiv}>
-          <h1 className={cl.firstWelcomeText}>Hello.</h1>
-          <p className={cl.secondWelcomeText}>Sign Up to Get Started</p>
+      <div className={cl.leftContainer}>
+        <div>
+          <h1 className={cl.welcomeText}>Welcome.</h1>
+          <Link className={cl.register} to={'/login'}>
+            Already have account? Sign in
+          </Link>
         </div>
         <input
-          className={cl.input}
-          onBlur={(e) => setLogin(e.target.value)}
-          placeholder="Login"
+          className={cl.userInput}
           type="text"
+          placeholder="login"
+          onBlur={(e) => setLogin(e.target.value)}
         />
-        <input
-          className={cl.input}
-          onBlur={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          type="password"
-        />
-        <button className={cl.loginButton} onClick={handleRegister}>
-          Sign Up
-        </button>
-        <Link className={cl.register} to={'/login'}>
-          I already have an account
-        </Link>
+        <div className={cl.passwordAndButtonDiv}>
+          <input
+            className={cl.userInput}
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="password"
+          />
+          <button
+            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
+            onClick={handleRegister}
+          >
+            <img
+              className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
+              src={arrowIcon}
+              alt="arrow-icon"
+            />
+          </button>
+        </div>
         <p className={cl.error}>{error}</p>
+      </div>
+      <div className={cl.rightContainer}>
+        <img
+          className={cl.rightContainerImage}
+          src={background}
+          alt="background"
+        />
       </div>
     </div>
   )

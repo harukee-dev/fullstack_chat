@@ -67,33 +67,6 @@ export const LoginPage = () => {
 
   return (
     <div className={cl.allPage}>
-      {/* <div className={cl.registerContainer}>
-        <div className={cl.welcomeDiv}>
-          <h1 className={cl.firstWelcomeText}>Hello.</h1>
-          <p className={cl.secondWelcomeText}>Welcome back</p>
-        </div>
-        <input
-          className={cl.input}
-          onBlur={(e) => setLogin(e.target.value)}
-          placeholder="Login"
-          type="text"
-          ref={loginRef}
-        />
-        <input
-          className={cl.input}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          type="password"
-          ref={passwordRef}
-        />
-        <button className={cl.loginButton} onClick={handleLogin}>
-          Sign In
-        </button>
-        <Link className={cl.register} to={'/register'}>
-          I dont have account
-        </Link>
-        <p className={cl.error}>{error}</p>
-      </div> */}
       <div className={cl.leftContainer}>
         <div>
           <h1 className={cl.welcomeText}>Welcome again.</h1>
