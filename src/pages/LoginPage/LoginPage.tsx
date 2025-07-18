@@ -8,8 +8,6 @@ import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
 import background from './images/background.png'
 import arrowIcon from './images/arrow-icon.png'
-import visibilityOn from './images/visibility-on-icon.png'
-import visibilityOff from './images/visibility-off-icon.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
