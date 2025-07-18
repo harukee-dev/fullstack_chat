@@ -8,6 +8,8 @@ import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
 import background from './images/background.png'
 import arrowIcon from './images/arrow-icon.png'
+import visibilityOn from './images/visibility-on-icon.png'
+import visibilityOff from './images/visibility-off-icon.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -18,6 +20,7 @@ export const LoginPage = () => {
   const loginRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const isButtonHidden = password !== '' && login !== ''
+  const [isVisible, setIsVisible] = useState<boolean>(false)
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -82,13 +85,21 @@ export const LoginPage = () => {
           onBlur={(e) => setLogin(e.target.value)}
         />
         <div className={cl.passwordAndButtonDiv}>
-          <input
-            className={cl.userInput}
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
-            ref={passwordRef}
-            placeholder="password"
-          />
+          <div className={cl.passwordContainer}>
+            <input
+              className={cl.passwordInput}
+              type={isVisible ? 'text' : 'password'}
+              onChange={(e) => setPassword(e.target.value)}
+              ref={passwordRef}
+              placeholder="password"
+            />
+            <button
+              onClick={() => setIsVisible((v) => !v)}
+              className={cl.showButton}
+            >
+              {isVisible ? 'hide' : 'show'}
+            </button>
+          </div>
           <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleLogin}
