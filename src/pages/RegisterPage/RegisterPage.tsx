@@ -4,6 +4,10 @@ import cl from './RegisterPage.module.css'
 import { API_URL } from '../../constants'
 import background from '../LoginPage/images/background.png'
 import arrowIcon from '../LoginPage/images/arrow-icon.png'
+import { setToken } from '../../slices/authSlice'
+import { setUser } from '../../slices/currentUserSlice'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../../store'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
@@ -11,7 +15,7 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
-  const [step, setStep] = useState<'info' | 'avatar'>('avatar')
+  const [step, setStep] = useState<'info' | 'avatar'>('info')
   const [avatar, setAvatar] = useState<string>(
     'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
   )
@@ -57,6 +61,8 @@ export const Register = () => {
     }
   }, [])
 
+  const dispatch = useDispatch<AppDispatch>()
+
   async function handleRegister() {
     const regex = /[a-zA-Zа-яА-ЯёЁ]/
     if (regex.test(login)) {
@@ -66,11 +72,43 @@ export const Register = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username: login, password }),
+          body: JSON.stringify({ username: login, password, avatar }),
         })
 
         if (response.ok) {
-          navigate('/login')
+          // HEREREREREREREERER
+          // HEREREREREREREERER
+          // HEREREREREREREERER
+          // HEREREREREREREERER
+          try {
+            const response = await fetch(API_URL + '/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username: login, password }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+              localStorage.setItem('token', data.token)
+              dispatch(setUser(data.user))
+              dispatch(setToken(data.token))
+
+              localStorage.removeItem('user-id')
+              localStorage.removeItem('username')
+              localStorage.removeItem('avatar')
+              localStorage.setItem('user-id', data.user._id)
+              localStorage.setItem('username', data.user.username)
+              localStorage.setItem('avatar', data.user.avatar)
+
+              navigate('/main')
+            } else {
+              console.error('Ошибка:', data.message)
+              setError(data.message)
+            }
+          } catch (error) {
+            console.error('Ошибка запроса:', error)
+          }
         } else {
           const data = await response.json()
           console.error(data.message)
@@ -176,8 +214,11 @@ export const Register = () => {
             className={cl.userInputAvatar}
             type="text"
             placeholder="Enter image url"
+            onBlur={(e) => setAvatar(e.target.value)}
           />
-          <button className={cl.continueButtonAvatar}>Sign up</button>
+          <button onClick={handleRegister} className={cl.continueButtonAvatar}>
+            Sign up
+          </button>
         </div>
       )}
       <div className={cl.rightContainer}>

@@ -16,7 +16,7 @@ function generateAccessToken(id, roles) {
 class authController {
   async registration(request, response) {
     try {
-      const { username, password } = request.body
+      const { username, password, avatar } = request.body
       const candidate = await User.findOne({ username })
       if (candidate) {
         return response
@@ -35,11 +35,20 @@ class authController {
           (hasSpecialChar && hasUppercase && hasDigit)
         ) {
           const hashPassword = bcrypt.hashSync(password, 5)
-          const user = new User({
-            username,
-            password: hashPassword,
-          })
-          await user.save()
+          if (!avatar) {
+            const user = new User({
+              username,
+              password: hashPassword,
+            })
+            await user.save()
+          } else {
+            const user = new User({
+              username,
+              password: hashPassword,
+              avatar,
+            })
+            await user.save()
+          }
           return response.json({
             message: 'User created',
           })
