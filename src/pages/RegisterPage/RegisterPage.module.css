@@ -133,6 +133,7 @@
 .passwordInput:-webkit-autofill,
 .passwordInput:-webkit-autofill:hover,
 .passwordInput:-webkit-autofill:focus {
+  font-family: 'Jost ExtraLight', sans-serif !important;
   -webkit-box-shadow: 0 0 0px 1000px black inset !important;
   -webkit-text-fill-color: white !important;
   caret-color: white;
