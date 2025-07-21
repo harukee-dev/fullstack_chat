@@ -107,7 +107,8 @@
 .visibilityContainer {
   display: flex;
   margin-left: 7vw;
-  gap: 0.2vw;
+  align-items: center;
+  gap: 0.5vw;
 }
 
 .visibilityText {
