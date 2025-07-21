@@ -124,7 +124,7 @@ export const Register = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="confirm password"
           />
-          <button
+          {/* <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleRegister}
           >
@@ -134,7 +134,7 @@ export const Register = () => {
               src={arrowIcon}
               alt="arrow-icon"
             />
-          </button>
+          </button> */}
         </div>
         <div className={cl.visibilityContainer}>
           {/* <input
@@ -148,7 +148,14 @@ export const Register = () => {
           />
           <p className={cl.visibilityText}>show password</p>
         </div>
-        <p className={cl.error}>{error}</p>
+        {error && <p className={cl.error}>{error}</p>}
+        <button
+          disabled={!isButtonHidden}
+          onClick={handleRegister}
+          className={cl.continueButton}
+        >
+          Continue
+        </button>
       </div>
       <div className={cl.rightContainer}>
         <img
