@@ -104,6 +104,7 @@ export const Register = () => {
             onClick={handleRegister}
           >
             <img
+              draggable={false}
               className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
               src={arrowIcon}
               alt="arrow-icon"
@@ -114,6 +115,7 @@ export const Register = () => {
       </div>
       <div className={cl.rightContainer}>
         <img
+          draggable={false}
           className={cl.rightContainerImage}
           src={background}
           alt="background"

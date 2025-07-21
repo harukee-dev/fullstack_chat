@@ -22,16 +22,6 @@
   margin-left: 7vw;
 }
 
-.passwordInput {
-  width: 100%;
-  background-color: transparent;
-  border: none;
-  outline: none;
-  color: white;
-  font-size: 2vh;
-  font-family: 'Jost ExtraLight', sans-serif;
-}
-
 .userInput:-webkit-autofill,
 .userInput:-webkit-autofill:hover,
 .userInput:-webkit-autofill:focus {
@@ -114,19 +104,13 @@
   margin-left: 7vw;
 }
 
-.passwordContainer {
+.visibilityContainer {
   display: flex;
-  width: 58.5%;
-  padding: 0 1.5% 0 0;
-  border-bottom: 1px solid white;
   margin-left: 7vw;
+  gap: 0.2vw;
 }
 
-.showButton {
-  font-size: 1.65vh;
-  border: none;
+.visibilityText {
   color: white;
-  background-color: transparent;
   font-family: 'Jost ExtraLight', sans-serif;
-  cursor: pointer;
 }

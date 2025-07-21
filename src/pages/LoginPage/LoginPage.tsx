@@ -83,36 +83,38 @@ export const LoginPage = () => {
           onBlur={(e) => setLogin(e.target.value)}
         />
         <div className={cl.passwordAndButtonDiv}>
-          <div className={cl.passwordContainer}>
-            <input
-              className={cl.passwordInput}
-              type={isVisible ? 'text' : 'password'}
-              onChange={(e) => setPassword(e.target.value)}
-              ref={passwordRef}
-              placeholder="password"
-            />
-            <button
-              onClick={() => setIsVisible((v) => !v)}
-              className={cl.showButton}
-            >
-              {isVisible ? 'hide' : 'show'}
-            </button>
-          </div>
+          <input
+            className={cl.userInput}
+            type={isVisible ? 'text' : 'password'}
+            onChange={(e) => setPassword(e.target.value)}
+            ref={passwordRef}
+            placeholder="password"
+          />
           <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleLogin}
           >
             <img
+              draggable={false}
               className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
               src={arrowIcon}
               alt="arrow-icon"
             />
           </button>
         </div>
+        <div className={cl.visibilityContainer}>
+          <input
+            className={cl.visibilityCheckbox}
+            type="checkbox"
+            onClick={() => setIsVisible((v) => !v)}
+          />
+          <p className={cl.visibilityText}>show password</p>
+        </div>
         <p className={cl.error}>{error}</p>
       </div>
       <div className={cl.rightContainer}>
         <img
+          draggable={false}
           className={cl.rightContainerImage}
           src={background}
           alt="background"
