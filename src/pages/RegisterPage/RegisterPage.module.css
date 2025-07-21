@@ -193,38 +193,13 @@
   margin-left: 7vw;
 }
 
-.passwordContainer {
+.visibilityContainer {
   display: flex;
-  width: 58.5%;
-  padding: 0 1.5% 0 0;
-  border-bottom: 1px solid white;
   margin-left: 7vw;
+  gap: 0.2vw;
 }
 
-.showButton {
-  font-size: 1.65vh;
-  border: none;
+.visibilityText {
   color: white;
-  background-color: transparent;
   font-family: 'Jost ExtraLight', sans-serif;
-  cursor: pointer;
-}
-
-.passwordInput {
-  width: 100%;
-  background-color: transparent;
-  border: none;
-  outline: none;
-  color: white;
-  font-size: 2vh;
-  font-family: 'Jost ExtraLight', sans-serif;
-}
-
-.passwordInput:-webkit-autofill,
-.passwordInput:-webkit-autofill:hover,
-.passwordInput:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px black inset !important;
-  -webkit-text-fill-color: white !important;
-  caret-color: white;
-  transition: background-color 9999s ease-in-out 0s;
 }

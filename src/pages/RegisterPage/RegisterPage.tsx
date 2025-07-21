@@ -11,7 +11,6 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
-  const [isVisibleConfirm, setIsVisibleConfirm] = useState<boolean>(false)
   const navigate = useNavigate()
   const isButtonHidden =
     password !== '' && login !== '' && password === confirmPassword
@@ -70,35 +69,19 @@ export const Register = () => {
           placeholder="login"
           onBlur={(e) => setLogin(e.target.value)}
         />
-        <div className={cl.passwordContainer}>
-          <input
-            className={cl.passwordInput}
-            type={isVisiblePassword ? 'text' : 'password'}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="password"
-          />
-          <button
-            onClick={() => setIsVisiblePassword((v) => !v)}
-            className={cl.showButton}
-          >
-            {isVisiblePassword ? 'hide' : 'show'}
-          </button>
-        </div>
+        <input
+          className={cl.userInput}
+          type={isVisiblePassword ? 'text' : 'password'}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="password"
+        />
         <div className={cl.passwordAndButtonDiv}>
-          <div className={cl.passwordContainer}>
-            <input
-              className={cl.passwordInput}
-              type={isVisibleConfirm ? 'text' : 'password'}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="confirm password"
-            />
-            <button
-              onClick={() => setIsVisibleConfirm((v) => !v)}
-              className={cl.showButton}
-            >
-              {isVisibleConfirm ? 'hide' : 'show'}
-            </button>
-          </div>
+          <input
+            className={cl.userInput}
+            type={isVisiblePassword ? 'text' : 'password'}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="confirm password"
+          />
           <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleRegister}
@@ -110,6 +93,14 @@ export const Register = () => {
               alt="arrow-icon"
             />
           </button>
+        </div>
+        <div className={cl.visibilityContainer}>
+          <input
+            className={cl.visibilityCheckbox}
+            type="checkbox"
+            onClick={() => setIsVisiblePassword((v) => !v)}
+          />
+          <p className={cl.visibilityText}>show password</p>
         </div>
         <p className={cl.error}>{error}</p>
       </div>
