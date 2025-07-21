@@ -95,9 +95,13 @@ export const Register = () => {
           </button>
         </div>
         <div className={cl.visibilityContainer}>
-          <input
+          {/* <input
             className={cl.visibilityCheckbox}
             type="checkbox"
+            onClick={() => setIsVisiblePassword((v) => !v)}
+          /> */}
+          <div
+            className={isVisiblePassword ? cl.checkboxChecked : cl.checkbox}
             onClick={() => setIsVisiblePassword((v) => !v)}
           />
           <p className={cl.visibilityText}>show password</p>

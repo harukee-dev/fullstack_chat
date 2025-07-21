@@ -103,9 +103,8 @@ export const LoginPage = () => {
           </button>
         </div>
         <div className={cl.visibilityContainer}>
-          <input
-            className={cl.visibilityCheckbox}
-            type="checkbox"
+          <div
+            className={isVisible ? cl.checkboxChecked : cl.checkbox}
             onClick={() => setIsVisible((v) => !v)}
           />
           <p className={cl.visibilityText}>show password</p>

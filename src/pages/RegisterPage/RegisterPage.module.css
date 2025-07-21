@@ -195,11 +195,37 @@
 
 .visibilityContainer {
   display: flex;
+  align-items: center;
   margin-left: 7vw;
-  gap: 0.2vw;
+  gap: 0.5vw;
 }
 
 .visibilityText {
   color: white;
   font-family: 'Jost ExtraLight', sans-serif;
+}
+
+.checkbox {
+  width: 2vh;
+  height: 2vh;
+  border: 1px solid white;
+  cursor: pointer;
+}
+
+.checkboxChecked {
+  width: 2vh;
+  height: 2vh;
+  border: 1px solid white;
+  cursor: pointer;
+  position: relative;
+}
+
+.checkboxChecked::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  background-color: white;
 }
