@@ -284,3 +284,52 @@
   cursor: pointer;
   transition: ease 0.2s;
 }
+
+.leftContainerAvatar {
+  width: 40%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4vh;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcomeTextAvatar {
+  font-family: 'Jost ExtraLight', sans-serif;
+  color: white;
+  font-size: 4vh;
+  transition: ease 0.2s;
+}
+
+.welcomeTextAvatar:hover {
+  letter-spacing: 0.1vh;
+}
+
+.userAvatar {
+  height: 20vh;
+  width: 20vh;
+  border-radius: 100%;
+  box-shadow: 0 0 5vh rgba(255, 255, 255, 0.358);
+}
+
+.userInputAvatar {
+  width: 60%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 2vh;
+  font-family: 'Jost ExtraLight', sans-serif;
+  border-bottom: 1px solid white;
+}
+
+.continueButtonAvatar {
+  border: none;
+  height: 4.5vh;
+  width: 60%;
+  font-family: 'Jost ExtraLight', sans-serif;
+  font-size: 1.75vh;
+  cursor: pointer;
+  transition: ease 0.2s;
+}

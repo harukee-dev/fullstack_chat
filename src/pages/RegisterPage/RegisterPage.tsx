@@ -11,6 +11,10 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
+  const [step, setStep] = useState<'info' | 'avatar'>('avatar')
+  const [avatar, setAvatar] = useState<string>(
+    'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
+  )
   const navigate = useNavigate()
   const isButtonHidden =
     password !== '' && login !== '' && password === confirmPassword
@@ -80,51 +84,58 @@ export const Register = () => {
     }
   }
 
+  const saveRegisterData = () => {
+    localStorage.setItem('register-username', login)
+    localStorage.setItem('register-password', password)
+    setStep('avatar')
+  }
+
   const strength = getPasswordStrength(password)
   const difficulty = getPasswordDifficulty(strength)
 
   return (
     <div className={cl.allPage}>
-      <div className={cl.leftContainer}>
-        <div>
-          <h1 className={cl.welcomeText}>Welcome.</h1>
-          <Link className={cl.register} to={'/login'}>
-            Already have account? Sign in
-          </Link>
-        </div>
-        <input
-          className={cl.userInput}
-          type="text"
-          placeholder="login"
-          onBlur={(e) => setLogin(e.target.value)}
-        />
-        <div className={cl.passwordContainer}>
-          <input
-            className={cl.passwordInput}
-            type={isVisiblePassword ? 'text' : 'password'}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="password"
-          />
-          <p
-            className={
-              difficulty === 'easy'
-                ? cl.easy
-                : difficulty === 'normal'
-                ? cl.normal
-                : cl.hard
-            }
-          >
-            {difficulty}
-          </p>
-        </div>
-        <div className={cl.passwordAndButtonDiv}>
+      {step === 'info' ? (
+        <div className={cl.leftContainer}>
+          <div>
+            <h1 className={cl.welcomeText}>Welcome.</h1>
+            <Link className={cl.register} to={'/login'}>
+              Already have account? Sign in
+            </Link>
+          </div>
           <input
             className={cl.userInput}
-            type={isVisiblePassword ? 'text' : 'password'}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="confirm password"
+            type="text"
+            placeholder="login"
+            onBlur={(e) => setLogin(e.target.value)}
           />
-          {/* <button
+          <div className={cl.passwordContainer}>
+            <input
+              className={cl.passwordInput}
+              type={isVisiblePassword ? 'text' : 'password'}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="password"
+            />
+            <p
+              className={
+                difficulty === 'easy'
+                  ? cl.easy
+                  : difficulty === 'normal'
+                  ? cl.normal
+                  : cl.hard
+              }
+            >
+              {difficulty}
+            </p>
+          </div>
+          <div className={cl.passwordAndButtonDiv}>
+            <input
+              className={cl.userInput}
+              type={isVisiblePassword ? 'text' : 'password'}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="confirm password"
+            />
+            {/* <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleRegister}
           >
@@ -135,28 +146,40 @@ export const Register = () => {
               alt="arrow-icon"
             />
           </button> */}
-        </div>
-        <div className={cl.visibilityContainer}>
-          {/* <input
+          </div>
+          <div className={cl.visibilityContainer}>
+            {/* <input
             className={cl.visibilityCheckbox}
             type="checkbox"
             onClick={() => setIsVisiblePassword((v) => !v)}
           /> */}
-          <div
-            className={isVisiblePassword ? cl.checkboxChecked : cl.checkbox}
-            onClick={() => setIsVisiblePassword((v) => !v)}
-          />
-          <p className={cl.visibilityText}>show password</p>
+            <div
+              className={isVisiblePassword ? cl.checkboxChecked : cl.checkbox}
+              onClick={() => setIsVisiblePassword((v) => !v)}
+            />
+            <p className={cl.visibilityText}>show password</p>
+          </div>
+          {error && <p className={cl.error}>{error}</p>}
+          <button
+            disabled={!isButtonHidden}
+            onClick={saveRegisterData}
+            className={cl.continueButton}
+          >
+            Continue
+          </button>
         </div>
-        {error && <p className={cl.error}>{error}</p>}
-        <button
-          disabled={!isButtonHidden}
-          onClick={handleRegister}
-          className={cl.continueButton}
-        >
-          Continue
-        </button>
-      </div>
+      ) : (
+        <div className={cl.leftContainerAvatar}>
+          <h1 className={cl.welcomeTextAvatar}>Set your avatar</h1>
+          <img className={cl.userAvatar} src={avatar} alt="user-avatar" />
+          <input
+            className={cl.userInputAvatar}
+            type="text"
+            placeholder="Enter image url"
+          />
+          <button className={cl.continueButtonAvatar}>Sign up</button>
+        </div>
+      )}
       <div className={cl.rightContainer}>
         <img
           draggable={false}
