@@ -283,7 +283,3 @@
   cursor: pointer;
   transition: ease 0.2s;
 }
-
-.continueButton:hover {
-  background-color: #bdbdbd;
-}

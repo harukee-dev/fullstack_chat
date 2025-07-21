@@ -90,7 +90,7 @@ export const LoginPage = () => {
             ref={passwordRef}
             placeholder="password"
           />
-          <button
+          {/* <button
             className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
             onClick={handleLogin}
           >
@@ -100,7 +100,7 @@ export const LoginPage = () => {
               src={arrowIcon}
               alt="arrow-icon"
             />
-          </button>
+          </button> */}
         </div>
         <div className={cl.visibilityContainer}>
           <div
@@ -109,7 +109,14 @@ export const LoginPage = () => {
           />
           <p className={cl.visibilityText}>show password</p>
         </div>
-        <p className={cl.error}>{error}</p>
+        {error && <p className={cl.error}>{error}</p>}
+        <button
+          disabled={!isButtonHidden}
+          onClick={handleLogin}
+          className={cl.continueButton}
+        >
+          Continue
+        </button>
       </div>
       <div className={cl.rightContainer}>
         <img
