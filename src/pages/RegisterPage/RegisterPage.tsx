@@ -15,6 +15,32 @@ export const Register = () => {
   const isButtonHidden =
     password !== '' && login !== '' && password === confirmPassword
 
+  const getPasswordStrength = (password: string) => {
+    let strength: number = 0
+    if (/[a-z]/.test(password)) strength++
+    if (/[A-Z]/.test(password)) strength++
+    if (/\d/.test(password)) strength++
+    if (/[^A-Za-z0-9]/.test(password)) strength++
+    return strength
+  }
+
+  const getPasswordDifficulty = (strength: number) => {
+    switch (strength) {
+      case 0:
+        return ''
+      case 1:
+        return 'easy'
+      case 2:
+        return 'easy'
+      case 3:
+        return 'normal'
+      case 4:
+        return 'hard'
+      default:
+        return ''
+    }
+  }
+
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
@@ -54,6 +80,9 @@ export const Register = () => {
     }
   }
 
+  const strength = getPasswordStrength(password)
+  const difficulty = getPasswordDifficulty(strength)
+
   return (
     <div className={cl.allPage}>
       <div className={cl.leftContainer}>
@@ -69,12 +98,25 @@ export const Register = () => {
           placeholder="login"
           onBlur={(e) => setLogin(e.target.value)}
         />
-        <input
-          className={cl.userInput}
-          type={isVisiblePassword ? 'text' : 'password'}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="password"
-        />
+        <div className={cl.passwordContainer}>
+          <input
+            className={cl.passwordInput}
+            type={isVisiblePassword ? 'text' : 'password'}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="password"
+          />
+          <p
+            className={
+              difficulty === 'easy'
+                ? cl.easy
+                : difficulty === 'normal'
+                ? cl.normal
+                : cl.hard
+            }
+          >
+            {difficulty}
+          </p>
+        </div>
         <div className={cl.passwordAndButtonDiv}>
           <input
             className={cl.userInput}

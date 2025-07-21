@@ -111,6 +111,16 @@
   margin-left: 7vw;
 }
 
+.passwordInput {
+  width: 60%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 2vh;
+  font-family: 'Jost ExtraLight', sans-serif;
+}
+
 .userInput:-webkit-autofill,
 .userInput:-webkit-autofill:hover,
 .userInput:-webkit-autofill:focus {
@@ -118,6 +128,39 @@
   -webkit-text-fill-color: white !important;
   caret-color: white;
   transition: background-color 9999s ease-in-out 0s;
+}
+
+.passwordInput:-webkit-autofill,
+.passwordInput:-webkit-autofill:hover,
+.passwordInput:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px black inset !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.passwordContainer {
+  display: flex;
+  border-bottom: 1px solid white;
+  width: 60%;
+  padding-right: 1.5%;
+  margin-left: 7vw;
+  justify-content: space-between;
+}
+
+.easy {
+  color: #00db00;
+  font-family: 'Jost ExtraLight', sans-serif;
+}
+
+.normal {
+  color: orange;
+  font-family: 'Jost ExtraLight', sans-serif;
+}
+
+.hard {
+  color: rgb(255, 41, 41);
+  font-family: 'Jost ExtraLight', sans-serif;
 }
 
 .welcomeText {
