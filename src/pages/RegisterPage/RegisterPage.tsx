@@ -7,6 +7,7 @@ import { setToken } from '../../slices/authSlice'
 import { setUser } from '../../slices/currentUserSlice'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
+import { motion } from 'framer-motion'
 
 export const Register = () => {
   const [login, setLogin] = useState<string>('')
@@ -14,7 +15,7 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
-  const [step, setStep] = useState<'info' | 'avatar'>('avatar')
+  const [step, setStep] = useState<'info' | 'avatar'>('info')
   const [avatar, setAvatar] = useState<string>(
     'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
   )
@@ -223,9 +224,26 @@ export const Register = () => {
         </div>
       ) : (
         <div className={cl.leftContainerAvatar}>
-          <h1 className={cl.welcomeTextAvatar}>Set your avatar</h1>
-          <img className={cl.userAvatar} src={avatar} alt="user-avatar" />
-          <input
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0 }}
+            className={cl.welcomeTextAvatar}
+          >
+            Set your avatar
+          </motion.h1>
+          <motion.img
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+            className={cl.userAvatar}
+            src={avatar}
+            alt="user-avatar"
+          />
+          <motion.input
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.6 }}
             className={cl.userInputAvatar}
             type="text"
             placeholder="Enter image url"
@@ -237,9 +255,18 @@ export const Register = () => {
                 : setAvatar(e.target.value)
             }
           />
-          <button onClick={changeAvatar} className={cl.continueButtonAvatar}>
-            Sign up
-          </button>
+          <motion.button
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.8 }}
+            onClick={changeAvatar}
+            className={cl.continueButtonAvatar}
+          >
+            {avatar ===
+            'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
+              ? 'Later'
+              : 'Save'}
+          </motion.button>
         </div>
       )}
       <div className={cl.rightContainer}>

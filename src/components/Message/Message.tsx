@@ -124,7 +124,7 @@ export const Message: React.FC<IMessageProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.2, delay: 0.25 }}
                 className={cl.interactionContainer}
               >
                 <div onClick={handleReply} className={cl.replyButton}>
