@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
 import { API_URL } from '../../constants'
 import background from '../LoginPage/images/background.png'
-import arrowIcon from '../LoginPage/images/arrow-icon.png'
 import { setToken } from '../../slices/authSlice'
 import { setUser } from '../../slices/currentUserSlice'
 import { useDispatch } from 'react-redux'
@@ -15,7 +14,7 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
-  const [step, setStep] = useState<'info' | 'avatar'>('info')
+  const [step, setStep] = useState<'info' | 'avatar'>('avatar')
   const [avatar, setAvatar] = useState<string>(
     'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
   )
@@ -230,7 +229,13 @@ export const Register = () => {
             className={cl.userInputAvatar}
             type="text"
             placeholder="Enter image url"
-            onBlur={(e) => setAvatar(e.target.value)}
+            onBlur={(e) =>
+              e.target.value === ''
+                ? setAvatar(
+                    'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
+                  )
+                : setAvatar(e.target.value)
+            }
           />
           <button onClick={changeAvatar} className={cl.continueButtonAvatar}>
             Sign up
