@@ -64,68 +64,84 @@ export const Register = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   async function handleRegister() {
-    const regex = /[a-zA-Zа-яА-ЯёЁ]/
-    if (regex.test(login)) {
-      try {
-        const response = await fetch(API_URL + '/auth/registration', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username: login, password, avatar }),
-        })
-
-        if (response.ok) {
-          // HEREREREREREREERER
-          // HEREREREREREREERER
-          // HEREREREREREREERER
-          // HEREREREREREREERER
-          try {
-            const response = await fetch(API_URL + '/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username: login, password }),
-            })
-
-            const data = await response.json()
-
-            if (response.ok) {
-              localStorage.setItem('token', data.token)
-              dispatch(setUser(data.user))
-              dispatch(setToken(data.token))
-
-              localStorage.removeItem('user-id')
-              localStorage.removeItem('username')
-              localStorage.removeItem('avatar')
-              localStorage.setItem('user-id', data.user._id)
-              localStorage.setItem('username', data.user.username)
-              localStorage.setItem('avatar', data.user.avatar)
-
-              navigate('/main')
-            } else {
-              console.error('Ошибка:', data.message)
-              setError(data.message)
-            }
-          } catch (error) {
-            console.error('Ошибка запроса:', error)
-          }
-        } else {
-          const data = await response.json()
-          console.error(data.message)
-          setError(data.message)
-        }
-      } catch (error) {
-        console.error(error)
-      }
+    if (password.length < 8) {
+      setError('password is too short')
     } else {
-      setError('Логин должен содержать буквы')
+      const regex = /[a-zA-Zа-яА-ЯёЁ]/
+      if (regex.test(login)) {
+        try {
+          const response = await fetch(API_URL + '/auth/registration', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: login, password, avatar }),
+          })
+
+          if (response.ok) {
+            try {
+              const response = await fetch(API_URL + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: login, password }),
+              })
+
+              const data = await response.json()
+
+              if (response.ok) {
+                localStorage.setItem('token', data.token)
+                dispatch(setUser(data.user))
+                dispatch(setToken(data.token))
+
+                localStorage.removeItem('user-id')
+                localStorage.removeItem('username')
+                localStorage.removeItem('avatar')
+                localStorage.setItem('user-id', data.user._id)
+                localStorage.setItem('username', data.user.username)
+                localStorage.setItem('avatar', data.user.avatar)
+
+                setStep('avatar')
+              } else {
+                console.error('Ошибка:', data.message)
+                setError(data.message)
+              }
+            } catch (error) {
+              console.error('Ошибка запроса:', error)
+            }
+          } else {
+            const data = await response.json()
+            console.error(data.message)
+            setError(data.message)
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      } else {
+        setError('invalid login')
+      }
     }
   }
 
-  const saveRegisterData = () => {
-    localStorage.setItem('register-username', login)
-    localStorage.setItem('register-password', password)
-    setStep('avatar')
+  async function changeAvatar() {
+    const userId = localStorage.getItem('user-id')
+    try {
+      const response = await fetch(API_URL + '/auth/changeAvatar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, avatar }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        localStorage.setItem('avatar', data)
+        navigate('/main')
+      } else {
+        console.error(data.message)
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   const strength = getPasswordStrength(password)
@@ -200,7 +216,7 @@ export const Register = () => {
           {error && <p className={cl.error}>{error}</p>}
           <button
             disabled={!isButtonHidden}
-            onClick={saveRegisterData}
+            onClick={handleRegister}
             className={cl.continueButton}
           >
             Continue
@@ -216,7 +232,7 @@ export const Register = () => {
             placeholder="Enter image url"
             onBlur={(e) => setAvatar(e.target.value)}
           />
-          <button onClick={handleRegister} className={cl.continueButtonAvatar}>
+          <button onClick={changeAvatar} className={cl.continueButtonAvatar}>
             Sign up
           </button>
         </div>

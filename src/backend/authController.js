@@ -21,7 +21,7 @@ class authController {
       if (candidate) {
         return response
           .status(400)
-          .json({ message: 'Пользователь с таким именем уже существует' })
+          .json({ message: 'this username is already taken' })
       }
       if (username.length >= 4 && username.length <= 20) {
         const hasLowercase = /[a-z]/.test(password)
@@ -116,6 +116,7 @@ class authController {
         { avatar: avatar.toString() },
         { new: true }
       )
+      return response.json(updatedUser.avatar)
     } catch (e) {
       console.log(e)
     }
