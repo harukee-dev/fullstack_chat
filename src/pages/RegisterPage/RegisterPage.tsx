@@ -151,19 +151,31 @@ export const Register = () => {
     <div className={cl.allPage}>
       {step === 'info' ? (
         <div className={cl.leftContainer}>
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0 }}
+          >
             <h1 className={cl.welcomeText}>Welcome.</h1>
             <Link className={cl.register} to={'/login'}>
               Already have account? Sign in
             </Link>
-          </div>
-          <input
+          </motion.div>
+          <motion.input
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
             className={cl.userInput}
             type="text"
             placeholder="login"
             onBlur={(e) => setLogin(e.target.value)}
           />
-          <div className={cl.passwordContainer}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+            className={cl.passwordContainer}
+          >
             <input
               className={cl.passwordInput}
               type={isVisiblePassword ? 'text' : 'password'}
@@ -181,46 +193,41 @@ export const Register = () => {
             >
               {difficulty}
             </p>
-          </div>
+          </motion.div>
           <div className={cl.passwordAndButtonDiv}>
-            <input
+            <motion.input
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
               className={cl.userInput}
               type={isVisiblePassword ? 'text' : 'password'}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="confirm password"
             />
-            {/* <button
-            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
-            onClick={handleRegister}
-          >
-            <img
-              draggable={false}
-              className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
-              src={arrowIcon}
-              alt="arrow-icon"
-            />
-          </button> */}
           </div>
-          <div className={cl.visibilityContainer}>
-            {/* <input
-            className={cl.visibilityCheckbox}
-            type="checkbox"
-            onClick={() => setIsVisiblePassword((v) => !v)}
-          /> */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.9 }}
+            className={cl.visibilityContainer}
+          >
             <div
               className={isVisiblePassword ? cl.checkboxChecked : cl.checkbox}
               onClick={() => setIsVisiblePassword((v) => !v)}
             />
             <p className={cl.visibilityText}>show password</p>
-          </div>
+          </motion.div>
           {error && <p className={cl.error}>{error}</p>}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 1.1 }}
             disabled={!isButtonHidden}
             onClick={handleRegister}
             className={cl.continueButton}
           >
             Continue
-          </button>
+          </motion.button>
         </div>
       ) : (
         <div className={cl.leftContainerAvatar}>

@@ -7,7 +7,7 @@ import cl from './LoginPage.module.css'
 import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
 import background from './images/background.png'
-import arrowIcon from './images/arrow-icon.png'
+import { motion } from 'framer-motion'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -69,20 +69,32 @@ export const LoginPage = () => {
   return (
     <div className={cl.allPage}>
       <div className={cl.leftContainer}>
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0 }}
+        >
           <h1 className={cl.welcomeText}>Welcome again.</h1>
           <Link className={cl.register} to={'/register'}>
             Dont have account? Sign up
           </Link>
-        </div>
-        <input
+        </motion.div>
+        <motion.input
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
           className={cl.userInput}
           type="text"
           placeholder="login"
           ref={loginRef}
           onBlur={(e) => setLogin(e.target.value)}
         />
-        <div className={cl.passwordAndButtonDiv}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className={cl.passwordAndButtonDiv}
+        >
           <input
             className={cl.userInput}
             type={isVisible ? 'text' : 'password'}
@@ -90,33 +102,30 @@ export const LoginPage = () => {
             ref={passwordRef}
             placeholder="password"
           />
-          {/* <button
-            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
-            onClick={handleLogin}
-          >
-            <img
-              draggable={false}
-              className={isButtonHidden ? cl.arrowIcon : cl.hiddenArrowIcon}
-              src={arrowIcon}
-              alt="arrow-icon"
-            />
-          </button> */}
-        </div>
-        <div className={cl.visibilityContainer}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.7 }}
+          className={cl.visibilityContainer}
+        >
           <div
             className={isVisible ? cl.checkboxChecked : cl.checkbox}
             onClick={() => setIsVisible((v) => !v)}
           />
           <p className={cl.visibilityText}>show password</p>
-        </div>
+        </motion.div>
         {error && <p className={cl.error}>{error}</p>}
-        <button
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.9 }}
           disabled={!isButtonHidden}
           onClick={handleLogin}
           className={cl.continueButton}
         >
           Continue
-        </button>
+        </motion.button>
       </div>
       <div className={cl.rightContainer}>
         <img
