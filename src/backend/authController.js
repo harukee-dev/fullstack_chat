@@ -16,12 +16,12 @@ function generateAccessToken(id, roles) {
 class authController {
   async registration(request, response) {
     try {
-      const { username, password } = request.body
+      const { username, password, avatar } = request.body
       const candidate = await User.findOne({ username })
       if (candidate) {
         return response
           .status(400)
-          .json({ message: 'Пользователь с таким именем уже существует' })
+          .json({ message: 'this username is already taken' })
       }
       if (username.length >= 4 && username.length <= 20) {
         const hasLowercase = /[a-z]/.test(password)
@@ -29,26 +29,38 @@ class authController {
         const hasDigit = /\d/.test(password)
         const hasSpecialChar = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)
 
-        if (hasLowercase && hasUppercase && hasDigit && hasSpecialChar) {
+        if (
+          (hasLowercase && hasUppercase && hasDigit) ||
+          (hasSpecialChar && hasLowercase && hasDigit) ||
+          (hasSpecialChar && hasUppercase && hasDigit)
+        ) {
           const hashPassword = bcrypt.hashSync(password, 5)
-          const user = new User({
-            username,
-            password: hashPassword,
-          })
-          await user.save()
+          if (!avatar) {
+            const user = new User({
+              username,
+              password: hashPassword,
+            })
+            await user.save()
+          } else {
+            const user = new User({
+              username,
+              password: hashPassword,
+              avatar,
+            })
+            await user.save()
+          }
           return response.json({
-            message: 'Пользователь успешно зарегистрирован',
+            message: 'User created',
           })
         } else {
           return response.status(400).json({
-            message:
-              'Пароль должен иметь хотя бы одну цифру, заглавную и строчную букву и специальный символ',
+            message: 'password is too easy',
           })
         }
       } else {
         return response
           .status(400)
-          .json({ message: 'Логин должен быть от 4 до 20 символов' })
+          .json({ message: 'use 4 to 20 characters for login' })
       }
     } catch (e) {
       console.log(e)
@@ -64,12 +76,14 @@ class authController {
       if (!user) {
         return response
           .status(400)
-          .json({ message: `Пользователь с именем ${username} не найден` })
+          .json({ message: `invalid login or password` })
       }
 
       const validPassword = bcrypt.compareSync(password, user.password)
       if (!validPassword) {
-        return response.status(400).json({ message: `Введен неверный пароль` })
+        return response
+          .status(400)
+          .json({ message: `invalid login or password` })
       }
 
       const token = jwt.sign(
@@ -102,6 +116,7 @@ class authController {
         { avatar: avatar.toString() },
         { new: true }
       )
+      return response.json(updatedUser.avatar)
     } catch (e) {
       console.log(e)
     }
