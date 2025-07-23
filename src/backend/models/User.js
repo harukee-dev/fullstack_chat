@@ -13,6 +13,7 @@ const UserSchema = new Schema({
     default: 'free',
     required: true,
   },
+  userChats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }],
 })
 
 module.exports = model('User', UserSchema)
