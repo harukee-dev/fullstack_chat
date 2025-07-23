@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator')
 const jwt = require('jsonwebtoken')
 const { secret } = require('./config')
 const Message = require('./models/Message')
+const Chat = require('./models/Chat')
 
 function generateAccessToken(id, roles) {
   const payload = {
