@@ -3,6 +3,7 @@ module.exports = function (io) {
   const router = express.Router()
   const User = require('../models/User')
   const Friendship = require('../models/Friendship')
+  const Chat = require('../models/Chat')
 
   router.post('/send-request', async (req, res) => {
     try {
