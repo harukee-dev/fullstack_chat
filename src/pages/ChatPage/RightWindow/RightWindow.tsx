@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
 import { AppDispatch, RootState, useAppSelector } from '../../../store'
@@ -35,12 +35,18 @@ export const RightWindow = () => {
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
   const dispatch = useDispatch<AppDispatch>()
 
-  const chatId = localStorage.getItem('chat-id')
-  const chats = useSelector((state: RootState) => state.chats.chats)
-  const currentChat = chats.find((chat: any) => chat._id === chatId)
-  const companion = currentChat?.members.find(
-    (m: any) => m._id !== currentUserId
-  )
+  // const { chatId } = useParams<{ chatId: string }>()
+  // const chats = useSelector((state: RootState) => state.chats.chats)
+
+  // ИЗМЕНИТЬ ЭТО ПОЗЖЕ, РАБОТА НАД ИМЕНЕМ ЧАТА
+  // const companion = useMemo(() => {
+  //   if (!chatId || !chats || chats.length === 0 || !currentUserId) return null
+
+  //   const currentChat = chats.find((chat: any) => chat._id === chatId)
+  //   if (!currentChat) return null
+
+  //   return currentChat.members.find((m: any) => m._id !== currentUserId)
+  // }, [chatId, chats, currentUserId])
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
@@ -205,9 +211,7 @@ export const RightWindow = () => {
               <div className={cl.chatHeader}>
                 <div style={{ display: 'flex', gap: '.6vh' }}>
                   <p className={cl.hashtag}>#</p>
-                  <p className={cl.chatName}>
-                    {companion ? companion.username : 'loading...'}
-                  </p>
+                  <p className={cl.chatName}>Chat</p>
                 </div>
                 <button onClick={handlePanelOpen} className={cl.buttonOther}>
                   ···
@@ -226,7 +230,7 @@ export const RightWindow = () => {
                 chatRef={chatRef}
                 setShowScrollButton={setShowScrollButton}
               />
-              <AnimatePresence>
+              {/* <AnimatePresence>
                 {usersTyping.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -240,7 +244,7 @@ export const RightWindow = () => {
                     <span className={cl.dot}>.</span>
                   </motion.div>
                 )}
-              </AnimatePresence>
+              </AnimatePresence> */}
               <ScrollChatButton
                 onClick={scrollToBottom}
                 isVisible={showScrollButton}
