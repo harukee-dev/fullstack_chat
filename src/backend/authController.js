@@ -200,6 +200,23 @@ class authController {
       res.status(500).json({ error: 'Внутренняя ошибка сервера' })
     }
   }
+
+  async userChats(req, res) {
+    try {
+      const user = await User.findById(req.params.userId).populate({
+        path: 'userChats',
+        populate: {
+          path: 'members',
+          select: '_id username avatar online',
+        },
+      })
+
+      res.json(user.userChats)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ message: 'Ошибка загрузки чатов' })
+    }
+  }
 }
 
 module.exports = new authController()

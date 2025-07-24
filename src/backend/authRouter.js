@@ -19,4 +19,6 @@ router.get('/getMessage/:id', controller.getMessageById)
 
 router.post('/changeAvatar', controller.changeAvatar)
 
+router.get('/user-chats/:userId', controller.userChats)
+
 module.exports = router
