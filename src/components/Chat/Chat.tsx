@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Message } from '../Message/Message'
 import { MyMessage } from '../Message/MyMessage'
 import { IMessage } from '../../types/IMessage'
@@ -7,45 +8,93 @@ import loading from './images/loading.gif'
 import cl from './chat.module.css'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
+import { API_URL } from '../../constants'
 
-interface IChatProps {
-  messages: IMessage[]
-  isClear: boolean
+interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
   chatRef: RefObject<HTMLDivElement | null>
   socket: any
 }
 
-export const ChatComponent: React.FC<IChatProps> = ({
-  messages,
-  isClear,
+export const ChatComponent: React.FC<IChatComponentProps> = ({
   setShowScrollButton,
   chatRef,
   socket,
 }) => {
+  const { chatId } = useParams<{ chatId: string }>()
+  if (chatId) localStorage.setItem('chat-id', chatId)
+  const [messages, setMessages] = useState<IMessage[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const username = localStorage.getItem('username')
 
+  // Загрузка сообщений при смене chatId
   useEffect(() => {
-    if (!socket) return
+    if (!chatId) return
 
-    socket.on('messagePinned', (pinnedMessage: IMessage) => {
-      setPinnedMessages((prev) => [...prev, pinnedMessage])
-    })
+    setIsLoading(true)
 
-    socket.on('messageUnpinned', (unpinnedMessage: IMessage) => {
-      setPinnedMessages((prev) =>
-        prev.filter((el) => el._id !== unpinnedMessage._id)
-      )
-    })
+    fetch(`${API_URL}/auth/messages/${chatId}`)
+      .then((res) => res.json())
+      .then((data: IMessage[]) => {
+        setMessages(data)
+        setIsLoading(false)
+
+        // Обновляем закрепленные
+        const pinned = data.filter((msg) => msg.isPinned)
+        setPinnedMessages(pinned)
+      })
+      .catch((err) => {
+        console.error('Error fetching messages:', err)
+        setIsLoading(false)
+      })
+  }, [chatId])
+
+  // Подписка на сокет-события для этого чата
+  useEffect(() => {
+    if (!socket || !chatId) return
+
+    // Входим в комнату чата
+    socket.emit('joinChatRoom', chatId)
+
+    // Обработчик новых сообщений
+    const handleNewMessage = (newMessage: IMessage) => {
+      if (newMessage.chatId === chatId) {
+        setMessages((prev) => [...prev, newMessage])
+      }
+    }
+
+    // Обработчик закрепления
+    const handlePinned = (pinnedMessage: IMessage) => {
+      if (pinnedMessage.chatId === chatId) {
+        setPinnedMessages((prev) => [...prev, pinnedMessage])
+      }
+    }
+
+    // Обработчик открепления
+    const handleUnpinned = (unpinnedMessage: IMessage) => {
+      if (unpinnedMessage.chatId === chatId) {
+        setPinnedMessages((prev) =>
+          prev.filter((msg) => msg._id !== unpinnedMessage._id)
+        )
+      }
+    }
+
+    socket.on('message', handleNewMessage)
+    socket.on('messagePinned', handlePinned)
+    socket.on('messageUnpinned', handleUnpinned)
 
     return () => {
-      socket.off('messagePinned')
-      socket.off('messageUnpinned')
-    }
-  }, [socket])
+      socket.emit('leaveChatRoom', chatId) // выходим из комнаты
 
+      socket.off('message', handleNewMessage)
+      socket.off('messagePinned', handlePinned)
+      socket.off('messageUnpinned', handleUnpinned)
+    }
+  }, [socket, chatId])
+
+  // Скролл и отображение кнопки прокрутки
   const handleScroll = () => {
     const chatEl = chatRef.current
     if (!chatEl) return
@@ -64,14 +113,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
       chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight
     const isAtBottom = distanceFromBottom < 200
 
-    console.log('Scroll check:', {
-      scrollTop: chatEl.scrollTop,
-      clientHeight: chatEl.clientHeight,
-      scrollHeight: chatEl.scrollHeight,
-      distanceFromBottom,
-      isAtBottom,
-    })
-
     if (isAtBottom) {
       requestAnimationFrame(() => {
         chatEl.scrollTo({
@@ -84,7 +125,6 @@ export const ChatComponent: React.FC<IChatProps> = ({
   }, [messages])
 
   const hasScrolledRef = useRef(false)
-
   useEffect(() => {
     const chatEl = chatRef.current
     if (!chatEl || hasScrolledRef.current) return
@@ -96,18 +136,13 @@ export const ChatComponent: React.FC<IChatProps> = ({
     hasScrolledRef.current = true
   }, [messages])
 
-  useEffect(() => {
-    const pinned = messages.filter((el) => el.isPinned)
-    setPinnedMessages(pinned)
-  }, [messages])
-
   const formatDateLabel = (date: Date) => {
     if (isToday(date)) return 'Today'
     if (isYesterday(date)) return 'Yesterday'
     return format(date, 'MMMM d')
   }
 
-  if (isClear) {
+  if (isLoading) {
     return (
       <div className={cl.chat}>
         <div className={cl.clearContainer}>
@@ -119,14 +154,8 @@ export const ChatComponent: React.FC<IChatProps> = ({
 
   return (
     <div onScroll={handleScroll} className={cl.chat} ref={chatRef}>
-      {/* ЗАКРЕПЛЕННЫЕ СООБЩЕИЯ И ПОИСК - БУДУТ ПЕРЕДЕЛЫВАТЬСЯ */}
-      {/* {pinnedMessages.length > 0 && (
-        <PinnedMessages
-          pinnedMessages={pinnedMessages}
-          messageRefs={messageRefs.current}
-        />
-      )}
-      <SearchButton /> */}
+      {/* Можно здесь потом добавить Пин и Поиск */}
+
       {messages.map((el, index) => {
         const currentMessageDate = new Date(el.timestamp ?? new Date())
         const prevMessage = messages[index - 1]

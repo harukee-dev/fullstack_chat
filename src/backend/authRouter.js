@@ -11,7 +11,7 @@ router.get('/users', controller.getUsers)
 
 router.post('/sendMessage', controller.sendMessage)
 
-router.get('/messages', controller.getMessages)
+router.get('/messages/:chatId', controller.getMessages)
 
 router.post('/editMessage', controller.editMessage)
 

@@ -11,9 +11,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../../types/IMessage'
 import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollChatButton'
 import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useParams } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
-import { addChat } from '../../../slices/chatSlice'
+import { addChat, setChats } from '../../../slices/chatSlice'
 
 interface IRequest {
   avatar: string
@@ -23,8 +23,6 @@ interface IRequest {
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
-  const [allMessages, setAllMessages] = useState<IMessage[]>([]) // ← оригинальный список
-  const [messages, setMessages] = useState<IMessage[]>([])
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -33,17 +31,23 @@ export const RightWindow = () => {
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
   const chatRef = useRef<HTMLDivElement>(null)
   const replyMessage = useAppSelector((state) => state.reply.message)
-  const searchValue = useAppSelector((state) => state.search.value)
   const currentUserId = localStorage.getItem('user-id')
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
   const dispatch = useDispatch<AppDispatch>()
+
+  const chatId = localStorage.getItem('chat-id')
+  const chats = useSelector((state: RootState) => state.chats.chats)
+  const currentChat = chats.find((chat: any) => chat._id === chatId)
+  const companion = currentChat?.members.find(
+    (m: any) => m._id !== currentUserId
+  )
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
     const data = await response.json()
 
     if (response.ok) {
-      return data // массив заявок
+      return data
     } else {
       console.error('Ошибка при получении заявок:', data.message)
       return []
@@ -69,10 +73,28 @@ export const RightWindow = () => {
       })
     }
     loadRequests()
-  }, [])
+  }, [currentUserId])
+
+  useEffect(() => {
+    async function loadUserChats() {
+      if (!currentUserId) {
+        console.error('ошибка при получении чатов юзера, нет currentUserId')
+        return
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/auth/user-chats/${currentUserId}`)
+        const data = await res.json()
+        dispatch(setChats(data))
+      } catch (e) {
+        console.error(`ошибка при получении чатов юзера: ${e}`)
+      }
+    }
+
+    loadUserChats()
+  }, [currentUserId, dispatch])
 
   let notificationSound: HTMLAudioElement | null = null
-
   window.addEventListener('click', () => {
     if (!notificationSound) {
       notificationSound = new Audio('/sounds/notification-sound.mp3')
@@ -80,151 +102,70 @@ export const RightWindow = () => {
     }
   })
 
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch(API_URL + '/auth/messages')
-      const data = await response.json()
-
-      setMessages(data)
-      setAllMessages(data) // ← сохраняем полную копию
-    } catch (error) {
-      console.error('Ошибка загрузки сообщений:', error)
-    }
-  }
-
   const originalTitle = document.title
   let hasNewMessage = false
 
-  // Отслеживаем, когда пользователь возвращается на вкладку
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && hasNewMessage) {
-      document.title = originalTitle
-      hasNewMessage = false
-    }
-  })
-
-  // Подключение к серверу
   useEffect(() => {
-    if (isAuth) {
-      const newSocket = io(API_URL, {
-        query: { userId: currentUserId },
-        auth: { token },
-        transports: ['websocket'],
-      })
-
-      newSocket.on('connect_error', (error) => {
-        console.log('Ошибка подключения:', error)
-      })
-
-      setSocket(newSocket)
-
-      newSocket.on('message', (newMessage: IMessage) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage])
-        setAllMessages((prev) => [...prev, newMessage])
-
-        if (document.hidden && notificationSound) {
-          notificationSound.pause()
-          notificationSound.currentTime = 0
-          notificationSound.play().catch((err) => {
-            console.warn('Ошибка воспроизведения звука:', err)
-          })
-        }
-        if (document.hidden) {
-          hasNewMessage = true
-          document.title = 'New Message - Omnio'
-        }
-      })
-
-      newSocket.on('usersTyping', (usernames: string[]) => {
-        setUsersTyping(usernames.filter((name) => name !== username)) // не отображай себя
-      })
-
-      newSocket.on('newRequest', (message: IRequest) => {
-        setAllRequests((r) => [...r, message])
-        console.log(message)
-        if (document.hidden && notificationSound) {
-          notificationSound.pause()
-          notificationSound.currentTime = 0
-          notificationSound.play().catch((err) => {
-            console.warn('Ошибка воспроизведения звука:', err)
-          })
-        }
-        if (document.hidden) {
-          hasNewMessage = true
-          document.title = 'New Request - Omnio'
-        }
-      })
-
-      newSocket.on('messageEdited', (updatedMessage: IMessage) => {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg._id === updatedMessage._id ? updatedMessage : msg
-          )
-        )
-      })
-
-      newSocket.on('messagePinned', (pinmsg: IMessage) => {
-        setMessages((msg) =>
-          msg.map((el: IMessage) =>
-            el._id === pinmsg._id ? { ...el, isPinned: true } : el
-          )
-        )
-      })
-
-      newSocket.on('messageUnpinned', (unpinmsg: IMessage) => {
-        setMessages((msg) =>
-          msg.map((el: IMessage) =>
-            el._id === unpinmsg._id ? { ...el, isPinned: false } : el
-          )
-        )
-      })
-
-      newSocket.on('messageDeleted', (deletedMessage) => {
-        setMessages((prevMessages) =>
-          prevMessages.filter((message) => message._id !== deletedMessage._id)
-        )
-        setAllMessages((prevMessages) =>
-          prevMessages.filter((message) => message._id !== deletedMessage._id)
-        )
-      })
-
-      newSocket.on('new-private-chat', (chat: any) => {
-        console.log(chat)
-        dispatch(addChat(chat))
-      })
-
-      return () => {
-        newSocket.disconnect()
+    const handleVisibilityChange = () => {
+      if (!document.hidden && hasNewMessage) {
+        document.title = originalTitle
+        hasNewMessage = false
       }
     }
-  }, [isAuth, token])
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [originalTitle])
+
+  useEffect(() => {
+    if (!isAuth || !currentUserId || !token) return
+
+    const newSocket = io(API_URL, {
+      query: { userId: currentUserId },
+      auth: { token },
+      transports: ['websocket'],
+    })
+
+    newSocket.on('connect_error', (error) => {
+      console.log('Ошибка подключения:', error)
+    })
+
+    setSocket(newSocket)
+
+    newSocket.on('usersTyping', (usernames: string[]) => {
+      setUsersTyping(usernames.filter((name) => name !== username))
+    })
+
+    newSocket.on('newRequest', (message: IRequest) => {
+      setAllRequests((r) => [...r, message])
+      if (document.hidden && notificationSound) {
+        notificationSound.pause()
+        notificationSound.currentTime = 0
+        notificationSound.play().catch((err) => {
+          console.warn('Ошибка воспроизведения звука:', err)
+        })
+      }
+      if (document.hidden) {
+        hasNewMessage = true
+        document.title = 'New Request - Omnio'
+      }
+    })
+
+    newSocket.on('new-private-chat', (chat: any) => {
+      dispatch(addChat(chat))
+    })
+
+    return () => {
+      newSocket.disconnect()
+    }
+  }, [isAuth, currentUserId, token, username, dispatch])
 
   useEffect(() => {
     if (socket && currentUserId) {
       socket.emit('joinPersonalRoom', currentUserId)
     }
   }, [socket, currentUserId])
-
-  // Загрузка сообщений из БД при открытии страницы
-  useEffect(() => {
-    fetchMessages()
-  }, [])
-  useEffect(() => {
-    if (searchValue !== '') {
-      const filtered = allMessages.filter((el) =>
-        el.text.toLowerCase().includes(searchValue.toLowerCase())
-      )
-
-      if (filtered.length === 0) {
-        console.log('Сообщения не найдены, отображаем все обратно')
-        setMessages(allMessages)
-      } else {
-        setMessages(filtered)
-      }
-    } else {
-      setMessages(allMessages)
-    }
-  }, [searchValue, allMessages])
 
   const scrollToBottom = () => {
     if (chatRef.current) {
@@ -237,49 +178,36 @@ export const RightWindow = () => {
 
   const [isShowPinnedMessages, setIsShowPinnedMessages] =
     useState<boolean>(false)
-
   const [isPanelOpened, setIsPanelOpened] = useState<boolean>(false)
+  const [isNotFound, setIsNotFound] = useState<boolean>(false)
 
   const handlePanelOpen = () => {
     setIsPanelOpened((p) => !p)
   }
 
   const handleShowPinned = () => {
-    if (isShowPinnedMessages) {
-      setIsShowPinnedMessages(false)
-      setMessages(allMessages)
-    } else {
-      setIsShowPinnedMessages(true)
-      setMessages((msg) => msg.filter((el) => el.isPinned))
-    }
+    setIsShowPinnedMessages((prev) => !prev)
   }
 
-  const [isNotFound, setIsNotFound] = useState<boolean>(false)
-
-  const handleSearch = (event: any) => {
-    if (event.key === 'Enter' && event.target.value !== '') {
-      messages.filter((msg) => msg.text.includes(event.target.value)).length > 0
-        ? setMessages((msg) =>
-            msg.filter((el) => el.text.includes(event.target.value))
-          )
-        : setIsNotFound(true)
-    }
-    if (event.key === 'Enter' && event.target.value === '') {
-      setMessages(allMessages)
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      // Поиск реализуется в ChatComponent при необходимости
     }
   }
 
   return (
     <Routes>
       <Route
-        path="chat"
+        path="/chat/:chatId"
         element={
           <div style={{ background: 'black', height: '100vh' }}>
             <div className={cl.chatPage}>
               <div className={cl.chatHeader}>
                 <div style={{ display: 'flex', gap: '.6vh' }}>
-                  <p className={cl.hashtag}>#</p>{' '}
-                  <p className={cl.chatName}>general chat</p>
+                  <p className={cl.hashtag}>#</p>
+                  <p className={cl.chatName}>
+                    {companion ? companion.username : 'loading...'}
+                  </p>
                 </div>
                 <button onClick={handlePanelOpen} className={cl.buttonOther}>
                   ···
@@ -297,8 +225,6 @@ export const RightWindow = () => {
                 socket={socket}
                 chatRef={chatRef}
                 setShowScrollButton={setShowScrollButton}
-                messages={messages}
-                isClear={messages.length === 0}
               />
               <AnimatePresence>
                 {usersTyping.length > 0 && (
@@ -352,7 +278,7 @@ interface IChatPanel {
   handleShowPinned: () => void
   handleSearch: (arg: any) => void
   isOpened: boolean
-  setIsNotFound: any
+  setIsNotFound: React.Dispatch<React.SetStateAction<boolean>>
   isNotFound: boolean
 }
 

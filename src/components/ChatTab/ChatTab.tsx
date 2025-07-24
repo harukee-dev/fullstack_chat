@@ -13,7 +13,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({
   const navigate = useNavigate()
 
   const handleClick = () => {
-    navigate(`/chat/${chatId}`)
+    navigate(`/main/chat/${chatId}`)
   }
 
   return (

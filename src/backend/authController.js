@@ -131,38 +131,75 @@ class authController {
       console.log(e)
     }
   }
-  async sendMessage(request, response) {
+  async sendMessage(req, res) {
     try {
-      const { username, text } = request.body
+      const { text, chatId, senderId, replyText, replyUser } = req.body
 
-      if (!username || !text) {
-        return response
+      if (!text || !chatId || !senderId) {
+        return res
           .status(400)
-          .json({ message: 'Необходимо указать username и текст сообщения' })
+          .json({ message: 'chatId, senderId и текст обязательны' })
       }
 
-      const message = new Message({
-        username,
+      const newMessageData = {
         text,
-      })
+        chatId,
+        senderId,
+        timestamp: Date.now(),
+      }
 
-      await message.save()
-      return response.json({ message: 'Сообщение отправлено', data: message })
-    } catch (e) {
-      console.log(e)
-      response.status(500).json({ message: 'Ошибка при отправке сообщения' })
-    }
-  }
-  async getMessages(request, response) {
-    try {
-      const messages = await Message.find().populate(
+      if (replyText && replyUser) {
+        newMessageData.replyMessage = {
+          text: replyText,
+          username: replyUser,
+        }
+      }
+
+      const newMessage = new Message(newMessageData)
+      const savedMessage = await newMessage.save()
+      const populated = await savedMessage.populate(
         'senderId',
         'username avatar'
-      ) // Получаем все сообщения из БД
-      response.json(messages)
+      )
+
+      res.json({
+        message: 'Сообщение успешно отправлено',
+        data: {
+          _id: populated._id,
+          text: populated.text,
+          chatId: populated.chatId,
+          timestamp: populated.timestamp,
+          senderId: {
+            _id: populated.senderId._id,
+            username: populated.senderId.username,
+            avatar: populated.senderId.avatar,
+          },
+          ...(replyText &&
+            replyUser && {
+              replyMessage: {
+                text: replyText,
+                username: replyUser,
+              },
+            }),
+        },
+      })
     } catch (e) {
-      console.log(e)
-      response.status(500).json({ message: 'Ошибка при получении сообщений' })
+      console.error(e)
+      res.status(500).json({ message: 'Ошибка при отправке сообщения' })
+    }
+  }
+  async getMessages(req, res) {
+    try {
+      const { chatId } = req.params
+
+      const messages = await Message.find({ chatId })
+        .populate('senderId', 'username avatar')
+        .sort({ timestamp: 1 }) // сортировка по времени (по желанию)
+
+      res.json(messages)
+    } catch (e) {
+      console.error('Ошибка при получении сообщений:', e)
+      res.status(500).json({ message: 'Ошибка при получении сообщений' })
     }
   }
 

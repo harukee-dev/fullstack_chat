@@ -23,7 +23,7 @@ function authenticateSocket(socket, next) {
 
 // Обработчики событий
 async function handleMessage(io, socket, message) {
-  if (!message || !message.text) return
+  if (!message || !message.text || !message.chatId) return
 
   const reply = {
     username: message.replyUser || null,
@@ -33,7 +33,8 @@ async function handleMessage(io, socket, message) {
   const newMessageData = {
     text: message.text,
     timestamp: Date.now(),
-    senderId: message.senderId, // должен быть ObjectId
+    senderId: message.senderId,
+    chatId: message.chatId, // ← добавляем chatId
   }
 
   if (reply.username && reply.text) {
@@ -53,6 +54,7 @@ async function handleMessage(io, socket, message) {
       _id: populatedMessage._id.toString(),
       text: populatedMessage.text,
       timestamp: populatedMessage.timestamp,
+      chatId: message.chatId,
       senderId: {
         _id: populatedMessage.senderId._id,
         username: populatedMessage.senderId.username,
@@ -61,7 +63,8 @@ async function handleMessage(io, socket, message) {
       ...(reply.username && reply.text && { replyMessage: reply }),
     }
 
-    io.emit('message', emittedMessage)
+    // ← отправляем ТОЛЬКО в нужную комнату
+    io.to(message.chatId).emit('message', emittedMessage)
   } catch (error) {
     console.error('Ошибка при сохранении сообщения:', error)
   }
@@ -122,8 +125,12 @@ function setupSocketHandlers(io) {
     onlineUsers.set(socket.user.username, socket.id)
     io.emit('onlineUsers', Array.from(onlineUsers.keys()))
 
-    socket.on('joinPersonalRoom', (userId) => {
-      socket.join(userId)
+    socket.on('joinChatRoom', (chatId) => {
+      if (!chatId) return
+      socket.join(chatId)
+      console.log(
+        `Пользователь ${socket.id} присоединился к комнате чата ${chatId}`
+      )
     })
 
     socket.on('sendFriendDeleted', ({ user1, user2 }) => {
