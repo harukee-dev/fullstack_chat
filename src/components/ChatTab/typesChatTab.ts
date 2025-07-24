@@ -2,5 +2,5 @@ export interface ChatTabProps {
   username: string
   avatar: string | null
   isOnline: boolean
-  navigate: string
+  chatId: string
 }

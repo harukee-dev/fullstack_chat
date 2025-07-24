@@ -50,9 +50,6 @@ io.use((socket, next) => {
   }
 })
 
-const typingUsers = new Set()
-const onlineUsers = new Set()
-
 app.use(express.json())
 app.use('/auth', authRouter)
 app.use('/friends', friendsRouter(io))

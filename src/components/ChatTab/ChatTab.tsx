@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { ChatTabProps } from './typesChatTab'
 import cl from './ChatTab.module.css'
 import closeIcon from './images/close-chat.svg'
@@ -8,34 +8,16 @@ export const ChatTab: React.FC<ChatTabProps> = ({
   username,
   avatar,
   isOnline,
-  navigate,
+  chatId, // заменили navigate на chatId
 }) => {
-  const [onlineStatus, setOnlineStatus] = useState<string>(
-    isOnline ? 'Online' : 'Offline'
-  )
-  const navigateFunc = useNavigate()
-  return (
-    // <div className={cl.container}>
-    //   {avatar ? (
-    //     <img className={cl.avatar} src={avatar} alt="avatar" />
-    //   ) : (
-    //     <div className={cl.defaultAvatar}>
-    //       <p className={cl.defaultAvatarText}>
-    //         {username.charAt(0).toUpperCase()}
-    //       </p>
-    //     </div>
-    //   )}
-    //   <div>
-    //     <p className={cl.username}>{username}</p>
-    //     {isOnline ? (
-    //       <p className={cl.statusOnline}>{onlineStatus}</p>
-    //     ) : (
-    //       <p className={cl.statusOffline}>{onlineStatus}</p>
-    //     )}
-    //   </div>
-    // </div>
+  const navigate = useNavigate()
 
-    <div onClick={() => navigateFunc(navigate)} className={cl.container}>
+  const handleClick = () => {
+    navigate(`/main/chat/${chatId}`)
+  }
+
+  return (
+    <div onClick={handleClick} className={cl.container}>
       <div>
         {avatar ? (
           <img

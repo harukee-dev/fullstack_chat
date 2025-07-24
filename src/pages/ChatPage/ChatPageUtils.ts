@@ -20,6 +20,7 @@ export const sendMessage = (
   setMessage: any,
   replyMessage: IMessage | null
 ) => {
+  const chatId = localStorage.getItem('chat-id')
   const currentUserId = localStorage.getItem('user-id')
   if (!socket || message.trim() === '') {
     console.log('Ошибка: сообщение пустое или сокет не подключен')
@@ -55,10 +56,11 @@ export const sendMessage = (
         replyUser: replyMessage.senderId.username,
         replyText: replyMessage.text,
         senderId: currentUserId,
+        chatId,
       })
       socket.emit('stopTyping')
     } else {
-      socket.emit('message', { text: buffer, senderId: currentUserId })
+      socket.emit('message', { text: buffer, senderId: currentUserId, chatId })
       socket.emit('stopTyping')
     }
   }

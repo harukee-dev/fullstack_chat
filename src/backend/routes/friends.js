@@ -3,6 +3,8 @@ module.exports = function (io) {
   const router = express.Router()
   const User = require('../models/User')
   const Friendship = require('../models/Friendship')
+  const Chat = require('../models/Chat')
+  const onlineUsers = require('../socketHandler')
 
   router.post('/send-request', async (req, res) => {
     try {
@@ -66,12 +68,43 @@ module.exports = function (io) {
     const { requesterId, recipientId } = req.body
 
     try {
+      let chat = await Chat.findOne({
+        type: 'private',
+        members: { $all: [requesterId, recipientId], $size: 2 },
+      })
+
+      if (!chat) {
+        chat = await Chat.create({
+          type: 'private',
+          members: [recipientId, requesterId],
+        })
+      }
+
       await Friendship.findOneAndUpdate(
         { requesterId, recipientId, status: 'pending' },
         { status: 'accepted' }
       )
+
+      await Promise.all([
+        User.findByIdAndUpdate(requesterId, {
+          $addToSet: { userChats: chat._id },
+        }),
+        User.findByIdAndUpdate(recipientId, {
+          $addToSet: { userChats: chat._id },
+        }),
+      ])
+
+      const fullChat = await Chat.findById(chat._id)
+        .populate('members', '_id username avatar online')
+        .lean()
+
+      io.to(requesterId).emit('new-private-chat', fullChat)
+
+      io.to(recipientId).emit('new-private-chat', fullChat)
+
+      res.status(200).json({ message: 'accepted', chat: fullChat })
     } catch (error) {
-      console.error('Application error')
+      console.error('Application error:', error)
       res.status(500).json({ message: 'Server error' })
     }
   })

@@ -11,4 +11,5 @@ export interface IMessage {
   senderId: IUser
   replyMessage?: { username: string; text: string }
   isPinned?: boolean
+  chatId: string
 }
