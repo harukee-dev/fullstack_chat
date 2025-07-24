@@ -5,6 +5,7 @@ import searchReducer from './slices/searchMessageSlice'
 import currentUserReducer from './slices/currentUserSlice'
 import friendsReducer from './slices/friendsSlice'
 import { TypedUseSelectorHook, useSelector } from 'react-redux'
+import chatsReducer from './slices/chatSlice'
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     search: searchReducer,
     currentUser: currentUserReducer,
     friends: friendsReducer,
+    chats: chatsReducer,
   },
 })
 
