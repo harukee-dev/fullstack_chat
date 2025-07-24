@@ -145,6 +145,7 @@ export const RightWindow = () => {
 
     newSocket.on('newRequest', (message: IRequest) => {
       setAllRequests((r) => [...r, message])
+      console.log(`new request: ${message}`)
       if (document.hidden && notificationSound) {
         notificationSound.pause()
         notificationSound.currentTime = 0
@@ -170,6 +171,7 @@ export const RightWindow = () => {
   useEffect(() => {
     if (socket && currentUserId) {
       socket.emit('joinPersonalRoom', currentUserId)
+      console.log('sockettetwetjewjktnewlrjewnrlwekn')
     }
   }, [socket, currentUserId])
 

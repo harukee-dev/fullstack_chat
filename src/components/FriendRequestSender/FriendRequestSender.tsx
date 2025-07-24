@@ -320,6 +320,12 @@ const AddFriend: React.FC<IAddFriend> = ({
           requesterId: currentUserId,
           recipientUsername: username,
         })
+        console.log(
+          'socket emitted, requesterId: ',
+          currentUserId,
+          ', recipientUsername: ',
+          username
+        )
       } else {
         setStatus(data.message || 'Error occured')
       }

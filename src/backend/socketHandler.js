@@ -122,6 +122,7 @@ function setupSocketHandlers(io) {
   io.on('connection', (socket) => {
     const userId = socket.user.id
     userSockets.set(userId.toString(), socket.id)
+    socket.join(userId.toString())
     onlineUsers.set(socket.user.username, socket.id)
     io.emit('onlineUsers', Array.from(onlineUsers.keys()))
 
@@ -134,26 +135,26 @@ function setupSocketHandlers(io) {
     })
 
     socket.on('sendFriendDeleted', ({ user1, user2 }) => {
-      io.to(user1).emit('friendshipDeleted', { user1, user2 })
-      io.to(user2).emit('friendshipDeleted', { user1, user2 })
+      io.to(user1.toString()).emit('friendshipDeleted', { user1, user2 })
+      io.to(user2.toString()).emit('friendshipDeleted', { user1, user2 })
     })
 
     socket.on('addedFriendship', async ({ user1, user2 }) => {
       try {
         const [userOne, userTwo] = await Promise.all([
-          User.findById(user1).select('username avatar'),
-          User.findById(user2).select('username avatar'),
+          User.findById(user1.toString()).select('username avatar'),
+          User.findById(user2.toString()).select('username avatar'),
         ])
 
         if (userOne && userTwo) {
           // Отправляем каждому информацию о другом
-          io.to(user1).emit('friendAdded', {
+          io.to(user1.toString()).emit('friendAdded', {
             id: userTwo._id,
             username: userTwo.username,
             avatar: userTwo.avatar,
           })
 
-          io.to(user2).emit('friendAdded', {
+          io.to(user2.toString()).emit('friendAdded', {
             id: userOne._id,
             username: userOne.username,
             avatar: userOne.avatar,
