@@ -94,21 +94,13 @@ module.exports = function (io) {
         }),
       ])
 
-      const fullChat = Chat.findById(chat._id).populate({
-        path: 'members',
-        select: '_id username avatar online',
-      })
+      const fullChat = await Chat.findById(chat._id)
+        .populate('members', '_id username avatar online')
+        .lean()
 
-      const requesterSocketId = onlineUsers.get(requesterId)
-      const recipientSocketId = onlineUsers.get(recipientId)
+      io.to(requesterId).emit('new-private-chat', fullChat)
 
-      if (requesterSocketId) {
-        io.to(requesterSocketId).emit('new-private-chat', fullChat)
-      }
-
-      if (recipientSocketId) {
-        io.to(recipientSocketId).emit('new-private-chat', fullChat)
-      }
+      io.to(recipientId).emit('new-private-chat', fullChat)
 
       res.status(200).json({ message: 'accepted', chat: fullChat })
     } catch (error) {

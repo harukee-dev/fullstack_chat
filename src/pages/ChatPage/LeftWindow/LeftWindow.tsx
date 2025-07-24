@@ -1,6 +1,5 @@
 import { ChatsList } from '../../../components/ChatsList/ChatsList'
 import cl from './leftWindow.module.css'
-import settings from './images/settings-icon.png'
 import { TIP_URL } from '../../../constants'
 import moneyIconGray from './images/money-gray.svg'
 import moneyIconPurple from './images/money-purple.svg'
@@ -34,15 +33,6 @@ export const LeftWindow = () => {
     purpleFlux.src = fluxIconPurple
   }, [])
 
-  const users = [
-    {
-      username: 'general chat',
-      avatar:
-        'https://i.pinimg.com/originals/41/b2/cc/41b2cc482076e1f988453413a93b07bd.gif',
-      isOnline: true,
-      navigate: '/main/chat',
-    },
-  ]
   return (
     <div className={cl.leftContainer}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '3vh' }}>
@@ -118,7 +108,7 @@ export const LeftWindow = () => {
         </div>
         <div className={cl.hr}></div>
 
-        <ChatsList users={users} />
+        <ChatsList />
 
         <div className={cl.voiceSettingsContainer}>
           <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>

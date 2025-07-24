@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { RootState, useAppSelector } from '../../../store'
+import { AppDispatch, RootState, useAppSelector } from '../../../store'
 import { ChatComponent } from '../../../components/Chat/Chat'
 import { Interaction } from '../../../components/Interaction/Interaction'
 import cl from './rightWindow.module.css'
@@ -13,6 +13,7 @@ import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollCha
 import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 import { Route, Routes } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
+import { addChat } from '../../../slices/chatSlice'
 
 interface IRequest {
   avatar: string
@@ -35,6 +36,7 @@ export const RightWindow = () => {
   const searchValue = useAppSelector((state) => state.search.value)
   const currentUserId = localStorage.getItem('user-id')
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
+  const dispatch = useDispatch<AppDispatch>()
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
@@ -105,6 +107,7 @@ export const RightWindow = () => {
   useEffect(() => {
     if (isAuth) {
       const newSocket = io(API_URL, {
+        query: { userId: currentUserId },
         auth: { token },
         transports: ['websocket'],
       })
@@ -183,6 +186,11 @@ export const RightWindow = () => {
         setAllMessages((prevMessages) =>
           prevMessages.filter((message) => message._id !== deletedMessage._id)
         )
+      })
+
+      newSocket.on('new-private-chat', (chat: any) => {
+        console.log(chat)
+        dispatch(addChat(chat))
       })
 
       return () => {

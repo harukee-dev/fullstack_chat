@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken')
 const Message = require('./models/Message')
 const { secret } = require('./config')
-const Friendship = require('./models/Friendship')
 const User = require('./models/User')
 
 // Множества пользователей
 const typingUsers = new Set()
-export const onlineUsers = new Map()
+const onlineUsers = new Map()
 
 // Аутентификация по JWT
 function authenticateSocket(socket, next) {
@@ -212,4 +211,4 @@ function setupSocketHandlers(io) {
   })
 }
 
-module.exports = { setupSocketHandlers }
+module.exports = { setupSocketHandlers, onlineUsers }
