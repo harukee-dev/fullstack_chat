@@ -6,7 +6,7 @@ const User = require('./models/User')
 
 // Множества пользователей
 const typingUsers = new Set()
-const onlineUsers = new Set()
+export const onlineUsers = new Map()
 
 // Аутентификация по JWT
 function authenticateSocket(socket, next) {
@@ -120,9 +120,8 @@ function setupSocketHandlers(io) {
   io.on('connection', (socket) => {
     const userId = socket.user.id
     userSockets.set(userId.toString(), socket.id)
-    // Подключение пользователя
-    onlineUsers.add(socket.user.username)
-    io.emit('onlineUsers', Array.from(onlineUsers))
+    onlineUsers.set(socket.user.username, socket.id)
+    io.emit('onlineUsers', Array.from(onlineUsers.keys()))
 
     socket.on('joinPersonalRoom', (userId) => {
       socket.join(userId)
@@ -207,7 +206,7 @@ function setupSocketHandlers(io) {
       userSockets.delete(userId.toString())
       typingUsers.delete(socket.user.username)
       onlineUsers.delete(socket.user.username)
-      io.emit('onlineUsers', Array.from(onlineUsers))
+      io.emit('onlineUsers', Array.from(onlineUsers.keys()))
       io.emit('usersTyping', Array.from(typingUsers))
     })
   })

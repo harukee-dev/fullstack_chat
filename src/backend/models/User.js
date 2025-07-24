@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose')
+const { Schema, model, Types } = require('mongoose')
 
 const UserSchema = new Schema({
   username: { type: String, unique: true, required: true },
@@ -13,7 +13,7 @@ const UserSchema = new Schema({
     default: 'free',
     required: true,
   },
-  userChats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }],
+  userChats: [{ type: Types.ObjectId, ref: 'Chat' }],
 })
 
 module.exports = model('User', UserSchema)
