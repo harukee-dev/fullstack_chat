@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import cl from './pendingCard.module.css'
 
 interface IPendingCard {
@@ -13,6 +14,18 @@ export const PendingCard: React.FC<IPendingCard> = ({
   handleReject,
   currentUserId,
 }) => {
+  const [isDisabled, setIsDisabled] = useState<boolean>(false)
+
+  const acceptFunc = () => {
+    setIsDisabled(true)
+    handleAccept(pending.id, currentUserId)
+  }
+
+  const rejectFunc = () => {
+    setIsDisabled(true)
+    handleReject(pending.id, currentUserId)
+  }
+
   return (
     <div
       onMouseMove={(e) => {
@@ -55,14 +68,16 @@ export const PendingCard: React.FC<IPendingCard> = ({
       </p>
       <div className={cl.buttonsContainer}>
         <button
+          disabled={isDisabled}
           className={cl.buttonAccept}
-          onClick={() => handleAccept(pending.id, currentUserId)}
+          onClick={() => acceptFunc()}
         >
           Accept
         </button>
         <button
+          disabled={isDisabled}
           className={cl.buttonReject}
-          onClick={() => handleReject(pending.id, currentUserId)}
+          onClick={() => rejectFunc()}
         >
           Decline
         </button>
