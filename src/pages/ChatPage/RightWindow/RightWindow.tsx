@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import io, { Socket } from 'socket.io-client'
-import { AppDispatch, RootState, useAppSelector } from '../../../store'
+import { AppDispatch, RootState, store, useAppSelector } from '../../../store'
 import { ChatComponent } from '../../../components/Chat/Chat'
 import { Interaction } from '../../../components/Interaction/Interaction'
 import cl from './rightWindow.module.css'
@@ -34,7 +34,6 @@ export const RightWindow = () => {
   const currentUserId = localStorage.getItem('user-id')
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
   const dispatch = useDispatch<AppDispatch>()
-  const { chats } = useAppSelector((state) => state.chats)
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
@@ -148,7 +147,10 @@ export const RightWindow = () => {
     })
 
     newSocket.on('new-private-chat', (chat: any) => {
+      const chats = store.getState().chats.chats
       const exists = chats.some((c: any) => c._id === chat._id)
+      console.log('CHATS: ', chats)
+      console.log('CHAT: ', chat)
 
       if (!exists) {
         dispatch(addChat(chat))
