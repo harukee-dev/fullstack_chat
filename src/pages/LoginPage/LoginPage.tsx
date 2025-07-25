@@ -35,7 +35,7 @@ export const LoginPage = () => {
   useEffect(() => {
     loginRef.current?.focus()
     loginRef.current?.blur()
-  })
+  }, [])
 
   async function handleLogin() {
     setLogin(loginRef.current?.value || '')

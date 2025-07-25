@@ -34,19 +34,7 @@ export const RightWindow = () => {
   const currentUserId = localStorage.getItem('user-id')
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
   const dispatch = useDispatch<AppDispatch>()
-
-  // const { chatId } = useParams<{ chatId: string }>()
-  // const chats = useSelector((state: RootState) => state.chats.chats)
-
-  // ИЗМЕНИТЬ ЭТО ПОЗЖЕ, РАБОТА НАД ИМЕНЕМ ЧАТА
-  // const companion = useMemo(() => {
-  //   if (!chatId || !chats || chats.length === 0 || !currentUserId) return null
-
-  //   const currentChat = chats.find((chat: any) => chat._id === chatId)
-  //   if (!currentChat) return null
-
-  //   return currentChat.members.find((m: any) => m._id !== currentUserId)
-  // }, [chatId, chats, currentUserId])
+  const { chats } = useAppSelector((state) => state.chats)
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
@@ -159,7 +147,11 @@ export const RightWindow = () => {
     })
 
     newSocket.on('new-private-chat', (chat: any) => {
-      dispatch(addChat(chat))
+      const exists = chats.some((c: any) => c._id === chat._id)
+
+      if (!exists) {
+        dispatch(addChat(chat))
+      }
     })
 
     return () => {
