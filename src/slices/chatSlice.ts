@@ -9,7 +9,7 @@ const chatsSlice = createSlice({
   initialState,
   reducers: {
     addChat: (state, action: PayloadAction<any>) => {
-      state.chats = [...state.chats, action.payload]
+      state.chats = [action.payload, ...state.chats]
     },
     deleteChat: (state, action: PayloadAction<any>) => {
       state.chats = state.chats.filter((el: any) => el.id !== action.payload)
