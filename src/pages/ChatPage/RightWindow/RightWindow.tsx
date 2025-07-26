@@ -154,6 +154,9 @@ export const RightWindow = () => {
 
       if (!exists) {
         dispatch(addChat(chat))
+      } else {
+        dispatch(setChats(chats.filter((el: any) => el._id !== chat._id)))
+        dispatch(addChat(chat))
       }
     })
 
