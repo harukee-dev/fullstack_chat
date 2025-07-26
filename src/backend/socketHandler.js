@@ -129,9 +129,10 @@ function setupSocketHandlers(io) {
     socket.on('joinChatRoom', (chatId) => {
       if (!chatId) return
       socket.join(chatId)
-      console.log(
-        `Пользователь ${socket.id} присоединился к комнате чата ${chatId}`
-      )
+      // console
+      //   .log
+      //   `Пользователь ${socket.id} присоединился к комнате чата ${chatId}`
+      //   ()
     })
 
     socket.on('sendFriendDeleted', ({ user1, user2 }) => {

@@ -124,6 +124,21 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     handleScroll()
   }, [messages])
 
+  useEffect(() => {
+    if (!isLoading && chatRef.current) {
+      requestAnimationFrame(() => {
+        chatRef.current?.scrollTo({
+          top: chatRef.current.scrollHeight,
+          behavior: 'auto', // можно 'smooth', если нужно
+        })
+      })
+    }
+  }, [isLoading])
+
+  useEffect(() => {
+    hasScrolledRef.current = false
+  }, [chatId])
+
   const hasScrolledRef = useRef(false)
   useEffect(() => {
     const chatEl = chatRef.current
