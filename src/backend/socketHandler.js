@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken')
 const Message = require('./models/Message')
 const { secret } = require('./config')
 const User = require('./models/User')
+const { io } = require('socket.io-client')
+const Chat = require('./models/Chat')
 
 // Множества пользователей
 const typingUsers = new Set()
@@ -119,12 +121,70 @@ const userSockets = new Map()
 function setupSocketHandlers(io) {
   io.use(authenticateSocket)
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const userId = socket.user.id
     userSockets.set(userId.toString(), socket.id)
     socket.join(userId.toString())
-    onlineUsers.set(socket.user.username, socket.id)
-    io.emit('onlineUsers', Array.from(onlineUsers.keys()))
+
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set())
+    }
+
+    onlineUsers.get(userId).add(socket.id)
+
+    // Объявляем один раз в скоупе коннекта
+    const chatParticipants = new Set()
+
+    try {
+      const user = await User.findById(userId).select('userChats')
+      if (!user) return
+
+      const chats = await Chat.find({ _id: { $in: user.userChats } }).select(
+        'members'
+      )
+
+      chats.forEach((chat) => {
+        chat.members.forEach((memberId) => {
+          const id = memberId.toString()
+          if (id !== userId) {
+            chatParticipants.add(id)
+          }
+        })
+      })
+
+      for (const participantId of chatParticipants) {
+        const sockets = onlineUsers.get(participantId)
+        if (sockets) {
+          sockets.forEach((sockId) => {
+            io.to(sockId).emit('user-online', userId)
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при получении участников чатов:', error)
+    }
+    try {
+      const user = await User.findById(userId).select('userChats')
+      if (!user) return
+
+      const chats = await Chat.find({ _id: { $in: user.userChats } }).select(
+        'members'
+      )
+
+      const participantIds = new Set()
+      chats.forEach((chat) => {
+        chat.members.forEach((memberId) => {
+          const id = memberId.toString()
+          if (id !== userId && onlineUsers.has(id)) {
+            participantIds.add(id)
+          }
+        })
+      })
+
+      socket.emit('onlineChatUsersList', Array.from(participantIds))
+    } catch (err) {
+      console.error('Ошибка в getOnlineChatUsers:', err)
+    }
 
     socket.on('joinChatRoom', (chatId) => {
       if (!chatId) return
@@ -134,6 +194,8 @@ function setupSocketHandlers(io) {
       //   `Пользователь ${socket.id} присоединился к комнате чата ${chatId}`
       //   ()
     })
+
+    console.log('Socket handler initialized for:', socket.id)
 
     socket.on('sendFriendDeleted', ({ user1, user2 }) => {
       io.to(user1.toString()).emit('friendshipDeleted', { user1, user2 })
@@ -199,23 +261,21 @@ function setupSocketHandlers(io) {
       })
     })
 
-    // Статус печатания
-    socket.on('typing', () => {
-      typingUsers.add(socket.user.username)
-      socket.broadcast.emit('usersTyping', Array.from(typingUsers))
-    })
-    socket.on('stopTyping', () => {
-      typingUsers.delete(socket.user.username)
-      socket.broadcast.emit('usersTyping', Array.from(typingUsers))
-    })
-
-    // Отключение
     socket.on('disconnect', () => {
-      userSockets.delete(userId.toString())
-      typingUsers.delete(socket.user.username)
-      onlineUsers.delete(socket.user.username)
-      io.emit('onlineUsers', Array.from(onlineUsers.keys()))
-      io.emit('usersTyping', Array.from(typingUsers))
+      const socketsOfUser = onlineUsers.get(userId)
+      if (!socketsOfUser) return
+
+      socketsOfUser.delete(socket.id)
+
+      if (socketsOfUser.size === 0) {
+        onlineUsers.delete(userId)
+        userSockets.delete(userId)
+
+        // Уведомляем участников чатов, что пользователь оффлайн
+        chatParticipants.forEach((participantId) => {
+          io.to(participantId).emit('user-offline', { userId })
+        })
+      }
     })
   })
 }

@@ -14,6 +14,7 @@ import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 import { Route, Routes, useParams } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
 import { addChat, setChats } from '../../../slices/chatSlice'
+import { addOnlineFriend, setOnlineFriends } from '../../../slices/friendsSlice'
 
 interface IRequest {
   avatar: string
@@ -34,6 +35,7 @@ export const RightWindow = () => {
   const currentUserId = localStorage.getItem('user-id')
   const [allRequests, setAllRequests] = useState<IRequest[]>([])
   const dispatch = useDispatch<AppDispatch>()
+  const { onlineFriends } = useAppSelector((state) => state.friends)
 
   async function fetchFriendRequests(userId: string) {
     const response = await fetch(`${API_URL}/friends/requests/${userId}`)
@@ -126,6 +128,11 @@ export const RightWindow = () => {
 
     setSocket(newSocket)
 
+    newSocket.on('onlineChatUsersList', (onlineUserIds: string[]) => {
+      console.log('Online Users IDS: ', onlineUserIds)
+      dispatch(setOnlineFriends(onlineUserIds))
+    })
+
     newSocket.on('usersTyping', (usernames: string[]) => {
       setUsersTyping(usernames.filter((name) => name !== username))
     })
@@ -160,17 +167,20 @@ export const RightWindow = () => {
       }
     })
 
+    newSocket.on('user-online', (id: string) => {
+      console.log('ONLINE:', id)
+      dispatch(addOnlineFriend(id))
+    })
+
+    newSocket.on('user-offline', (id: string) => {
+      console.log('OFFLINE: ', id)
+      dispatch(setOnlineFriends(onlineFriends.filter((el: any) => el !== id)))
+    })
+
     return () => {
       newSocket.disconnect()
     }
   }, [isAuth, currentUserId, token, username, dispatch])
-
-  useEffect(() => {
-    if (socket && currentUserId) {
-      socket.emit('joinPersonalRoom', currentUserId)
-      console.log('sockettetwetjewjktnewlrjewnrlwekn')
-    }
-  }, [socket, currentUserId])
 
   const scrollToBottom = () => {
     if (chatRef.current) {

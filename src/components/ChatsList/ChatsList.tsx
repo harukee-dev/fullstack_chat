@@ -6,6 +6,9 @@ export const ChatsList: React.FC = ({}) => {
   const currentUserId = localStorage.getItem('user-id')
 
   const { chats } = useAppSelector((state) => state.chats)
+  const { onlineFriends } = useAppSelector((state) => state.friends)
+
+  console.log(onlineFriends)
 
   return (
     <div className={cl.chatsList}>
@@ -22,12 +25,14 @@ export const ChatsList: React.FC = ({}) => {
           if (!chatUser) {
             return null
           }
+
+          const isOnline = onlineFriends.includes(chatUser._id)
           return (
             <ChatTab
               key={el._id}
               username={chatUser.username}
               avatar={chatUser.avatar}
-              isOnline={chatUser.online}
+              isOnline={isOnline}
               chatId={el._id}
             />
           )
