@@ -125,7 +125,7 @@
   height: 5vh;
   border-radius: 100%;
   padding: 0.3vh;
-  border: #9927ea solid 0.2vh;
+  border: #34e134 solid 1.35px;
   cursor: pointer;
 }
 
@@ -138,7 +138,7 @@
 .subStatus {
   font-family: 'Jost Regular', sans-serif;
   font-size: 1.75vh;
-  color: #9927ea;
+  color: #34e134;
   cursor: pointer;
 }
 

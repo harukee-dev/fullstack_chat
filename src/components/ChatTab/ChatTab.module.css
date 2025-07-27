@@ -27,8 +27,8 @@
   border-radius: 100%;
   position: relative;
   z-index: -0;
-  padding: 0.3vh;
-  border: #9927ea solid 0.2vh;
+  padding: 0.35vh;
+  border: #34e134 solid 1.3px;
 }
 .avatarOffline {
   height: 5vh;
@@ -37,8 +37,8 @@
   border-radius: 100%;
   position: relative;
   z-index: -0;
-  padding: 0.3vh;
-  border: #545454 solid 0.2vh;
+  padding: 0.35vh;
+  border: #545454 solid 1.3px;
 }
 
 .username {
