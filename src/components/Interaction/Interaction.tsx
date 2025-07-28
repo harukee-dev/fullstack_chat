@@ -78,7 +78,7 @@ export const Interaction: React.FC<Interaction> = ({
       }
     >
       {replyMessage !== null && (
-        <div className={cl.reply}>
+        <div onClick={handleCancelReply} className={cl.reply}>
           <div>
             <p className={cl.replyUsername}>
               Reply to{' '}
@@ -88,14 +88,6 @@ export const Interaction: React.FC<Interaction> = ({
             </p>
             <p className={cl.replyText}>{replyMessage?.text}</p>
           </div>
-          <button onClick={handleCancelReply} className={cl.replyButton}>
-            <img
-              draggable={false}
-              className={cl.closeIcon}
-              src={closeIcon}
-              alt="close-icon"
-            />
-          </button>
         </div>
       )}
       <div className={cl.container}>
