@@ -70,13 +70,16 @@
   z-index: 10;
 }
 
-.emojiButton {
+.sendButton {
   position: absolute;
   z-index: 11;
-  width: 4vh;
-  right: 1vw;
-  bottom: 1.55vh;
+  width: 5vh;
+  right: 0.55vw;
+  bottom: 1vh;
   cursor: pointer;
+  background-color: rgb(255, 255, 255);
+  padding: 1vh;
+  border-radius: 100%;
 }
 
 .reply {
