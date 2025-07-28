@@ -81,7 +81,10 @@ export const Interaction: React.FC<Interaction> = ({
         <div className={cl.reply}>
           <div>
             <p className={cl.replyUsername}>
-              Reply to {replyMessage?.senderId.username}
+              Reply to{' '}
+              <span className={cl.replyMessageUsername}>
+                {replyMessage?.senderId.username}
+              </span>
             </p>
             <p className={cl.replyText}>{replyMessage?.text}</p>
           </div>
