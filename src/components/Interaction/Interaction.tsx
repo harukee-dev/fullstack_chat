@@ -5,7 +5,7 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { removeReplyMessage } from '../../slices/replyMessageSlice'
 import closeIcon from './images/close_icon.png'
 import { EmojiPicker } from '../EmojiPicker/EmojiPicker'
-import emojiIcon from './images/emoji_button.svg'
+import sendIcon from './images/send-icon.svg'
 
 interface Interaction {
   message: any
@@ -81,7 +81,10 @@ export const Interaction: React.FC<Interaction> = ({
         <div className={cl.reply}>
           <div>
             <p className={cl.replyUsername}>
-              Reply to {replyMessage?.senderId.username}
+              Reply to{' '}
+              <span className={cl.replyMessageUsername}>
+                {replyMessage?.senderId.username}
+              </span>
             </p>
             <p className={cl.replyText}>{replyMessage?.text}</p>
           </div>
@@ -105,11 +108,11 @@ export const Interaction: React.FC<Interaction> = ({
           onKeyDown={handleKeyDown}
         />
         <img
+          onClick={sendMessage}
           draggable={false}
-          onClick={handleEmojiOpen}
-          className={cl.emojiButton}
-          src={emojiIcon}
-          alt="emoji-icon"
+          className={cl.sendButton}
+          src={sendIcon}
+          alt="send"
         />
       </div>
     </div>

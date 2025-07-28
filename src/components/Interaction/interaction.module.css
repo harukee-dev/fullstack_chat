@@ -1,13 +1,68 @@
 .allInteraction {
   width: 100%;
   max-height: 13.5vh;
-  border-top: #4e4e4e solid 1px;
+  position: absolute;
+  bottom: 1vh;
+  width: 95%;
+
+  border-radius: 2vh;
+  overflow: hidden;
+  z-index: 10;
+  isolation: isolate;
+  border-radius: 2vh;
+  background-color: rgba(0, 0, 0, 0.479);
+  border: 1px solid rgba(255, 255, 255, 0.172);
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.044);
 }
 
-.allInteractionWithout {
+.allInteraction::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+
+  border-radius: 2vh;
+
+  filter: url(#glass-distortion);
+}
+
+/* .allInteractionWithout {
   width: 100%;
   max-height: 7vh;
-  border-top: #4e4e4e solid 1px;
+  bottom: 0;
+  position: absolute;
+} */
+
+.allInteractionWithout {
+  position: absolute;
+  bottom: 1vh;
+  width: 95%;
+  max-height: 7vh;
+  border-radius: 2vh;
+  overflow: hidden;
+  z-index: 10;
+  isolation: isolate;
+  border-radius: 2vh;
+  background-color: rgba(0, 0, 0, 0.479);
+  border: 1px solid rgba(255, 255, 255, 0.172);
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.044);
+}
+
+.allInteractionWithout::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+
+  border-radius: 2vh;
+
+  filter: url(#glass-distortion);
 }
 
 .container {
@@ -24,7 +79,7 @@
 }
 
 .input {
-  font-family: 'Jost ExtraLight', sans-serif;
+  font-family: 'Jost Regular', sans-serif;
   padding: 2vh 0 0 1vh;
   margin-left: 0.3vw;
   width: 94%;
@@ -41,18 +96,20 @@
   z-index: 10;
 }
 
-.emojiButton {
+.sendButton {
   position: absolute;
   z-index: 11;
-  width: 4vh;
-  right: 1vw;
-  bottom: 1.55vh;
+  width: 5vh;
+  right: 0.55vw;
+  bottom: 1vh;
   cursor: pointer;
+  background-color: rgb(255, 255, 255);
+  padding: 1vh;
+  border-radius: 100%;
 }
 
 .reply {
   display: flex;
-  background-color: #0000007a;
   color: white;
   padding: 0.5vw 1vh;
   min-width: 45px;
@@ -62,6 +119,19 @@
 
 .replyUsername {
   font-family: 'Jost ExtraLight', sans-serif;
+  font-size: 1.7vh;
+
+  font-weight: 500;
+  font-style: normal;
+  color: rgb(182, 182, 182);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.replyMessageUsername {
+  font-family: 'Jost Regular', sans-serif;
   font-size: 1.7vh;
 
   font-weight: 500;
