@@ -5,6 +5,7 @@
   max-width: 25vw;
   height: 6.5vh;
   max-height: 6.5vh;
+  min-height: 6.5vh;
   display: flex;
   align-items: center;
   gap: 1.5vh;
