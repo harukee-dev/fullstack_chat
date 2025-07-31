@@ -55,24 +55,20 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   useEffect(() => {
     if (!socket || !chatId) return
 
-    // Входим в комнату чата
     socket.emit('joinChatRoom', chatId)
 
-    // Обработчик новых сообщений
     const handleNewMessage = (newMessage: IMessage) => {
       if (newMessage.chatId === chatId) {
         setMessages((prev) => [...prev, newMessage])
       }
     }
 
-    // Обработчик закрепления
     const handlePinned = (pinnedMessage: IMessage) => {
       if (pinnedMessage.chatId === chatId) {
         setPinnedMessages((prev) => [...prev, pinnedMessage])
       }
     }
 
-    // Обработчик открепления
     const handleUnpinned = (unpinnedMessage: IMessage) => {
       if (unpinnedMessage.chatId === chatId) {
         setPinnedMessages((prev) =>
@@ -81,8 +77,19 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       }
     }
 
+    const handleUpdated = (updatedMessage: IMessage) => {
+      if (updatedMessage.chatId !== chatId) return
+
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === updatedMessage._id
+            ? { ...msg, text: updatedMessage.text } // оставляем senderId как есть
+            : msg
+        )
+      )
+    }
+
     const handleDeleted = (deletedMessage: IMessage) => {
-      console.log('deletedddddddd')
       if (deletedMessage.chatId === chatId) {
         setMessages((prev) =>
           prev.filter((el: IMessage) => el._id !== deletedMessage._id)
@@ -94,6 +101,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     socket.on('messagePinned', handlePinned)
     socket.on('messageUnpinned', handleUnpinned)
     socket.on('messageDeleted', handleDeleted)
+    socket.on('messageEdited', handleUpdated)
 
     return () => {
       socket.emit('leaveChatRoom', chatId) // выходим из комнаты

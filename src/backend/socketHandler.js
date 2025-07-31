@@ -108,15 +108,33 @@ async function handleDelete(io, socket, _id) {
   }
 }
 
-function handleEdit(io, _id, text) {
-  Message.findByIdAndUpdate(_id, { text }, { new: true })
-    .then((updated) => {
-      if (updated) io.emit('messageEdited', updated)
-    })
-    .catch((error) => {
-      console.error('Ошибка при редактировании сообщения:', error)
-    })
+async function handleEdit(io, _id, text) {
+  try {
+    const updatedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { text },
+      { new: true }
+    )
+    if (updatedMessage && updatedMessage.chatId) {
+      io.to(updatedMessage.chatId.toString()).emit(
+        'messageEdited',
+        updatedMessage
+      )
+    }
+  } catch (e) {
+    console.error(e)
+  }
 }
+
+// function handleEdit(io, _id, text) {
+//   Message.findByIdAndUpdate(_id, { text }, { new: true })
+//     .then((updated) => {
+//       if (updated) io.emit('messageEdited', updated)
+//     })
+//     .catch((error) => {
+//       console.error('Ошибка при редактировании сообщения:', error)
+//     })
+// }
 
 const userSockets = new Map()
 
