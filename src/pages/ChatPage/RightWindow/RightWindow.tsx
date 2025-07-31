@@ -153,17 +153,22 @@ export const RightWindow = () => {
       }
     })
 
-    newSocket.on('new-private-chat', (chat: any) => {
+    newSocket.on('new-private-chat', (message: any) => {
       const chats = store.getState().chats.chats
-      const exists = chats.some((c: any) => c._id === chat._id)
+      const exists = chats.some((c: any) => c._id === message.chat._id)
       console.log('CHATS: ', chats)
-      console.log('CHAT: ', chat)
 
       if (!exists) {
-        dispatch(addChat(chat))
+        dispatch(addChat(message.chat))
       } else {
-        dispatch(setChats(chats.filter((el: any) => el._id !== chat._id)))
-        dispatch(addChat(chat))
+        dispatch(
+          setChats(chats.filter((el: any) => el._id !== message.chat._id))
+        )
+        dispatch(addChat(message.chat))
+      }
+
+      if (message.isOnline !== null) {
+        dispatch(addOnlineFriend(message.isOnline))
       }
     })
 

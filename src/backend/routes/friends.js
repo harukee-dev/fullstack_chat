@@ -4,7 +4,7 @@ module.exports = function (io) {
   const User = require('../models/User')
   const Friendship = require('../models/Friendship')
   const Chat = require('../models/Chat')
-  const onlineUsers = require('../socketHandler')
+  const { onlineUsers } = require('../socketHandler')
 
   router.post('/send-request', async (req, res) => {
     try {
@@ -98,9 +98,22 @@ module.exports = function (io) {
         .populate('members', '_id username avatar online')
         .lean()
 
-      io.to(requesterId).emit('new-private-chat', fullChat)
+      const onlineStatusForRequester = onlineUsers.has(recipientId.toString())
+        ? recipientId
+        : null
+      const onlineStatusForRecipient = onlineUsers.has(requesterId.toString())
+        ? requesterId
+        : null
 
-      io.to(recipientId).emit('new-private-chat', fullChat)
+      io.to(requesterId).emit('new-private-chat', {
+        chat: fullChat,
+        isOnline: onlineStatusForRequester,
+      })
+
+      io.to(recipientId).emit('new-private-chat', {
+        chat: fullChat,
+        isOnline: onlineStatusForRecipient,
+      })
 
       res.status(200).json({ message: 'accepted', chat: fullChat })
     } catch (error) {
