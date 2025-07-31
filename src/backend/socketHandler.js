@@ -90,19 +90,22 @@ function handleUnpin(io, _id) {
     .catch(console.error)
 }
 
-function handleDelete(io, socket, _id) {
-  Message.findByIdAndDelete(_id)
-    .then((deleted) => {
-      if (!deleted) {
-        socket.emit('error', { message: 'Message not found' })
-        return
-      }
-      io.emit('messageDeleted', { _id })
-    })
-    .catch((error) => {
-      console.error('Error deleting message:', error)
-      socket.emit('error', { message: 'Failed to delete message' })
-    })
+async function handleDelete(io, socket, _id) {
+  try {
+    const deletedMessage = await Message.findById(_id).lean()
+    if (!deletedMessage) {
+      socket.emit('error', { message: 'Message not found' })
+      return
+    }
+    await Message.deleteOne({ _id })
+
+    io.to(deletedMessage.chatId.toString()).emit(
+      'messageDeleted',
+      deletedMessage
+    )
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 function handleEdit(io, _id, text) {

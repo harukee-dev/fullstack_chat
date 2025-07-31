@@ -81,9 +81,19 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       }
     }
 
+    const handleDeleted = (deletedMessage: IMessage) => {
+      console.log('deletedddddddd')
+      if (deletedMessage.chatId === chatId) {
+        setMessages((prev) =>
+          prev.filter((el: IMessage) => el._id !== deletedMessage._id)
+        )
+      }
+    }
+
     socket.on('message', handleNewMessage)
     socket.on('messagePinned', handlePinned)
     socket.on('messageUnpinned', handleUnpinned)
+    socket.on('messageDeleted', handleDeleted)
 
     return () => {
       socket.emit('leaveChatRoom', chatId) // выходим из комнаты
@@ -91,6 +101,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       socket.off('message', handleNewMessage)
       socket.off('messagePinned', handlePinned)
       socket.off('messageUnpinned', handleUnpinned)
+      socket.off('messageDeleted', handleDeleted)
     }
   }, [socket, chatId])
 
