@@ -75,7 +75,11 @@ async function handleMessage(io, socket, message) {
 function handlePin(io, _id) {
   Message.findByIdAndUpdate(_id, { isPinned: true })
     .then((pinnedMessage) => {
-      if (pinnedMessage) io.emit('messagePinned', pinnedMessage)
+      if (pinnedMessage)
+        io.to(pinnedMessage.chatId.toString()).emit(
+          'messagePinned',
+          pinnedMessage
+        )
       else console.error('Ошибка при закреплении сообщения')
     })
     .catch(console.error)

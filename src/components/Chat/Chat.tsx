@@ -9,6 +9,9 @@ import cl from './chat.module.css'
 import { DateSeparator } from '../DateSeparator/DateSeparator'
 import { format, isToday, isYesterday } from 'date-fns'
 import { API_URL } from '../../constants'
+import { AnimatePresence, motion } from 'framer-motion'
+import closeNotFoundWindowIcon from '../../pages/ChatPage/RightWindow/images/close-notFound-window.svg'
+import { useAppSelector } from '../../store'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -28,6 +31,10 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const username = localStorage.getItem('username')
+  const [isPanelOpened, setIsPanelOpened] = useState<boolean>(false)
+  const [isNotFound, setIsNotFound] = useState<boolean>(false)
+  const [isShowPinnedMessages, setIsShowPinnedMessages] =
+    useState<boolean>(false)
 
   // Загрузка сообщений при смене chatId
   useEffect(() => {
@@ -74,6 +81,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
         setPinnedMessages((prev) =>
           prev.filter((msg) => msg._id !== unpinnedMessage._id)
         )
+        console.log('UNPINNED: ', pinnedMessages)
       }
     }
 
@@ -83,7 +91,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg._id === updatedMessage._id
-            ? { ...msg, text: updatedMessage.text } // оставляем senderId как есть
+            ? { ...msg, text: updatedMessage.text }
             : msg
         )
       )
@@ -176,6 +184,14 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     return format(date, 'MMMM d')
   }
 
+  const handlePanelOpen = () => {
+    setIsPanelOpened((p) => !p)
+  }
+
+  const handleShowPinned = () => {
+    setIsShowPinnedMessages((prev) => !prev)
+  }
+
   if (isLoading) {
     return (
       <div className={cl.chat}>
@@ -186,53 +202,140 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     )
   }
 
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+    }
+  }
+
   return (
-    <div onScroll={handleScroll} className={cl.chat} ref={chatRef}>
-      {/* Можно здесь потом добавить Пин и Поиск */}
+    <div style={{ width: '100%', height: '100%' }}>
+      <div className={cl.chatHeader}>
+        <div style={{ display: 'flex', gap: '.6vh' }}>
+          <p className={cl.hashtag}>#</p>
+          <p className={cl.chatName}>Chat</p>
+        </div>
+        <button onClick={handlePanelOpen} className={cl.buttonOther}>
+          ···
+        </button>
+      </div>
+      <ChatPanel
+        setIsNotFound={setIsNotFound}
+        isNotFound={isNotFound}
+        isOpened={isPanelOpened}
+        isShowPinned={isShowPinnedMessages}
+        handleShowPinned={handleShowPinned}
+        handleSearch={handleSearch}
+      />
+      <div onScroll={handleScroll} className={cl.chat} ref={chatRef}>
+        {/* Можно здесь потом добавить Пин и Поиск */}
 
-      {messages.map((el, index) => {
-        const currentMessageDate = new Date(el.timestamp ?? new Date())
-        const prevMessage = messages[index - 1]
-        const prevMessageDate = prevMessage
-          ? new Date(prevMessage.timestamp ?? new Date())
-          : null
+        {(isShowPinnedMessages ? pinnedMessages : messages).map((el, index) => {
+          const currentMessageDate = new Date(el.timestamp ?? new Date())
+          const prevMessage = messages[index - 1]
+          const prevMessageDate = prevMessage
+            ? new Date(prevMessage.timestamp ?? new Date())
+            : null
 
-        const shouldShowDate =
-          !prevMessageDate ||
-          format(currentMessageDate, 'yyyy-MM-dd') !==
-            format(prevMessageDate, 'yyyy-MM-dd')
+          const shouldShowDate =
+            !prevMessageDate ||
+            format(currentMessageDate, 'yyyy-MM-dd') !==
+              format(prevMessageDate, 'yyyy-MM-dd')
 
-        if (!messageRefs.current[el._id]) {
-          messageRefs.current[el._id] = null
-        }
+          if (!messageRefs.current[el._id]) {
+            messageRefs.current[el._id] = null
+          }
 
-        const setRef = (ref: HTMLDivElement | null) => {
-          messageRefs.current[el._id] = ref
-        }
+          const setRef = (ref: HTMLDivElement | null) => {
+            messageRefs.current[el._id] = ref
+          }
 
-        return (
-          <Fragment key={el._id || index}>
-            {shouldShowDate && (
-              <DateSeparator date={formatDateLabel(currentMessageDate)} />
-            )}
-            {el.senderId.username === username ? (
-              <MyMessage
-                socket={socket}
-                message={el}
-                timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
-                setRef={setRef}
-              />
-            ) : (
-              <Message
-                socket={socket}
-                message={el}
-                timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
-                setRef={setRef}
-              />
-            )}
-          </Fragment>
-        )
-      })}
+          return (
+            <Fragment key={el._id || index}>
+              {shouldShowDate && (
+                <DateSeparator date={formatDateLabel(currentMessageDate)} />
+              )}
+              {el.senderId.username === username ? (
+                <MyMessage
+                  socket={socket}
+                  message={el}
+                  timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
+                  setRef={setRef}
+                />
+              ) : (
+                <Message
+                  socket={socket}
+                  message={el}
+                  timestamp={el.timestamp || '01 Jan 1970 00:00:00 GMT'}
+                  setRef={setRef}
+                />
+              )}
+            </Fragment>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+interface IChatPanel {
+  isShowPinned: boolean
+  handleShowPinned: () => void
+  handleSearch: (arg: any) => void
+  isOpened: boolean
+  setIsNotFound: React.Dispatch<React.SetStateAction<boolean>>
+  isNotFound: boolean
+}
+
+const ChatPanel: React.FC<IChatPanel> = ({
+  isShowPinned,
+  handleShowPinned,
+  handleSearch,
+  isOpened,
+  setIsNotFound,
+  isNotFound,
+}) => {
+  return (
+    <div>
+      <AnimatePresence>
+        {isOpened && (
+          <motion.div
+            initial={{ opacity: 0, x: 5, y: -5 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, x: 5, y: -5 }}
+            className={cl.panelContainer}
+          >
+            <button onClick={handleShowPinned} className={cl.panelButton}>
+              Show {isShowPinned ? 'all' : 'pinned'} messages
+            </button>
+            <input
+              onKeyDown={handleSearch}
+              className={cl.panelInput}
+              type="text"
+              placeholder="Search message"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isNotFound && (
+          <motion.div
+            className={cl.notFoundWindowContainer}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0 }}
+          >
+            <button
+              onClick={() => setIsNotFound(false)}
+              className={cl.notFoundWindowButton}
+            >
+              <img draggable={false} src={closeNotFoundWindowIcon} alt="" />
+            </button>
+            <p className={cl.notFoundWindowText}>No messages found</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

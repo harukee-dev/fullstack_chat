@@ -46,3 +46,172 @@
 .isClear {
   width: 20vh;
 }
+
+.chatHeader {
+  margin-top: 1.7vh;
+  padding-bottom: 1.7vh;
+  border-bottom: #4e4e4e solid 1px;
+  display: flex;
+  justify-content: space-around;
+  gap: 75%;
+  align-items: center;
+  width: 100%;
+}
+
+.hashtag {
+  color: #636363;
+  font-size: 1.75vh;
+  font-family: 'Jost Regular', sans-serif;
+}
+
+.chatName {
+  color: white;
+  font-family: 'Jost Regular', sans-serif;
+  font-size: 1.75vh;
+}
+
+.buttonOther {
+  background-color: #000000;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  font-size: 2.5vh;
+}
+
+.typingDiv {
+  position: absolute;
+  z-index: 10;
+  bottom: 9.5vh;
+  display: flex;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.525);
+  padding: 0 1vw;
+  backdrop-filter: blur(0.15vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+  width: 4vw;
+}
+
+.dot {
+  animation: blink 1.4s infinite;
+  font-weight: bold;
+  font-family: 'Jost Regular', sans-serif;
+  font-size: 4vh;
+  line-height: 1;
+  color: #5e5e5e;
+  transform: translateY(-1.55vh);
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.5;
+    transform: translateY(-1.55vh);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1vh);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateY(-1.55vh);
+  }
+}
+
+.typingText {
+  color: #9927ea;
+}
+
+/* CHAT PANEL STYLES */
+
+.panelContainer {
+  position: absolute;
+  top: 5vh;
+  right: 5vh;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+  width: 15vw;
+  height: 10vh;
+}
+
+.panelButton {
+  height: 5vh;
+  background-color: transparent;
+  color: #aeaeae;
+  border: none;
+  border-bottom: #2b2b2b solid 1px;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.panelButton:hover {
+  color: #e2e2e2;
+}
+
+.panelInput {
+  width: 50%;
+  margin: 0 0 1.25vh 3.8vw;
+  height: 2.5vh;
+  background-color: transparent;
+  border: none;
+  text-align: start;
+  outline: none;
+  color: #aeaeae;
+  border-bottom: #aeaeae solid 1px;
+}
+
+.notFoundWindowContainer {
+  z-index: 13;
+  top: 17vh;
+  right: 5vh;
+  position: absolute;
+  display: flex;
+  width: 15vw;
+  height: 4vh;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  border-radius: 1vh;
+}
+
+.notFoundWindowButton {
+  font-family: 'Jost Regular', sans-serif;
+
+  position: absolute;
+  top: -1.25vh;
+  left: -1.25vh;
+  width: 2.5vh;
+  height: 2.5vh;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.525);
+  backdrop-filter: blur(0.2vh);
+  border: #2b2b2b solid 1px;
+  cursor: pointer;
+}
+
+.notFoundWindowText {
+  font-family: 'Jost Regular', sans-serif;
+  color: white;
+}
