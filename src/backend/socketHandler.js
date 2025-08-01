@@ -72,17 +72,34 @@ async function handleMessage(io, socket, message) {
   }
 }
 
-function handlePin(io, _id) {
-  Message.findByIdAndUpdate(_id, { isPinned: true })
-    .then((pinnedMessage) => {
-      if (pinnedMessage)
-        io.to(pinnedMessage.chatId.toString()).emit(
-          'messagePinned',
-          pinnedMessage
-        )
-      else console.error('Ошибка при закреплении сообщения')
+async function handlePin(io, _id) {
+  // Message.findByIdAndUpdate(_id, { isPinned: true })
+  //   .then((pinnedMessage) => {
+  //     if (pinnedMessage)
+  //       io.to(pinnedMessage.chatId.toString()).emit(
+  //         'messagePinned',
+  //         pinnedMessage.populate('senderId', 'username avatar')
+  //       )
+  //     else console.error('Ошибка при закреплении сообщения')
+  //   })
+  //   .catch(console.error)
+  try {
+    const pinnedMessage = await Message.findByIdAndUpdate(_id, {
+      isPinned: true,
     })
-    .catch(console.error)
+    if (!pinnedMessage) {
+      console.log('!pinned message ERR')
+      return
+    }
+
+    const populated = await pinnedMessage.populate(
+      'senderId',
+      'username avatar'
+    )
+    io.to(populated.chatId.toString()).emit('messagePinned', populated)
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 function handleUnpin(io, _id) {

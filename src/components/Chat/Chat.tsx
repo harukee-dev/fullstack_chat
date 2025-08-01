@@ -73,6 +73,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     const handlePinned = (pinnedMessage: IMessage) => {
       if (pinnedMessage.chatId === chatId) {
         setPinnedMessages((prev) => [...prev, pinnedMessage])
+        console.log('PINNED ', pinnedMessage)
       }
     }
 
@@ -149,7 +150,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       })
     }
     handleScroll()
-  }, [messages])
+  }, [messages, isShowPinnedMessages])
 
   useEffect(() => {
     if (!isLoading && chatRef.current) {
@@ -190,6 +191,22 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
   const handleShowPinned = () => {
     setIsShowPinnedMessages((prev) => !prev)
+    const chatEl = chatRef.current
+    if (!chatEl) return
+
+    const distanceFromBottom =
+      chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight
+    const isAtBottom = distanceFromBottom < 200
+
+    if (isAtBottom) {
+      requestAnimationFrame(() => {
+        chatEl.scrollTo({
+          top: chatEl.scrollHeight,
+          behavior: 'smooth',
+        })
+      })
+    }
+    handleScroll()
   }
 
   if (isLoading) {
@@ -208,7 +225,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   }
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%', margin: '0', padding: '0' }}>
       <div className={cl.chatHeader}>
         <div style={{ display: 'flex', gap: '.6vh' }}>
           <p className={cl.hashtag}>#</p>
@@ -231,7 +248,9 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
         {(isShowPinnedMessages ? pinnedMessages : messages).map((el, index) => {
           const currentMessageDate = new Date(el.timestamp ?? new Date())
-          const prevMessage = messages[index - 1]
+          const prevMessage = isShowPinnedMessages
+            ? pinnedMessages[index - 1]
+            : messages[index - 1]
           const prevMessageDate = prevMessage
             ? new Date(prevMessage.timestamp ?? new Date())
             : null

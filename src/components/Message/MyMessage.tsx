@@ -53,7 +53,7 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
   const handlePin = () => {
     if (message && !isPinned) {
-      socket.emit('newPin', { _id: message._id, chatId: message.chatId })
+      socket.emit('newPin', { _id: message._id })
     }
     if (message && isPinned) {
       socket.emit('unpin', { _id: message._id })
