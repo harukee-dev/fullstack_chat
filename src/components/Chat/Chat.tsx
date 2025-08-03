@@ -241,6 +241,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
   return (
     <div style={{ width: '100%', height: '100%', margin: '0', padding: '0' }}>
+      <div className={cl.light} />
       <div className={cl.chatHeader}>
         <div style={{ display: 'flex', gap: '.6vh' }}>
           <p className={cl.hashtag}>#</p>
