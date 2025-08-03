@@ -6,6 +6,7 @@ import currentUserReducer from './slices/currentUserSlice'
 import friendsReducer from './slices/friendsSlice'
 import { TypedUseSelectorHook, useSelector } from 'react-redux'
 import chatsReducer from './slices/chatSlice'
+import notificationReducer from './slices/notificationSlice'
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     currentUser: currentUserReducer,
     friends: friendsReducer,
     chats: chatsReducer,
+    notification: notificationReducer,
   },
 })
 

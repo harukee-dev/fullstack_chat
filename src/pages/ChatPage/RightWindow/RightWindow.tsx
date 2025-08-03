@@ -15,6 +15,12 @@ import { Route, Routes, useParams } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
 import { addChat, setChats, sortChats } from '../../../slices/chatSlice'
 import { addOnlineFriend, setOnlineFriends } from '../../../slices/friendsSlice'
+import { TestPage } from '../../TestPage/TestPage'
+import {
+  setNewMessage,
+  setNotification,
+} from '../../../slices/notificationSlice'
+import { Notification } from '../../../components/Notification/Notification'
 
 interface IRequest {
   avatar: string
@@ -24,6 +30,9 @@ interface IRequest {
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
+  const { isNotification, newMessage } = useAppSelector(
+    (state) => state.notification
+  )
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -188,6 +197,16 @@ export const RightWindow = () => {
         console.log(
           `you have new message from ${message.senderId.username}: ${message.text}`
         )
+        dispatch(setNotification(false))
+        dispatch(setNotification(true))
+        dispatch(
+          setNewMessage({
+            avatar: message.senderId.avatar,
+            username: message.senderId.username,
+            text: message.text,
+            chatId: message.chatId,
+          })
+        )
         if (notificationSound) {
           notificationSound.pause()
           notificationSound.currentTime = 0
@@ -267,6 +286,7 @@ export const RightWindow = () => {
         }
       />
       <Route path="flux-subscription" element={<div />} />
+      <Route path="test" element={<TestPage />} />
     </Routes>
   )
 }
