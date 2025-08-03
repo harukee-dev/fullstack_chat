@@ -21,6 +21,12 @@ import {
   setNotification,
 } from '../../../slices/notificationSlice'
 import { Notification } from '../../../components/Notification/Notification'
+import {
+  addMessageToChat,
+  deleteMessageFromChat,
+  editMessageInChat,
+  unpinMessageInChat,
+} from '../../../slices/chatMessages'
 
 interface IRequest {
   avatar: string
@@ -195,7 +201,9 @@ export const RightWindow = () => {
     newSocket.on('new-message', (message: IMessage) => {
       const currentChatId = localStorage.getItem('chat-id')
       if (currentChatId?.toString() !== message.chatId.toString()) {
-        console.log(chats)
+        dispatch(
+          addMessageToChat({ chatId: message.chatId.toString(), message })
+        )
 
         dispatch(
           setChats((prevChats: any) =>
@@ -224,6 +232,37 @@ export const RightWindow = () => {
           })
         }
       }
+    })
+
+    newSocket.on('new-pinned', (message: IMessage) => {
+      dispatch(
+        pinMessageInChat({ chatId: message.chatId, messageId: message._id })
+      )
+    })
+
+    newSocket.on('new-unpin', (message: IMessage) => {
+      dispatch(
+        unpinMessageInChat({ chatId: message.chatId, messageId: message._id })
+      )
+    })
+
+    newSocket.on('new-delete', (message: IMessage) => {
+      dispatch(
+        deleteMessageFromChat({
+          chatId: message.chatId,
+          messageId: message._id,
+        })
+      )
+    })
+
+    newSocket.on('new-edit', (message: IMessage) => {
+      dispatch(
+        editMessageInChat({
+          chatId: message.chatId,
+          messageId: message._id,
+          newText: message.text,
+        })
+      )
     })
 
     return () => {
@@ -298,4 +337,7 @@ export const RightWindow = () => {
       <Route path="test" element={<TestPage />} />
     </Routes>
   )
+}
+function pinMessageInChat(arg0: { chatId: string; messageId: string }): any {
+  throw new Error('Function not implemented.')
 }

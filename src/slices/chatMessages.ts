@@ -56,6 +56,28 @@ const messageSlice = createSlice({
         }
       }
     },
+    pinMessageInChat: (state, action) => {
+      const { chatId, messageId } = action.payload
+      const messages = state.messagesByChatId[chatId]
+
+      if (messages) {
+        const msgIndex = messages.findIndex((msg) => msg._id === messageId)
+        if (msgIndex !== -1) {
+          messages[msgIndex].isPinned = true
+        }
+      }
+    },
+    unpinMessageInChat: (state, action) => {
+      const { chatId, messageId } = action.payload
+      const messages = state.messagesByChatId[chatId]
+
+      if (messages) {
+        const msgIndex = messages.findIndex((msg) => msg._id === messageId)
+        if (msgIndex !== -1) {
+          messages[msgIndex].isPinned = false
+        }
+      }
+    },
   },
 })
 
@@ -64,5 +86,7 @@ export const {
   addMessageToChat,
   deleteMessageFromChat,
   editMessageInChat,
+  pinMessageInChat,
+  unpinMessageInChat,
 } = messageSlice.actions
 export default messageSlice.reducer

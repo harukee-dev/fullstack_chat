@@ -90,20 +90,13 @@ async function handleMessage(io, socket, message) {
 }
 
 async function handlePin(io, _id) {
-  // Message.findByIdAndUpdate(_id, { isPinned: true })
-  //   .then((pinnedMessage) => {
-  //     if (pinnedMessage)
-  //       io.to(pinnedMessage.chatId.toString()).emit(
-  //         'messagePinned',
-  //         pinnedMessage.populate('senderId', 'username avatar')
-  //       )
-  //     else console.error('Ошибка при закреплении сообщения')
-  //   })
-  //   .catch(console.error)
   try {
-    const pinnedMessage = await Message.findByIdAndUpdate(_id, {
-      isPinned: true,
-    })
+    const pinnedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { isPinned: true },
+      { new: true }
+    )
+
     if (!pinnedMessage) {
       console.log('!pinned message ERR')
       return
@@ -113,19 +106,59 @@ async function handlePin(io, _id) {
       'senderId',
       'username avatar'
     )
+
+    const chat = await Chat.findById(pinnedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.log('Chat not found or has no members')
+      return
+    }
+
     io.to(populated.chatId.toString()).emit('messagePinned', populated)
+
+    chat.members.forEach((memberId) => {
+      if (memberId.toString() !== populated.senderId._id.toString()) {
+        io.to(memberId.toString()).emit('new-pinned', populated)
+      }
+    })
   } catch (e) {
-    console.error(e)
+    console.error('Error in handlePin:', e)
   }
 }
 
-function handleUnpin(io, _id) {
-  Message.findByIdAndUpdate(_id, { isPinned: false })
-    .then((unpinnedMessage) => {
-      if (unpinnedMessage) io.emit('messageUnpinned', unpinnedMessage)
-      else console.error('Ошибка при откреплении сообщения')
+async function handleUnpin(io, _id) {
+  try {
+    const unpinnedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { isPinned: false },
+      { new: true }
+    )
+
+    if (!unpinnedMessage) {
+      console.error('Ошибка при откреплении сообщения')
+      return
+    }
+
+    const populated = await unpinnedMessage.populate(
+      'senderId',
+      'username avatar'
+    )
+
+    const chat = await Chat.findById(populated.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
+
+    io.to(populated.chatId.toString()).emit('messageUnpinned', populated)
+
+    chat.members.forEach((memberId) => {
+      if (memberId.toString() !== populated.senderId._id.toString()) {
+        io.to(memberId.toString()).emit('new-unpin', populated)
+      }
     })
-    .catch(console.error)
+  } catch (error) {
+    console.error('Ошибка в handleUnpin:', error)
+  }
 }
 
 async function handleDelete(io, socket, _id) {
@@ -135,14 +168,26 @@ async function handleDelete(io, socket, _id) {
       socket.emit('error', { message: 'Message not found' })
       return
     }
+
     await Message.deleteOne({ _id })
+
+    const chat = await Chat.findById(deletedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
 
     io.to(deletedMessage.chatId.toString()).emit(
       'messageDeleted',
       deletedMessage
     )
+
+    chat.members.forEach((memberId) => {
+      io.to(memberId.toString()).emit('new-delete', deletedMessage)
+    })
   } catch (e) {
-    console.error(e)
+    console.error('Ошибка при удалении сообщения:', e)
+    socket.emit('error', { message: 'Failed to delete message' })
   }
 }
 
@@ -153,14 +198,30 @@ async function handleEdit(io, _id, text) {
       { text },
       { new: true }
     )
-    if (updatedMessage && updatedMessage.chatId) {
-      io.to(updatedMessage.chatId.toString()).emit(
-        'messageEdited',
-        updatedMessage
-      )
+      .populate('senderId', 'username avatar')
+      .lean()
+
+    if (!updatedMessage || !updatedMessage.chatId) {
+      console.error('Сообщение не найдено или нет chatId')
+      return
     }
+
+    const chat = await Chat.findById(updatedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
+
+    io.to(updatedMessage.chatId.toString()).emit(
+      'messageEdited',
+      updatedMessage
+    )
+
+    chat.members.forEach((memberId) => {
+      io.to(memberId.toString()).emit('new-edit', updatedMessage)
+    })
   } catch (e) {
-    console.error(e)
+    console.error('Ошибка при изменении сообщения:', e)
   }
 }
 
