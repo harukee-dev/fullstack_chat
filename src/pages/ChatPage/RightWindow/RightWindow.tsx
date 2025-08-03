@@ -13,7 +13,7 @@ import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollCha
 import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 import { Route, Routes, useParams } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
-import { addChat, setChats } from '../../../slices/chatSlice'
+import { addChat, setChats, sortChats } from '../../../slices/chatSlice'
 import { addOnlineFriend, setOnlineFriends } from '../../../slices/friendsSlice'
 
 interface IRequest {
@@ -81,6 +81,7 @@ export const RightWindow = () => {
         const res = await fetch(`${API_URL}/auth/user-chats/${currentUserId}`)
         const data = await res.json()
         dispatch(setChats(data))
+        dispatch(sortChats())
       } catch (e) {
         console.error(`ошибка при получении чатов юзера: ${e}`)
       }

@@ -17,6 +17,12 @@ const chatsSlice = createSlice({
     setChats: (state, action: PayloadAction<any>) => {
       state.chats = action.payload
     },
+    sortChats: (state) => {
+      state.chats = [...state.chats].sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+    },
     updateChat(
       state,
       action: PayloadAction<{ id: string; updatedAt: string }>
@@ -37,5 +43,6 @@ const chatsSlice = createSlice({
   },
 })
 
-export const { addChat, deleteChat, setChats, updateChat } = chatsSlice.actions
+export const { addChat, deleteChat, setChats, sortChats, updateChat } =
+  chatsSlice.actions
 export default chatsSlice.reducer
