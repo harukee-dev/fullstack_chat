@@ -40,6 +40,7 @@ export const ChatsList: React.FC = ({}) => {
               avatar={chatUser.avatar}
               isOnline={isOnline}
               chatId={el._id}
+              isNewMessage={el.isNewMessage || false}
             />
           )
         })}

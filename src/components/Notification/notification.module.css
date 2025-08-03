@@ -8,6 +8,7 @@
   bottom: 5%;
   right: 5%;
   position: absolute;
+  z-index: 11;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,6 +16,8 @@
   height: 15vh;
   padding: 2vh;
   border: #444444 solid 1px;
+  background-color: #00000039;
+  backdrop-filter: blur(0.35vh);
   border-radius: 2.5vh;
   cursor: pointer;
 }
@@ -54,9 +57,10 @@
 
 .closeButton {
   position: absolute;
-  background-color: #00000018;
+  background-color: #00000092;
+  z-index: 12;
   border: 1px solid #444444;
-  backdrop-filter: blur(0.15vh);
+  backdrop-filter: blur(0.35px);
   border-radius: 100%;
   padding: 0.75vh;
   width: 5vh;

@@ -33,6 +33,7 @@ export const RightWindow = () => {
   const { isNotification, newMessage } = useAppSelector(
     (state) => state.notification
   )
+  const { chats } = useAppSelector((state) => state.chats)
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -193,11 +194,19 @@ export const RightWindow = () => {
 
     newSocket.on('new-message', (message: IMessage) => {
       const currentChatId = localStorage.getItem('chat-id')
-      if (currentChatId !== message.chatId) {
-        console.log(
-          `you have new message from ${message.senderId.username}: ${message.text}`
+      if (currentChatId?.toString() !== message.chatId.toString()) {
+        console.log(chats)
+
+        dispatch(
+          setChats((prevChats: any) =>
+            prevChats.map((chat: any) =>
+              chat._id.toString() === message.chatId.toString()
+                ? { ...chat, isNewMessage: true }
+                : chat
+            )
+          )
         )
-        dispatch(setNotification(false))
+        console.log(chats)
         dispatch(setNotification(true))
         dispatch(
           setNewMessage({

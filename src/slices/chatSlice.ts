@@ -15,7 +15,11 @@ const chatsSlice = createSlice({
       state.chats = state.chats.filter((el: any) => el.id !== action.payload)
     },
     setChats: (state, action: PayloadAction<any>) => {
-      state.chats = action.payload
+      if (typeof action.payload === 'function') {
+        state.chats = action.payload(state.chats)
+      } else {
+        state.chats = action.payload
+      }
     },
     sortChats: (state) => {
       state.chats = [...state.chats].sort(
