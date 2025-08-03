@@ -202,7 +202,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       requestAnimationFrame(() => {
         chatEl.scrollTo({
           top: chatEl.scrollHeight,
-          behavior: 'smooth',
+          behavior: 'auto',
         })
       })
     }
