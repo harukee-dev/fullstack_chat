@@ -6,9 +6,13 @@ import { setFriends } from '../../slices/friendsSlice'
 import { API_URL } from '../../constants'
 import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
+import { Notification } from '../../components/Notification/Notification'
 
 export const Chat = () => {
   const currentUserId = localStorage.getItem('user-id') || 'none'
+  const { isNotification, newMessage } = useAppSelector(
+    (state) => state.notification
+  )
   const dispatch = useDispatch<AppDispatch>()
   const friends = useAppSelector((state) => state.friends.friends)
 
@@ -41,6 +45,14 @@ export const Chat = () => {
     <div className={cl.body}>
       <LeftWindow />
       <RightWindow />
+      {isNotification && (
+        <Notification
+          avatar={newMessage.avatar}
+          username={newMessage.username}
+          text={newMessage.text}
+          chatId={newMessage.chatId}
+        />
+      )}
     </div>
   )
 }

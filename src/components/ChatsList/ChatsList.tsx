@@ -1,6 +1,7 @@
 import { ChatTab } from '../ChatTab/ChatTab'
 import cl from './ChatsList.module.css'
 import { useAppSelector } from '../../store'
+import { useEffect, useState } from 'react'
 
 export const ChatsList: React.FC = ({}) => {
   const currentUserId = localStorage.getItem('user-id')
@@ -8,7 +9,12 @@ export const ChatsList: React.FC = ({}) => {
   const { chats } = useAppSelector((state) => state.chats)
   const { onlineFriends } = useAppSelector((state) => state.friends)
 
-  console.log(onlineFriends)
+  const sortedChats = Array.isArray(chats)
+    ? [...chats].sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+    : []
 
   return (
     <div className={cl.chatsList}>
@@ -17,7 +23,7 @@ export const ChatsList: React.FC = ({}) => {
         <p className={cl.addGroupPlus}>+</p>
       </div>
       {Array.isArray(chats) &&
-        chats.map((el, index) => {
+        sortedChats.map((el, index) => {
           const chatUser = el.members.find(
             (el: any) => el._id !== currentUserId
           )
@@ -34,6 +40,7 @@ export const ChatsList: React.FC = ({}) => {
               avatar={chatUser.avatar}
               isOnline={isOnline}
               chatId={el._id}
+              isNewMessage={el.isNewMessage || false}
             />
           )
         })}

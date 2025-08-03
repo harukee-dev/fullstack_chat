@@ -52,6 +52,16 @@ async function handleMessage(io, socket, message) {
       'username avatar'
     )
 
+    const currentChat = await Chat.findByIdAndUpdate(
+      populatedMessage.chatId,
+      {
+        updatedAt: Date.now(),
+      },
+      { new: true }
+    )
+
+    const currentChatMembers = currentChat.members
+
     const emittedMessage = {
       _id: populatedMessage._id.toString(),
       text: populatedMessage.text,
@@ -65,55 +75,165 @@ async function handleMessage(io, socket, message) {
       ...(reply.username && reply.text && { replyMessage: reply }),
     }
 
-    // ← отправляем ТОЛЬКО в нужную комнату
     io.to(message.chatId).emit('message', emittedMessage)
+    currentChatMembers.forEach((member) => {
+      io.to(member.toString()).emit('chatUpdated', {
+        id: currentChat._id,
+        updatedAt: currentChat.updatedAt,
+      })
+      if (member._id !== emittedMessage.senderId._id)
+        io.to(member.toString()).emit('new-message', emittedMessage)
+    })
   } catch (error) {
     console.error('Ошибка при сохранении сообщения:', error)
   }
 }
 
-function handlePin(io, _id) {
-  Message.findByIdAndUpdate(_id, { isPinned: true })
-    .then((pinnedMessage) => {
-      if (pinnedMessage) io.emit('messagePinned', pinnedMessage)
-      else console.error('Ошибка при закреплении сообщения')
-    })
-    .catch(console.error)
-}
+async function handlePin(io, _id) {
+  try {
+    const pinnedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { isPinned: true },
+      { new: true }
+    )
 
-function handleUnpin(io, _id) {
-  Message.findByIdAndUpdate(_id, { isPinned: false })
-    .then((unpinnedMessage) => {
-      if (unpinnedMessage) io.emit('messageUnpinned', unpinnedMessage)
-      else console.error('Ошибка при откреплении сообщения')
-    })
-    .catch(console.error)
-}
+    if (!pinnedMessage) {
+      console.log('!pinned message ERR')
+      return
+    }
 
-function handleDelete(io, socket, _id) {
-  Message.findByIdAndDelete(_id)
-    .then((deleted) => {
-      if (!deleted) {
-        socket.emit('error', { message: 'Message not found' })
-        return
+    const populated = await pinnedMessage.populate(
+      'senderId',
+      'username avatar'
+    )
+
+    const chat = await Chat.findById(pinnedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.log('Chat not found or has no members')
+      return
+    }
+
+    io.to(populated.chatId.toString()).emit('messagePinned', populated)
+
+    chat.members.forEach((memberId) => {
+      if (memberId.toString() !== populated.senderId._id.toString()) {
+        io.to(memberId.toString()).emit('new-pinned', populated)
       }
-      io.emit('messageDeleted', { _id })
     })
-    .catch((error) => {
-      console.error('Error deleting message:', error)
-      socket.emit('error', { message: 'Failed to delete message' })
-    })
+  } catch (e) {
+    console.error('Error in handlePin:', e)
+  }
 }
 
-function handleEdit(io, _id, text) {
-  Message.findByIdAndUpdate(_id, { text }, { new: true })
-    .then((updated) => {
-      if (updated) io.emit('messageEdited', updated)
+async function handleUnpin(io, _id) {
+  try {
+    const unpinnedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { isPinned: false },
+      { new: true }
+    )
+
+    if (!unpinnedMessage) {
+      console.error('Ошибка при откреплении сообщения')
+      return
+    }
+
+    const populated = await unpinnedMessage.populate(
+      'senderId',
+      'username avatar'
+    )
+
+    const chat = await Chat.findById(populated.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
+
+    io.to(populated.chatId.toString()).emit('messageUnpinned', populated)
+
+    chat.members.forEach((memberId) => {
+      if (memberId.toString() !== populated.senderId._id.toString()) {
+        io.to(memberId.toString()).emit('new-unpin', populated)
+      }
     })
-    .catch((error) => {
-      console.error('Ошибка при редактировании сообщения:', error)
-    })
+  } catch (error) {
+    console.error('Ошибка в handleUnpin:', error)
+  }
 }
+
+async function handleDelete(io, socket, _id) {
+  try {
+    const deletedMessage = await Message.findById(_id).lean()
+    if (!deletedMessage) {
+      socket.emit('error', { message: 'Message not found' })
+      return
+    }
+
+    await Message.deleteOne({ _id })
+
+    const chat = await Chat.findById(deletedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
+
+    io.to(deletedMessage.chatId.toString()).emit(
+      'messageDeleted',
+      deletedMessage
+    )
+
+    chat.members.forEach((memberId) => {
+      io.to(memberId.toString()).emit('new-delete', deletedMessage)
+    })
+  } catch (e) {
+    console.error('Ошибка при удалении сообщения:', e)
+    socket.emit('error', { message: 'Failed to delete message' })
+  }
+}
+
+async function handleEdit(io, _id, text) {
+  try {
+    const updatedMessage = await Message.findByIdAndUpdate(
+      _id,
+      { text },
+      { new: true }
+    )
+      .populate('senderId', 'username avatar')
+      .lean()
+
+    if (!updatedMessage || !updatedMessage.chatId) {
+      console.error('Сообщение не найдено или нет chatId')
+      return
+    }
+
+    const chat = await Chat.findById(updatedMessage.chatId).lean()
+    if (!chat || !chat.members) {
+      console.error('Чат не найден или не содержит участников')
+      return
+    }
+
+    io.to(updatedMessage.chatId.toString()).emit(
+      'messageEdited',
+      updatedMessage
+    )
+
+    chat.members.forEach((memberId) => {
+      io.to(memberId.toString()).emit('new-edit', updatedMessage)
+    })
+  } catch (e) {
+    console.error('Ошибка при изменении сообщения:', e)
+  }
+}
+
+// function handleEdit(io, _id, text) {
+//   Message.findByIdAndUpdate(_id, { text }, { new: true })
+//     .then((updated) => {
+//       if (updated) io.emit('messageEdited', updated)
+//     })
+//     .catch((error) => {
+//       console.error('Ошибка при редактировании сообщения:', error)
+//     })
+// }
 
 const userSockets = new Map()
 

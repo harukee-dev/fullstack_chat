@@ -35,7 +35,7 @@ export const LeftWindow = () => {
 
   return (
     <div className={cl.leftContainer}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '3vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div className={cl.buttonsContainer}>
           <button
             onMouseEnter={() => setMoneyHover(true)}

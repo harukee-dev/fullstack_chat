@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  background-color: black;
+  background-color: transparent;
   padding: 1vh 2vh;
   border-radius: 0.7vh;
 }
@@ -50,7 +50,7 @@
   height: 5.5vh;
   /* padding: 0.4vh; */
   /* border: 0.2vh solid #9927ea; */
-  box-shadow: 0 0 4vh #fffdff4e;
+  box-shadow: 0 0 4vh #fffdff67;
   border-radius: 100%;
 }
 
@@ -163,6 +163,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #9927ea;
 }
 
 .interactionContainer {

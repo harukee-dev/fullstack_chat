@@ -5,12 +5,13 @@
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  height: 60vh;
+  height: 62.5vh;
+  padding-bottom: 1.5vh;
   gap: 1.5vh;
-  margin-top: -2vh;
 }
 
 .addGroupContainer {
+  margin-top: 1.5vh;
   display: flex;
   justify-content: space-between;
   align-items: center;

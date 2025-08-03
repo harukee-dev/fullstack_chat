@@ -3,4 +3,5 @@ export interface ChatTabProps {
   avatar: string | null
   isOnline: boolean
   chatId: string
+  isNewMessage: boolean
 }

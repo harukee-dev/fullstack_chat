@@ -1,0 +1,75 @@
+* {
+  margin: 0;
+  padding: 0;
+  color: white;
+}
+
+.notificationContainer {
+  bottom: 5%;
+  right: 5%;
+  position: absolute;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20vw;
+  height: 15vh;
+  padding: 2vh;
+  border: #444444 solid 1px;
+  background-color: #00000039;
+  backdrop-filter: blur(0.35vh);
+  border-radius: 2.5vh;
+  cursor: pointer;
+}
+
+.avatarAndNicknameContainer {
+  display: flex;
+  gap: 2vh;
+}
+
+.avatar {
+  width: 10vh;
+  height: 10vh;
+  border-radius: 100%;
+}
+
+.nicknameContainer {
+  margin-top: 1.5vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1vh;
+}
+
+.nickname {
+  color: white;
+  font-family: 'Jost Bold', sans-serif;
+  font-size: 3.2vh;
+}
+
+.description {
+  color: #afafaf;
+  font-size: 2.1vh;
+  width: 18vh;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.closeButton {
+  position: absolute;
+  background-color: #00000092;
+  z-index: 12;
+  border: 1px solid #444444;
+  backdrop-filter: blur(0.35px);
+  border-radius: 100%;
+  padding: 0.75vh;
+  width: 5vh;
+  top: -1.2vh;
+  left: 18vw;
+  cursor: pointer;
+  transition: ease 0.1s;
+}
+
+.closeButton:hover {
+  background-color: #d6d6d618;
+}

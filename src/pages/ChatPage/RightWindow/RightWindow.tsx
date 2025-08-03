@@ -13,8 +13,20 @@ import { ScrollChatButton } from '../../../components/ScrollChatButton/ScrollCha
 import closeNotFoundWindowIcon from './images/close-notFound-window.svg'
 import { Route, Routes, useParams } from 'react-router-dom'
 import { FriendRequestSender } from '../../../components/FriendRequestSender/FriendRequestSender'
-import { addChat, setChats } from '../../../slices/chatSlice'
+import { addChat, setChats, sortChats } from '../../../slices/chatSlice'
 import { addOnlineFriend, setOnlineFriends } from '../../../slices/friendsSlice'
+import { TestPage } from '../../TestPage/TestPage'
+import {
+  setNewMessage,
+  setNotification,
+} from '../../../slices/notificationSlice'
+import { Notification } from '../../../components/Notification/Notification'
+import {
+  addMessageToChat,
+  deleteMessageFromChat,
+  editMessageInChat,
+  unpinMessageInChat,
+} from '../../../slices/chatMessages'
 
 interface IRequest {
   avatar: string
@@ -24,6 +36,10 @@ interface IRequest {
 
 export const RightWindow = () => {
   const [message, setMessage] = useState<string>('')
+  const { isNotification, newMessage } = useAppSelector(
+    (state) => state.notification
+  )
+  const { chats } = useAppSelector((state) => state.chats)
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
   const [socket, setSocket] = useState<Socket | null>(null)
@@ -81,6 +97,7 @@ export const RightWindow = () => {
         const res = await fetch(`${API_URL}/auth/user-chats/${currentUserId}`)
         const data = await res.json()
         dispatch(setChats(data))
+        dispatch(sortChats())
       } catch (e) {
         console.error(`ошибка при получении чатов юзера: ${e}`)
       }
@@ -151,19 +168,39 @@ export const RightWindow = () => {
         hasNewMessage = true
         document.title = 'New Request - Omnio'
       }
+      dispatch(setNotification(true))
+      dispatch(
+        setNewMessage({
+          avatar: message.avatar,
+          username: message.username,
+          text: 'Sent you friend request',
+          chatId: '',
+        })
+      )
+      if (notificationSound) {
+        notificationSound.pause()
+        notificationSound.currentTime = 0
+        notificationSound.play().catch((err) => {
+          console.warn('Ошибка воспроизведения звука:', err)
+        })
+      }
     })
 
-    newSocket.on('new-private-chat', (chat: any) => {
+    newSocket.on('new-private-chat', (message: any) => {
       const chats = store.getState().chats.chats
-      const exists = chats.some((c: any) => c._id === chat._id)
-      console.log('CHATS: ', chats)
-      console.log('CHAT: ', chat)
+      const exists = chats.some((c: any) => c._id === message.chat._id)
 
       if (!exists) {
-        dispatch(addChat(chat))
+        dispatch(addChat(message.chat))
       } else {
-        dispatch(setChats(chats.filter((el: any) => el._id !== chat._id)))
-        dispatch(addChat(chat))
+        dispatch(
+          setChats(chats.filter((el: any) => el._id !== message.chat._id))
+        )
+        dispatch(addChat(message.chat))
+      }
+
+      if (message.isOnline !== null) {
+        dispatch(addOnlineFriend(message.isOnline))
       }
     })
 
@@ -175,6 +212,73 @@ export const RightWindow = () => {
     newSocket.on('user-offline', (id: string) => {
       console.log('OFFLINE: ', id)
       dispatch(setOnlineFriends(onlineFriends.filter((el: any) => el !== id)))
+    })
+
+    newSocket.on('new-message', (message: IMessage) => {
+      const currentChatId = localStorage.getItem('chat-id')
+      if (currentChatId?.toString() !== message.chatId.toString()) {
+        dispatch(
+          addMessageToChat({ chatId: message.chatId.toString(), message })
+        )
+
+        dispatch(
+          setChats((prevChats: any) =>
+            prevChats.map((chat: any) =>
+              chat._id.toString() === message.chatId.toString()
+                ? { ...chat, isNewMessage: true }
+                : chat
+            )
+          )
+        )
+        console.log(chats)
+        dispatch(setNotification(true))
+        dispatch(
+          setNewMessage({
+            avatar: message.senderId.avatar,
+            username: message.senderId.username,
+            text: message.text,
+            chatId: message.chatId,
+          })
+        )
+        if (notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+      }
+    })
+
+    newSocket.on('new-pinned', (message: IMessage) => {
+      dispatch(
+        pinMessageInChat({ chatId: message.chatId, messageId: message._id })
+      )
+    })
+
+    newSocket.on('new-unpin', (message: IMessage) => {
+      dispatch(
+        unpinMessageInChat({ chatId: message.chatId, messageId: message._id })
+      )
+    })
+
+    newSocket.on('new-delete', (message: IMessage) => {
+      dispatch(
+        deleteMessageFromChat({
+          chatId: message.chatId,
+          messageId: message._id,
+        })
+      )
+    })
+
+    newSocket.on('new-edit', (message: IMessage) => {
+      dispatch(
+        editMessageInChat({
+          chatId: message.chatId,
+          messageId: message._id,
+          newText: message.text,
+        })
+      )
     })
 
     return () => {
@@ -191,25 +295,6 @@ export const RightWindow = () => {
     }
   }
 
-  const [isShowPinnedMessages, setIsShowPinnedMessages] =
-    useState<boolean>(false)
-  const [isPanelOpened, setIsPanelOpened] = useState<boolean>(false)
-  const [isNotFound, setIsNotFound] = useState<boolean>(false)
-
-  const handlePanelOpen = () => {
-    setIsPanelOpened((p) => !p)
-  }
-
-  const handleShowPinned = () => {
-    setIsShowPinnedMessages((prev) => !prev)
-  }
-
-  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      // Поиск реализуется в ChatComponent при необходимости
-    }
-  }
-
   return (
     <Routes>
       <Route
@@ -217,23 +302,6 @@ export const RightWindow = () => {
         element={
           <div style={{ background: 'black', height: '100vh' }}>
             <div className={cl.chatPage}>
-              <div className={cl.chatHeader}>
-                <div style={{ display: 'flex', gap: '.6vh' }}>
-                  <p className={cl.hashtag}>#</p>
-                  <p className={cl.chatName}>Chat</p>
-                </div>
-                <button onClick={handlePanelOpen} className={cl.buttonOther}>
-                  ···
-                </button>
-              </div>
-              <ChatPanel
-                setIsNotFound={setIsNotFound}
-                isNotFound={isNotFound}
-                isOpened={isPanelOpened}
-                isShowPinned={isShowPinnedMessages}
-                handleShowPinned={handleShowPinned}
-                handleSearch={handleSearch}
-              />
               <ChatComponent
                 socket={socket}
                 chatRef={chatRef}
@@ -282,69 +350,10 @@ export const RightWindow = () => {
         }
       />
       <Route path="flux-subscription" element={<div />} />
+      <Route path="test" element={<TestPage />} />
     </Routes>
   )
 }
-
-interface IChatPanel {
-  isShowPinned: boolean
-  handleShowPinned: () => void
-  handleSearch: (arg: any) => void
-  isOpened: boolean
-  setIsNotFound: React.Dispatch<React.SetStateAction<boolean>>
-  isNotFound: boolean
-}
-
-const ChatPanel: React.FC<IChatPanel> = ({
-  isShowPinned,
-  handleShowPinned,
-  handleSearch,
-  isOpened,
-  setIsNotFound,
-  isNotFound,
-}) => {
-  return (
-    <div>
-      <AnimatePresence>
-        {isOpened && (
-          <motion.div
-            initial={{ opacity: 0, x: 5, y: -5 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 0.2 }}
-            exit={{ opacity: 0, x: 5, y: -5 }}
-            className={cl.panelContainer}
-          >
-            <button onClick={handleShowPinned} className={cl.panelButton}>
-              Show {isShowPinned ? 'all' : 'pinned'} messages
-            </button>
-            <input
-              onKeyDown={handleSearch}
-              className={cl.panelInput}
-              type="text"
-              placeholder="Search message"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {isNotFound && (
-          <motion.div
-            className={cl.notFoundWindowContainer}
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            exit={{ opacity: 0 }}
-          >
-            <button
-              onClick={() => setIsNotFound(false)}
-              className={cl.notFoundWindowButton}
-            >
-              <img draggable={false} src={closeNotFoundWindowIcon} alt="" />
-            </button>
-            <p className={cl.notFoundWindowText}>No messages found</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
+function pinMessageInChat(arg0: { chatId: string; messageId: string }): any {
+  throw new Error('Function not implemented.')
 }
