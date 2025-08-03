@@ -156,7 +156,6 @@ export const RightWindow = () => {
     newSocket.on('new-private-chat', (message: any) => {
       const chats = store.getState().chats.chats
       const exists = chats.some((c: any) => c._id === message.chat._id)
-      console.log('CHATS: ', chats)
 
       if (!exists) {
         dispatch(addChat(message.chat))

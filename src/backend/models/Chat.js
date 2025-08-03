@@ -8,6 +8,7 @@ const ChatSchema = new Schema({
   },
   members: [{ type: Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 })
 
 module.exports = model('Chat', ChatSchema)

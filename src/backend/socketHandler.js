@@ -52,6 +52,16 @@ async function handleMessage(io, socket, message) {
       'username avatar'
     )
 
+    const currentChat = await Chat.findByIdAndUpdate(
+      populatedMessage.chatId,
+      {
+        updatedAt: Date.now(),
+      },
+      { new: true }
+    )
+
+    const currentChatMembers = currentChat.members
+
     const emittedMessage = {
       _id: populatedMessage._id.toString(),
       text: populatedMessage.text,
@@ -65,8 +75,13 @@ async function handleMessage(io, socket, message) {
       ...(reply.username && reply.text && { replyMessage: reply }),
     }
 
-    // ← отправляем ТОЛЬКО в нужную комнату
     io.to(message.chatId).emit('message', emittedMessage)
+    currentChatMembers.forEach((member) => {
+      io.to(member.toString()).emit('chatUpdated', {
+        id: currentChat._id,
+        updatedAt: currentChat.updatedAt,
+      })
+    })
   } catch (error) {
     console.error('Ошибка при сохранении сообщения:', error)
   }

@@ -11,7 +11,9 @@ import { format, isToday, isYesterday } from 'date-fns'
 import { API_URL } from '../../constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import closeNotFoundWindowIcon from '../../pages/ChatPage/RightWindow/images/close-notFound-window.svg'
-import { useAppSelector } from '../../store'
+import { AppDispatch, useAppSelector } from '../../store'
+import { useDispatch } from 'react-redux'
+import { updateChat } from '../../slices/chatSlice'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -26,6 +28,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 }) => {
   const { chatId } = useParams<{ chatId: string }>()
   if (chatId) localStorage.setItem('chat-id', chatId)
+  const { chats } = useAppSelector((state) => state.chats)
   const [messages, setMessages] = useState<IMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
@@ -35,6 +38,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const [isNotFound, setIsNotFound] = useState<boolean>(false)
   const [isShowPinnedMessages, setIsShowPinnedMessages] =
     useState<boolean>(false)
+  const dispatch = useDispatch<AppDispatch>()
 
   // Загрузка сообщений при смене chatId
   useEffect(() => {
@@ -106,11 +110,16 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       }
     }
 
+    const handleChatUpdated = (message: any) => {
+      dispatch(updateChat(message))
+    }
+
     socket.on('message', handleNewMessage)
     socket.on('messagePinned', handlePinned)
     socket.on('messageUnpinned', handleUnpinned)
     socket.on('messageDeleted', handleDeleted)
     socket.on('messageEdited', handleUpdated)
+    socket.on('chatUpdated', handleChatUpdated)
 
     return () => {
       socket.emit('leaveChatRoom', chatId) // выходим из комнаты
