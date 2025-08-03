@@ -219,10 +219,10 @@
 .light {
   position: absolute;
   height: 80vh;
-  width: 80vh;
-  background-color: rgba(89, 0, 255, 0.378);
+  width: 100vh;
+  background-color: rgba(112, 84, 255, 0.378);
   border-radius: 100%;
   filter: blur(1500px);
-  bottom: -50vh;
-  left: 15%;
+  bottom: -60vh;
+  left: 6%;
 }
