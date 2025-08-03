@@ -26,8 +26,6 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   chatRef,
   socket,
 }) => {
-  const { chatId } = useParams<{ chatId: string }>()
-  if (chatId) localStorage.setItem('chat-id', chatId)
   const { chats } = useAppSelector((state) => state.chats)
   const [messages, setMessages] = useState<IMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -39,8 +37,14 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const [isShowPinnedMessages, setIsShowPinnedMessages] =
     useState<boolean>(false)
   const dispatch = useDispatch<AppDispatch>()
+  const { chatId } = useParams<{ chatId: string }>()
 
-  // Загрузка сообщений при смене chatId
+  useEffect(() => {
+    if (chatId) localStorage.setItem('chat-id', chatId)
+
+    return () => localStorage.setItem('chat-id', '')
+  }, [chatId])
+
   useEffect(() => {
     if (!chatId) return
 

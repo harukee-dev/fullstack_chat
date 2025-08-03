@@ -34,7 +34,6 @@ const chatsSlice = createSlice({
       if (chat) {
         chat.updatedAt = updatedAt
       }
-      // Можно сразу отсортировать:
       state.chats.sort(
         (a: any, b: any) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()

@@ -182,6 +182,22 @@ export const RightWindow = () => {
       dispatch(setOnlineFriends(onlineFriends.filter((el: any) => el !== id)))
     })
 
+    newSocket.on('new-message', (message: IMessage) => {
+      const currentChatId = localStorage.getItem('chat-id')
+      if (currentChatId !== message.chatId) {
+        console.log(
+          `you have new message from ${message.senderId.username}: ${message.text}`
+        )
+        if (notificationSound) {
+          notificationSound.pause()
+          notificationSound.currentTime = 0
+          notificationSound.play().catch((err) => {
+            console.warn('Ошибка воспроизведения звука:', err)
+          })
+        }
+      }
+    })
+
     return () => {
       newSocket.disconnect()
     }

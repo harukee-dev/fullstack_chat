@@ -81,6 +81,8 @@ async function handleMessage(io, socket, message) {
         id: currentChat._id,
         updatedAt: currentChat.updatedAt,
       })
+      if (member._id !== emittedMessage.senderId._id)
+        io.to(member.toString()).emit('new-message', emittedMessage)
     })
   } catch (error) {
     console.error('Ошибка при сохранении сообщения:', error)
