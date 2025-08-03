@@ -168,6 +168,22 @@ export const RightWindow = () => {
         hasNewMessage = true
         document.title = 'New Request - Omnio'
       }
+      dispatch(setNotification(true))
+      dispatch(
+        setNewMessage({
+          avatar: message.avatar,
+          username: message.username,
+          text: 'Sent you friend request',
+          chatId: '',
+        })
+      )
+      if (notificationSound) {
+        notificationSound.pause()
+        notificationSound.currentTime = 0
+        notificationSound.play().catch((err) => {
+          console.warn('Ошибка воспроизведения звука:', err)
+        })
+      }
     })
 
     newSocket.on('new-private-chat', (message: any) => {
