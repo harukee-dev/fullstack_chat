@@ -14,7 +14,7 @@ import closeNotFoundWindowIcon from '../../pages/ChatPage/RightWindow/images/clo
 import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { updateChat } from '../../slices/chatSlice'
-import { setMessagesForChat } from '../../slices/chatMessages'
+import { addMessageToChat, setMessagesForChat } from '../../slices/chatMessages'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -77,6 +77,9 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     const handleNewMessage = (newMessage: IMessage) => {
       if (newMessage.chatId === chatId) {
         setMessages((prev) => [...prev, newMessage])
+        dispatch(
+          addMessageToChat({ chatId: newMessage.chatId.toString(), newMessage })
+        )
       }
     }
 
