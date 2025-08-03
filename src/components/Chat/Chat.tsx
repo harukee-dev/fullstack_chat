@@ -14,6 +14,7 @@ import closeNotFoundWindowIcon from '../../pages/ChatPage/RightWindow/images/clo
 import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { updateChat } from '../../slices/chatSlice'
+import { setMessagesForChat } from '../../slices/chatMessages'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -38,6 +39,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     useState<boolean>(false)
   const dispatch = useDispatch<AppDispatch>()
   const { chatId } = useParams<{ chatId: string }>()
+  const { messagesByChatId } = useAppSelector((state) => state.messagesByChatId)
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
@@ -45,28 +47,28 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     return () => localStorage.setItem('chat-id', '')
   }, [chatId])
 
+  // в компоненте ChatComponent
   useEffect(() => {
     if (!chatId) return
 
-    setIsLoading(true)
+    const cachedMessages = messagesByChatId[chatId]
+    if (cachedMessages) {
+      setMessages(cachedMessages)
+      setIsLoading(false)
+      return
+    }
 
+    setIsLoading(true)
     fetch(`${API_URL}/auth/messages/${chatId}`)
       .then((res) => res.json())
       .then((data: IMessage[]) => {
+        dispatch(setMessagesForChat({ chatId, messages: data }))
         setMessages(data)
         setIsLoading(false)
-
-        // Обновляем закрепленные
-        const pinned = data.filter((msg) => msg.isPinned)
-        setPinnedMessages(pinned)
       })
-      .catch((err) => {
-        console.error('Error fetching messages:', err)
-        setIsLoading(false)
-      })
+      .catch(() => setIsLoading(false))
   }, [chatId])
 
-  // Подписка на сокет-события для этого чата
   useEffect(() => {
     if (!socket || !chatId) return
 
