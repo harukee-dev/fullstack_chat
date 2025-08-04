@@ -32,7 +32,8 @@ export const Notification: React.FC<INotification> = ({
     return () => clearTimeout(timer)
   }, [dispatch])
 
-  const handleClose = () => {
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation()
     dispatch(setNotification(false))
   }
 
@@ -59,7 +60,7 @@ export const Notification: React.FC<INotification> = ({
       onClick={handleClick}
     >
       <img
-        onClick={handleClose}
+        onClick={(e) => handleClose(e)}
         className={cl.closeButton}
         src={closeIcon}
         alt="close-icon"
