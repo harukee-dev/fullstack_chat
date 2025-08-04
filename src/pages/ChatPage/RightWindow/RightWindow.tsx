@@ -216,11 +216,10 @@ export const RightWindow = () => {
 
     newSocket.on('new-message', (message: IMessage) => {
       const currentChatId = localStorage.getItem('chat-id')
-      if (currentChatId?.toString() !== message.chatId.toString()) {
-        dispatch(
-          addMessageToChat({ chatId: message.chatId.toString(), message })
-        )
+      dispatch(addMessageToChat({ chatId: message.chatId.toString(), message }))
 
+      console.log(chats)
+      if (currentChatId?.toString() !== message.chatId.toString()) {
         dispatch(
           setChats((prevChats: any) =>
             prevChats.map((chat: any) =>
@@ -230,7 +229,6 @@ export const RightWindow = () => {
             )
           )
         )
-        console.log(chats)
         dispatch(setNotification(true))
         dispatch(
           setNewMessage({

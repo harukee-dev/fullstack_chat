@@ -75,11 +75,8 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     socket.emit('joinChatRoom', chatId)
 
     const handleNewMessage = (newMessage: IMessage) => {
-      if (newMessage.chatId === chatId) {
+      if (newMessage.chatId.toString() === chatId.toString()) {
         setMessages((prev) => [...prev, newMessage])
-        dispatch(
-          addMessageToChat({ chatId: newMessage.chatId.toString(), newMessage })
-        )
       }
     }
 
