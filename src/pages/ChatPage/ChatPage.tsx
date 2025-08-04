@@ -7,6 +7,7 @@ import { API_URL } from '../../constants'
 import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
 import { Notification } from '../../components/Notification/Notification'
+import { AnimatePresence } from 'framer-motion'
 
 export const Chat = () => {
   const currentUserId = localStorage.getItem('user-id') || 'none'
@@ -45,14 +46,16 @@ export const Chat = () => {
     <div className={cl.body}>
       <LeftWindow />
       <RightWindow />
-      {isNotification && (
-        <Notification
-          avatar={newMessage.avatar}
-          username={newMessage.username}
-          text={newMessage.text}
-          chatId={newMessage.chatId}
-        />
-      )}
+      <AnimatePresence>
+        {isNotification && (
+          <Notification
+            avatar={newMessage.avatar}
+            username={newMessage.username}
+            text={newMessage.text}
+            chatId={newMessage.chatId}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

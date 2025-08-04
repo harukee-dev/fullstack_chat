@@ -1,7 +1,7 @@
 import cl from './notification.module.css'
 import closeIcon from './images/close-notification-icon.svg'
-import { motion } from 'framer-motion'
-import React from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import React, { useEffect } from 'react'
 import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { setNotification } from '../../slices/notificationSlice'
@@ -24,6 +24,14 @@ export const Notification: React.FC<INotification> = ({
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setNotification(false))
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [dispatch])
+
   const handleClose = () => {
     dispatch(setNotification(false))
   }
@@ -45,6 +53,7 @@ export const Notification: React.FC<INotification> = ({
     <motion.div
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className={cl.notificationContainer}
       onClick={handleClick}
