@@ -66,20 +66,29 @@
 }
 
 .loginButton {
-  width: 3.75vh;
-  height: 3.75vh;
-  border-radius: 100%;
   border: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 4.5vh;
+  width: 60%;
+  margin-left: 7vw;
+  font-family: 'Jost ExtraLight', sans-serif;
+  font-size: 1.75vh;
   cursor: pointer;
+  transition: ease 0.2s;
+  background-color: white;
+  color: black;
 }
 
 .hiddenLoginButton {
-  width: 3.75vh;
-  height: 3.75vh;
-  opacity: 0;
+  background-color: #565656;
+  border: none;
+  height: 4.5vh;
+  width: 60%;
+  margin-left: 7vw;
+  font-family: 'Jost ExtraLight', sans-serif;
+  font-size: 1.75vh;
+  cursor: pointer;
+  transition: ease 0.2s;
+  color: #1b1b1b;
 }
 
 .arrowIcon {
@@ -140,15 +149,4 @@
   right: 4px;
   bottom: 4px;
   background-color: white;
-}
-
-.continueButton {
-  border: none;
-  height: 4.5vh;
-  width: 60%;
-  margin-left: 7vw;
-  font-family: 'Jost ExtraLight', sans-serif;
-  font-size: 1.75vh;
-  cursor: pointer;
-  transition: ease 0.2s;
 }

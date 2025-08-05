@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
-import cl from './LoginPage.module.css'
+import cl from './loginPage.module.css'
 import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
 import background from './images/background.png'
@@ -127,7 +127,7 @@ export const LoginPage = () => {
           transition={{ duration: 0.4, delay: 0.9 }}
           disabled={!isButtonHidden}
           onClick={handleLogin}
-          className={cl.continueButton}
+          className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
         >
           Continue
         </motion.button>
