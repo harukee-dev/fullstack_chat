@@ -13,6 +13,21 @@
   transition: 0.15s;
 }
 
+.selectedContainer {
+  background-color: #161616;
+  border-radius: 1vh;
+  width: 25vw;
+  max-width: 25vw;
+  height: 6.5vh;
+  max-height: 6.5vh;
+  min-height: 6.5vh;
+  display: flex;
+  align-items: center;
+  gap: 1.5vh;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
 .container:hover {
   background-color: #101010;
 }
