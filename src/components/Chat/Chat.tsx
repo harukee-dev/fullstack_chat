@@ -48,13 +48,16 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     return () => localStorage.setItem('chat-id', '')
   }, [chatId])
 
-  // в компоненте ChatComponent
   useEffect(() => {
     if (!chatId) return
 
     const cachedMessages = messagesByChatId[chatId]
     if (cachedMessages) {
       setMessages(cachedMessages)
+
+      const pinned = cachedMessages.filter((msg) => msg.isPinned)
+      setPinnedMessages(pinned)
+
       setIsLoading(false)
       return
     }
@@ -65,6 +68,10 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       .then((data: IMessage[]) => {
         dispatch(setMessagesForChat({ chatId, messages: data }))
         setMessages(data)
+
+        const pinned = data.filter((msg) => msg.isPinned)
+        setPinnedMessages(pinned)
+
         setIsLoading(false)
       })
       .catch(() => setIsLoading(false))
@@ -82,14 +89,14 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     }
 
     const handlePinned = (pinnedMessage: IMessage) => {
-      if (pinnedMessage.chatId === chatId) {
+      if (pinnedMessage.chatId.toString() === chatId.toString()) {
         setPinnedMessages((prev) => [...prev, pinnedMessage])
         console.log('PINNED ', pinnedMessage)
       }
     }
 
     const handleUnpinned = (unpinnedMessage: IMessage) => {
-      if (unpinnedMessage.chatId === chatId) {
+      if (unpinnedMessage.chatId.toString() === chatId.toString()) {
         setPinnedMessages((prev) =>
           prev.filter((msg) => msg._id !== unpinnedMessage._id)
         )

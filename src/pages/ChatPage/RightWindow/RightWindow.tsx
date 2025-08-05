@@ -26,6 +26,7 @@ import {
   deleteMessageFromChat,
   editMessageInChat,
   unpinMessageInChat,
+  pinMessageInChat as pinInChat,
 } from '../../../slices/chatMessages'
 
 interface IRequest {
@@ -249,9 +250,7 @@ export const RightWindow = () => {
     })
 
     newSocket.on('new-pinned', (message: IMessage) => {
-      dispatch(
-        pinMessageInChat({ chatId: message.chatId, messageId: message._id })
-      )
+      dispatch(pinInChat({ chatId: message.chatId, messageId: message._id }))
     })
 
     newSocket.on('new-unpin', (message: IMessage) => {
