@@ -24,6 +24,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({
         ? { ...chat, isNewMessage: false }
         : chat
     )
+    localStorage.setItem('current-chat-name', username)
     dispatch(setChats(updatedChats))
     navigate(`/main/chat/${chatId}`)
   }

@@ -40,6 +40,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const dispatch = useDispatch<AppDispatch>()
   const { chatId } = useParams<{ chatId: string }>()
   const { messagesByChatId } = useAppSelector((state) => state.messagesByChatId)
+  const currentChatName = localStorage.getItem('current-chat-name')
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
@@ -245,7 +246,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       <div className={cl.chatHeader}>
         <div style={{ display: 'flex', gap: '.6vh' }}>
           <p className={cl.hashtag}>#</p>
-          <p className={cl.chatName}>Chat</p>
+          <p className={cl.chatName}>{currentChatName}</p>
         </div>
         <button onClick={handlePanelOpen} className={cl.buttonOther}>
           ···
