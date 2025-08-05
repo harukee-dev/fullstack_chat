@@ -29,11 +29,11 @@
 }
 
 .container:hover {
-  background-color: #101010;
+  background-color: #0e0e0e;
 }
 
 .container:hover .username {
-  color: white;
+  color: rgb(214, 214, 214);
 }
 
 .avatarOnline {
