@@ -224,7 +224,7 @@ export const Register = () => {
             transition={{ duration: 0.4, delay: 1.1 }}
             disabled={!isButtonHidden}
             onClick={handleRegister}
-            className={cl.continueButton}
+            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
           >
             Continue
           </motion.button>
