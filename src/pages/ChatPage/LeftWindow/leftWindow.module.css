@@ -60,6 +60,28 @@
   cursor: pointer;
   transition: 0.1s;
 }
+
+.friendsButtonActive {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 5.5vh;
+  max-height: 5.5vh;
+  border: none;
+  border-radius: 1vh;
+  background-color: #140617;
+  color: #944fbf;
+  text-align: start;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
 .icon {
   width: 3.4vh;
 }
@@ -77,6 +99,27 @@
   border: none;
   border-radius: 1vh;
   color: #7e7e7e;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.1s;
+  text-align: start;
+}
+
+.settingsButtonActive {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 5.5vh;
+  max-height: 5.5vh;
+  border: none;
+  border-radius: 1vh;
+  background-color: #140617;
+  color: #944fbf;
   font-family: 'Jost Regular', sans-serif;
   font-weight: 400;
   font-size: 2vh;

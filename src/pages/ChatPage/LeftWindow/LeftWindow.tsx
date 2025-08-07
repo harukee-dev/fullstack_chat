@@ -7,11 +7,11 @@ import friendsIconGray from './images/friends-gray.svg'
 import friendsIconPurple from './images/friends-purple.svg'
 import fluxIconGray from './images/flux-gray.svg'
 import fluxIconPurple from './images/flux-purple.svg'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import micIcon from './images/mic-icon.svg'
 import headphonesIcon from './images/headphones-icon.svg'
 import settingsIcon from './images/settings-icon.svg'
-import { useNavigate } from 'react-router-dom'
+import { matchPath, useLocation, useNavigate } from 'react-router-dom'
 
 export const LeftWindow = () => {
   const [moneyHover, setMoneyHover] = useState(false)
@@ -21,6 +21,18 @@ export const LeftWindow = () => {
   const currentUserAvatar = localStorage.getItem('avatar')
 
   const navigate = useNavigate()
+
+  const useSectionType = (): 'friends' | 'flux' | null => {
+    const location = useLocation()
+    const path = location.pathname
+
+    if (path.startsWith('/main/friends')) return 'friends'
+    if (path.startsWith('/main/flux')) return 'flux'
+
+    return null
+  }
+
+  const currentPath = useSectionType()
 
   useEffect(() => {
     const purpleFriends = new Image()
@@ -63,10 +75,14 @@ export const LeftWindow = () => {
           <button
             onMouseEnter={() => setFriendsHover(true)}
             onMouseLeave={() => setFriendsHover(false)}
-            className={cl.friendsButton}
+            className={
+              currentPath === 'friends'
+                ? cl.friendsButtonActive
+                : cl.friendsButton
+            }
             onClick={() => navigate('/main/friends/list')}
           >
-            {(friendsHover && (
+            {((friendsHover || currentPath === 'friends') && (
               <img
                 draggable={false}
                 className={cl.icon}
@@ -86,9 +102,13 @@ export const LeftWindow = () => {
           <button
             onMouseEnter={() => setFluxHover(true)}
             onMouseLeave={() => setFluxHover(false)}
-            className={cl.settingsButton}
+            className={
+              currentPath === 'flux'
+                ? cl.settingsButtonActive
+                : cl.settingsButton
+            }
           >
-            {(fluxHover && (
+            {((fluxHover || currentPath === 'flux') && (
               <img
                 draggable={false}
                 className={cl.icon}
