@@ -26,8 +26,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: #000000;
   border: none;
   border-radius: 1vh;
@@ -47,8 +47,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: black;
   border: none;
   border-radius: 1vh;
@@ -68,8 +68,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   border: none;
   border-radius: 1vh;
   background-color: #140617;
@@ -93,8 +93,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: black;
   border: none;
   border-radius: 1vh;
@@ -114,8 +114,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   border: none;
   border-radius: 1vh;
   background-color: #140617;
@@ -146,7 +146,7 @@
 .hr {
   width: 28vw;
   height: 1px;
-  background-color: #444444;
+  background-color: #242424;
   margin-top: 2vh;
 }
 
@@ -154,12 +154,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  border-top: #4e4e4e solid 1px;
+  width: 95%;
+  margin-left: 2.5%;
+  border: 1px solid #444444;
   background-color: black;
   height: 9vh;
-  border-bottom-left-radius: 1vh;
-  border-bottom-right-radius: 1vh;
+  border-radius: 1vh;
 }
 
 .yourAvatar {
