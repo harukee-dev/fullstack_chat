@@ -154,11 +154,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 95%;
-  margin-left: 2.5%;
-  border: 1px solid #444444;
-  background-color: black;
-  height: 9vh;
+  width: 25vw;
+  height: 8vh;
+  background-color: #0f0f0f;
   border-radius: 1vh;
 }
 
@@ -172,20 +170,29 @@
   cursor: pointer;
 }
 
+.usernameAndStatus {
+  display: flex;
+  flex-direction: column;
+}
+
 .subUsername {
+  margin: 0;
+  padding: 0;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 1.75vh;
+  font-size: 1.9vh;
   color: white;
 }
 
 .subStatus {
+  margin: 0;
+  padding: 0;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 1.75vh;
+  font-size: 1.55vh;
   color: #34e134;
   cursor: pointer;
 }
 
 .settingsIcon {
   cursor: pointer;
-  width: 2.6vh;
+  width: 2.95vh;
 }

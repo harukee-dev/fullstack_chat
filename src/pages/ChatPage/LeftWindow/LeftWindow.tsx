@@ -130,48 +130,50 @@ export const LeftWindow = () => {
 
         <ChatsList />
 
-        <div className={cl.voiceSettingsContainer}>
-          <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
-            <img
-              draggable={false}
-              className={cl.yourAvatar}
-              src={
-                currentUserAvatar ||
-                'https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg'
-              }
-              alt="avatar"
-            />
-            <div className={cl.usernameAndStatus}>
-              <p className={cl.subUsername}>{currentUsername}</p>
-              <p className={cl.subStatus}>Online</p>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div className={cl.voiceSettingsContainer}>
+            <div style={{ display: 'flex', gap: '.7vw', alignItems: 'center' }}>
+              <img
+                draggable={false}
+                className={cl.yourAvatar}
+                src={
+                  currentUserAvatar ||
+                  'https://i.pinimg.com/736x/41/71/2a/41712a627fcf3482a12c69659ec7abd6.jpg'
+                }
+                alt="avatar"
+              />
+              <div className={cl.usernameAndStatus}>
+                <p className={cl.subUsername}>{currentUsername}</p>
+                <p className={cl.subStatus}>Online</p>
+              </div>
             </div>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '.5vw',
-              marginRight: '2.15vw',
-            }}
-          >
-            <img
-              draggable={false}
-              className={cl.settingsIcon}
-              src={micIcon}
-              alt="microphone-icon"
-            />
-            <img
-              draggable={false}
-              className={cl.settingsIcon}
-              src={headphonesIcon}
-              alt="headphones-icon"
-            />
-            <img
-              draggable={false}
-              className={cl.settingsIcon}
-              src={settingsIcon}
-              alt="settings-icon"
-            />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1vw',
+                marginRight: '2.15vw',
+              }}
+            >
+              <img
+                draggable={false}
+                className={cl.settingsIcon}
+                src={micIcon}
+                alt="microphone-icon"
+              />
+              <img
+                draggable={false}
+                className={cl.settingsIcon}
+                src={headphonesIcon}
+                alt="headphones-icon"
+              />
+              <img
+                draggable={false}
+                className={cl.settingsIcon}
+                src={settingsIcon}
+                alt="settings-icon"
+              />
+            </div>
           </div>
         </div>
       </div>
