@@ -91,7 +91,6 @@ export const Interaction: React.FC<Interaction> = ({
         </div>
       )}
       <div className={cl.container}>
-        <EmojiPicker onSelect={handleEmojiSelect} isVisible={isEmojiOpened} />
         <textarea
           className={cl.input}
           placeholder="Write something..."
@@ -99,13 +98,13 @@ export const Interaction: React.FC<Interaction> = ({
           onChange={(event) => handleInputChange(event)}
           onKeyDown={handleKeyDown}
         />
-        <img
+        {/* <img
           onClick={sendMessage}
           draggable={false}
           className={cl.sendButton}
           src={sendIcon}
           alt="send"
-        />
+        /> */}
       </div>
     </div>
   )

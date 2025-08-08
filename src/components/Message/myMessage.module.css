@@ -55,8 +55,8 @@
 }
 
 .text {
-  color: white;
-  font-family: 'Jost ExtraLight', sans-serif;
+  color: #c9c9c9;
+  font-family: 'Jost Regular', sans-serif;
   font-weight: 100;
   font-style: normal;
   font-size: 2.1vh;
@@ -70,7 +70,7 @@
 }
 
 .rainbowText {
-  font-family: 'Jost ExtraLight', sans-serif;
+  font-family: 'Jost Regular', sans-serif;
   font-weight: 100;
   font-style: normal;
   font-size: 2.1vh;

@@ -8,11 +8,11 @@
   display: flex;
   flex-direction: column;
   gap: 2vh;
-  min-height: 77vh;
-  max-height: 91vh;
+  min-height: 85vh;
+  max-height: 97vh;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2vh 2vh 10.25vh 2vh;
+  padding: 2vh 2vh 12.25vh 2vh;
   width: 100%;
   scrollbar-width: 0.9vh;
 }
@@ -39,39 +39,42 @@
   margin-top: 30vh;
 }
 
-.duck {
-  width: 20vh;
-}
-
 .isClear {
   width: 20vh;
 }
 
 .chatHeader {
-  margin-top: 1.7vh;
-  padding-bottom: 1.7vh;
-  border-bottom: #4e4e4e solid 1px;
+  position: absolute;
+  z-index: 10;
+  top: 2vh;
+  backdrop-filter: blur(2px);
   display: flex;
   justify-content: space-around;
+  background-color: #00000094;
+  /* border: 1px solid #ffffff1c; */
+  box-shadow: 0 0 2vh #ffffff2c;
+  border-radius: 1vh;
   gap: 75%;
   align-items: center;
-  width: 100%;
+  width: 95%;
+  left: 2.5%;
+  height: 6.5vh;
 }
 
 .hashtag {
-  color: #636363;
-  font-size: 1.75vh;
+  color: #909090;
+  font-size: 1.95vh;
   font-family: 'Jost Regular', sans-serif;
 }
 
 .chatName {
   color: white;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 1.75vh;
+  font-size: 1.95vh;
 }
 
 .buttonOther {
-  background-color: #000000;
+  background-color: transparent;
   border: none;
   color: white;
   cursor: pointer;
