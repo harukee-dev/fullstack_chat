@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
 import { Notification } from '../../components/Notification/Notification'
 import { AnimatePresence } from 'framer-motion'
+import { FriendModal } from '../../components/FriendRequestSender/Components/FriendModal/FriendModal'
 
 export const Chat = () => {
   const currentUserId = localStorage.getItem('user-id') || 'none'
@@ -44,6 +45,7 @@ export const Chat = () => {
 
   return (
     <div className={cl.body}>
+      <FriendModal />
       <LeftWindow />
       <RightWindow />
       <AnimatePresence>
