@@ -45,7 +45,7 @@ export const Chat = () => {
 
   return (
     <div className={cl.body}>
-      <FriendModal />
+      {/* <FriendModal /> */}
       <LeftWindow />
       <RightWindow />
       <AnimatePresence>

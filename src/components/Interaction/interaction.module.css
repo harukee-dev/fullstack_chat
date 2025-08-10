@@ -11,8 +11,8 @@
   isolation: isolate;
   border-radius: 1vh;
   background-color: rgba(0, 0, 0, 0.479);
-  /* border: 1px solid rgba(255, 255, 255, 0.172); */
-  box-shadow: 0 0 2vh #ffffff14;
+  border: 1px solid #ffffff14;
+  box-shadow: inset 0 0 2vh #ffffff1a;
   backdrop-filter: blur(2px);
 }
 
@@ -27,8 +27,8 @@
   isolation: isolate;
   border-radius: 1vh;
   background-color: rgba(0, 0, 0, 0.479);
-  /* border: 1px solid rgba(255, 255, 255, 0.172); */
-  box-shadow: 0 0 2vh #ffffff0a;
+  border: #4e4e4e3d solid 1px;
+  box-shadow: inset 0 0 2vh #ffffff29;
   backdrop-filter: blur(2px);
 }
 
