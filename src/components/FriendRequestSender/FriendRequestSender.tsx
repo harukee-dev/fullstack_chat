@@ -200,6 +200,8 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     }
   }
 
+  console.log(friends)
+
   return (
     <div className={cl.friendsList}>
       {friends.length > 0 ? (
