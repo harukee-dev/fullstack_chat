@@ -9,15 +9,38 @@
   gap: 1vh;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(54, 54, 54);
-  border-radius: 2vh;
+  border: 1px solid #363636ad;
   box-shadow: 0 0 4vh #fffdff1e;
+  border-radius: 2vh;
   cursor: pointer;
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 18vh;
+  height: 21vh;
   backface-visibility: hidden;
   overflow: hidden;
+  perspective: 1000px;
+  transition: transform 0.1s ease;
+  will-change: transform;
+  overflow: hidden;
+  position: relative;
+  border-radius: 2vh;
+}
+
+.friendContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(
+    circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.138),
+    transparent 60%
+  );
+  opacity: var(--glare-opacity, 0);
+  pointer-events: none;
+  transition: opacity 0.2s, background 0.1s;
 }
 
 .avatarOnline {
@@ -43,85 +66,4 @@
 
 .friendUsername:hover {
   letter-spacing: 0.1vh;
-}
-
-.deleteFriendButton {
-  height: 10vh;
-  width: 10vh;
-  background-color: #ef5c5c;
-  border-radius: 100%;
-  box-shadow: 0 0 4vh rgba(255, 75, 75, 0.748);
-  outline: none;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.deleteFriendButton:hover {
-  background-color: #f55757;
-  box-shadow: 0 0 4vh rgb(255, 75, 75);
-  transform: scale(1.04);
-}
-
-.deleteFriendIcon {
-  width: 6vh;
-  height: 6vh;
-}
-
-.flipCard {
-  width: 18vh;
-  height: 21vh;
-  perspective: 1000px;
-  transition: transform 0.1s ease;
-  will-change: transform;
-  overflow: hidden;
-  position: relative;
-  border-radius: 2vh;
-}
-
-.flipCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(
-    circle at var(--glare-x, 50%) var(--glare-y, 50%),
-    rgba(255, 255, 255, 0.138),
-    transparent 60%
-  );
-  opacity: var(--glare-opacity, 0);
-  pointer-events: none;
-  transition: opacity 0.2s, background 0.1s;
-}
-
-.flipCardInner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-  cursor: pointer;
-}
-
-.flipCardInner.flipped {
-  transform: rotateY(180deg);
-}
-
-.friendContainerBack {
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  backface-visibility: hidden;
-  border: 1px solid rgb(54, 54, 54);
-  color: white;
-  transform: rotateY(180deg); /* Обратная сторона изначально повернута */
-  border-radius: 2vh;
-  box-shadow: 0 0 4vh #fffdff1e;
 }

@@ -27,6 +27,9 @@ export const FriendCard: React.FC<IFriendCard> = ({
 
   return (
     <div
+      key={friendData.username}
+      className={cl.friendContainer}
+      onClick={handleClick}
       onMouseMove={(e) => {
         const card = e.currentTarget as HTMLDivElement
         const rect = card.getBoundingClientRect()
@@ -54,43 +57,16 @@ export const FriendCard: React.FC<IFriendCard> = ({
         card.style.setProperty('--glare-opacity', `0`)
         setIsFlipped(false)
       }}
-      className={cl.flipCard}
     >
-      <div className={`${cl.flipCardInner} ${isFlipped ? cl.flipped : ''}`}>
-        <div
-          key={friendData.username}
-          className={cl.friendContainer}
-          //   onClick={() => deleteFunc(friendData.id, currentUserId)}
-          onClick={handleClick}
-        >
-          <img
-            draggable={false}
-            src={friendData.avatar}
-            className={cl.avatarOnline}
-            alt="user-avatar"
-          />
-          <p className={cl.friendUsername} style={{ color: 'white' }}>
-            {friendData.username}
-          </p>
-        </div>
-        <div onClick={handleClick} className={cl.friendContainerBack}>
-          <button
-            onClick={(e) => {
-              deleteFunc(friendData.id, currentUserId)
-              e.stopPropagation()
-            }}
-            className={cl.deleteFriendButton}
-          >
-            <img
-              draggable={false}
-              className={cl.deleteFriendIcon}
-              src={deleteFriendIcon}
-              alt="delete-friend"
-            />
-          </button>
-          <p className={cl.friendUsername}>Delete?</p>
-        </div>
-      </div>
+      <img
+        draggable={false}
+        src={friendData.avatar}
+        className={cl.avatarOnline}
+        alt="user-avatar"
+      />
+      <p className={cl.friendUsername} style={{ color: 'white' }}>
+        {friendData.username}
+      </p>
     </div>
   )
 }
