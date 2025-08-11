@@ -12,6 +12,9 @@ interface IFriend {
   avatar: string
   username: string
   id: string
+  description: string
+  isOnline: boolean
+  banner: string | null
 }
 
 interface IFriendCard {
@@ -30,11 +33,14 @@ export const FriendCard: React.FC<IFriendCard> = ({
     dispatch(
       setUserModalData({
         username: friendData.username,
-        description: 'Clear',
+        description:
+          friendData.description !== '' ? friendData.description : 'Clear',
         avatar: friendData.avatar,
-        isOnline: false,
+        isOnline: friendData.isOnline,
         userId: friendData.id,
-        banner: '',
+        banner:
+          friendData.banner ||
+          'https://i.pinimg.com/1200x/a1/10/0a/a1100a7d501b743aff598359c55e6dc0.jpg',
       })
     )
     dispatch(setIsOpened(true))

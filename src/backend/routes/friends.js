@@ -148,8 +148,8 @@ module.exports = function (io) {
           { recipientId: userId, status: 'accepted' },
         ],
       })
-        .populate('requesterId', 'username avatar')
-        .populate('recipientId', 'username avatar')
+        .populate('requesterId', 'username avatar banner description isOnline')
+        .populate('recipientId', 'username avatar banner description isOnline')
 
       const friends = friendships.map((f) => {
         const friend =
@@ -160,6 +160,9 @@ module.exports = function (io) {
           id: friend._id,
           username: friend.username,
           avatar: friend.avatar,
+          banner: friend.banner || null,
+          description: friend.description || 'Clear',
+          isOnline: friend.isOnline,
         }
       })
 

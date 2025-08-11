@@ -4,7 +4,6 @@
   position: absolute;
   z-index: 12;
   background-color: rgba(0, 0, 0, 0.342);
-  backdrop-filter: blur(0.5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,7 +13,7 @@
   width: 70vw;
   height: 70vh;
   background-color: rgba(4, 4, 4, 0.048);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(2px);
   border: 1px solid #ffffff15;
   box-shadow: inset 0 0 10vh #ffffff17;
   gap: 2.75vh;
@@ -31,6 +30,7 @@
   border-radius: 1vh;
   object-fit: cover;
   object-position: center;
+  border: 1px solid #151515;
 }
 
 .avatarAndInfoContainer {
@@ -100,10 +100,25 @@
   transition: 0.2s ease;
 }
 
+.offlineIndicator {
+  width: 1vh;
+  height: 1vh;
+  background-color: #747474;
+  border-radius: 100%;
+  transition: 0.2s ease;
+}
+
 .onlineStatus {
   font-size: 2.5vh;
   font-family: 'Jost Regular', sans-serif;
   color: #72f07c;
+  transition: 0.2s ease;
+}
+
+.offlineStatus {
+  font-size: 2.5vh;
+  font-family: 'Jost Regular', sans-serif;
+  color: #747474;
   transition: 0.2s ease;
 }
 

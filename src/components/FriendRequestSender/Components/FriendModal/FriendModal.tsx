@@ -1,8 +1,8 @@
 import { useDispatch } from 'react-redux'
 import cl from './friendModal.module.css'
-import { AppDispatch } from '../../../../store'
+import { AppDispatch, useAppSelector } from '../../../../store'
 import { setIsOpened } from '../../../../slices/userProfileSlice'
-import { motion } from 'framer-motion'
+import { easeInOut, easeOut, motion } from 'framer-motion'
 
 interface IFriendModal {
   username: string
@@ -21,6 +21,8 @@ export const FriendModal: React.FC<IFriendModal> = ({
   userId,
   banner,
 }) => {
+  const { onlineFriends } = useAppSelector((state) => state.friends)
+  const isUserOnline = onlineFriends.includes(userId)
   const dispatch = useDispatch<AppDispatch>()
 
   const handleClose = (e: any) => {
@@ -42,7 +44,7 @@ export const FriendModal: React.FC<IFriendModal> = ({
         initial={{ scale: 0.75, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.75, opacity: 0 }}
-        transition={{ duration: 0.2, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.2, ease: easeOut }}
         className={cl.mainContainer}
       >
         <img className={cl.banner} src={banner} alt="BANNER" />
@@ -52,8 +54,16 @@ export const FriendModal: React.FC<IFriendModal> = ({
             <div className={cl.nicknameAndStatusContainer}>
               <p className={cl.nickname}>{username}</p>
               <div className={cl.indicatorAndStatusContainer}>
-                <div className={cl.onlineIndicator} />
-                <p className={cl.onlineStatus}>Online</p>
+                <div
+                  className={
+                    isUserOnline ? cl.onlineIndicator : cl.offlineIndicator
+                  }
+                />
+                <p
+                  className={isUserOnline ? cl.onlineStatus : cl.offlineStatus}
+                >
+                  {isUserOnline ? 'Online' : 'Offline'}
+                </p>
               </div>
             </div>
             <div className={cl.buttonsContainer}>
