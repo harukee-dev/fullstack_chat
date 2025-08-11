@@ -1,23 +1,56 @@
+import { useDispatch } from 'react-redux'
 import cl from './friendModal.module.css'
+import { AppDispatch } from '../../../../store'
+import { setIsOpened } from '../../../../slices/userProfileSlice'
+import { motion } from 'framer-motion'
 
-export const FriendModal = () => {
+interface IFriendModal {
+  username: string
+  avatar: string
+  description: string
+  isOnline: boolean
+  userId: string
+  banner: string
+}
+
+export const FriendModal: React.FC<IFriendModal> = ({
+  username,
+  avatar,
+  description,
+  isOnline,
+  userId,
+  banner,
+}) => {
+  const dispatch = useDispatch<AppDispatch>()
+
+  const handleClose = (e: any) => {
+    if (e.target === e.currentTarget) {
+      dispatch(setIsOpened(false))
+    }
+  }
+
   return (
-    <div className={cl.firstContainer}>
-      <div className={cl.mainContainer}>
-        <img
-          className={cl.banner}
-          src="https://i.pinimg.com/736x/8d/05/04/8d0504e9a3276b148f288bcb0d4bfc08.jpg"
-          alt="BANNER"
-        />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={(e) => handleClose(e)}
+      className={cl.firstContainer}
+    >
+      <motion.div
+        initial={{ scale: 0.75, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.75, opacity: 0 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
+        className={cl.mainContainer}
+      >
+        <img className={cl.banner} src={banner} alt="BANNER" />
         <div className={cl.avatarAndInfoContainer}>
-          <img
-            className={cl.avatar}
-            src="https://i.pinimg.com/1200x/f8/fe/e7/f8fee7ad0731756966523974d526620b.jpg"
-            alt="AVATAR"
-          />
+          <img className={cl.avatar} src={avatar} alt="AVATAR" />
           <div className={cl.infoAndButtonsContainer}>
             <div className={cl.nicknameAndStatusContainer}>
-              <p className={cl.nickname}>jerue</p>
+              <p className={cl.nickname}>{username}</p>
               <div className={cl.indicatorAndStatusContainer}>
                 <div className={cl.onlineIndicator} />
                 <p className={cl.onlineStatus}>Online</p>
@@ -32,13 +65,9 @@ export const FriendModal = () => {
         </div>
         <div className={cl.userDescriptionContainer}>
           <p className={cl.userDescriptionTitle}>About me:</p>
-          <p className={cl.userDescriptionSubtitle}>
-            hi! my name is jerue. i like playing fortnite and fucking all my
-            enemies on morphling in dota 2, but second thing is harder than i
-            always thought
-          </p>
+          <p className={cl.userDescriptionSubtitle}>{description}</p>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

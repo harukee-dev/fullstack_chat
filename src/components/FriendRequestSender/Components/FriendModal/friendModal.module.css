@@ -43,6 +43,12 @@
   width: 22vh;
   height: 22vh;
   border-radius: 100%;
+  transition: 0.2s ease;
+}
+
+.avatar:hover {
+  box-shadow: 0 0 5vh rgba(255, 255, 255, 0.28);
+  transform: scale(1.02);
 }
 
 .infoAndButtonsContainer {
@@ -62,6 +68,12 @@
 .nickname {
   font-size: 7vh;
   font-family: 'Jost Bold', sans-serif;
+  transition: 0.2s ease;
+}
+
+.nickname:hover {
+  text-shadow: 0 0 5vh rgba(255, 255, 255, 0.29);
+  letter-spacing: 0.15vh;
 }
 
 .indicatorAndStatusContainer {
@@ -71,17 +83,28 @@
   margin-top: 1.4vh;
 }
 
+.indicatorAndStatusContainer:hover {
+  .onlineIndicator {
+    box-shadow: 0 0 1vh #05ff058d;
+  }
+  .onlineStatus {
+    text-shadow: 0 0 2vh #72f07ca6;
+  }
+}
+
 .onlineIndicator {
   width: 1vh;
   height: 1vh;
   background-color: #72f07c;
   border-radius: 100%;
+  transition: 0.2s ease;
 }
 
 .onlineStatus {
   font-size: 2.5vh;
   font-family: 'Jost Regular', sans-serif;
   color: #72f07c;
+  transition: 0.2s ease;
 }
 
 .buttonsContainer {
@@ -135,10 +158,20 @@
   font-family: 'Jost Regular', sans-serif;
   font-size: 3.25vh;
   color: #9f9f9f;
+  transition: 0.2s ease;
+}
+
+.userDescriptionTitle:hover {
+  color: #d6d6d6;
 }
 
 .userDescriptionSubtitle {
   font-family: 'Jost Regular', sans-serif;
   font-size: 2.5vh;
   color: #9f9f9f;
+  transition: 0.2s ease;
+}
+
+.userDescriptionSubtitle:hover {
+  color: #d6d6d6;
 }

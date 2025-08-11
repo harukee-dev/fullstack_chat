@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import cl from './friendCard.module.css'
 import deleteFriendIcon from './images/delete-friend.png'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../../../../store'
+import {
+  setIsOpened,
+  setUserModalData,
+} from '../../../../slices/userProfileSlice'
 
 interface IFriend {
   avatar: string
@@ -19,10 +25,19 @@ export const FriendCard: React.FC<IFriendCard> = ({
   currentUserId,
   friendData,
 }) => {
-  const [isFlipped, setIsFlipped] = useState(false)
-
+  const dispatch = useDispatch<AppDispatch>()
   const handleClick = () => {
-    setIsFlipped((a) => !a)
+    dispatch(
+      setUserModalData({
+        username: friendData.username,
+        description: 'Clear',
+        avatar: friendData.avatar,
+        isOnline: false,
+        userId: friendData.id,
+        banner: '',
+      })
+    )
+    dispatch(setIsOpened(true))
   }
 
   return (
@@ -55,7 +70,6 @@ export const FriendCard: React.FC<IFriendCard> = ({
         const card = e.currentTarget as HTMLDivElement
         card.style.transform = 'rotateX(0deg) rotateY(0deg)'
         card.style.setProperty('--glare-opacity', `0`)
-        setIsFlipped(false)
       }}
     >
       <img
