@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { API_URL } from '../../constants'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import friendsIcon from './images/friends-gray.svg'
 import cl from './friendRequestSender.module.css'
 import messageIcon from './images/message-icon.svg'
@@ -31,28 +31,33 @@ export const FriendRequestSender: React.FC<IProps> = ({
   allRequests,
   setAllRequests,
 }) => {
-  const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
   const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  const friends = useAppSelector((state) => state.friends.friends)
-
-  // HEADER HANDLERS
 
   const handleAll = () => {
-    setHeaderTab('list')
     navigate('/main/friends/list')
   }
 
   const handlePending = () => {
-    setHeaderTab('pending')
     navigate('/main/friends/pending')
   }
 
   const handleAdd = () => {
-    setHeaderTab('add')
     navigate('/main/friends/add')
   }
+
+  const useSectionType = (): 'pending' | 'list' | 'add' | null => {
+    const location = useLocation()
+    const path = location.pathname
+
+    if (path.startsWith('/main/friends/list')) return 'list'
+    if (path.startsWith('/main/friends/pending')) return 'pending'
+    if (path.startsWith('/main/friends/add')) return 'add'
+
+    return null
+  }
+
+  const currentPath = useSectionType()
 
   return (
     <div className={cl.friendsPage}>
@@ -76,7 +81,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handleAll}
           className={
-            headerTab === 'list' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'list' ? cl.headerActiveButton : cl.headerButton
           }
         >
           All
@@ -84,7 +89,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handlePending}
           className={
-            headerTab === 'pending' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'pending' ? cl.headerActiveButton : cl.headerButton
           }
         >
           Pending
@@ -92,7 +97,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handleAdd}
           className={
-            headerTab === 'add' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'add' ? cl.headerActiveButton : cl.headerButton
           }
         >
           Add friend
@@ -177,40 +182,11 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     )
   }, [socket])
 
-  const handleDeleteFriend = async (
-    requesterId: string,
-    recipientId: string
-  ) => {
-    try {
-      console.log(requesterId, recipientId)
-      await fetch(API_URL + '/friends/deleteFriend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipientId, requesterId }),
-      })
-      socket.emit('joinPersonalRoom', currentUserId)
-      socket.emit('sendFriendDeleted', {
-        user1: requesterId,
-        user2: recipientId,
-      })
-    } catch (e) {
-      console.log('Error fetching post "DELETE-FRIEND": ', e)
-    }
-  }
-
-  console.log(friends)
-
   return (
     <div className={cl.friendsList}>
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <FriendCard
-            deleteFunc={handleDeleteFriend}
-            currentUserId={currentUserId}
-            friendData={el}
-          />
+          <FriendCard currentUserId={currentUserId} friendData={el} />
         ))
       ) : (
         <p className={cl.clearTitle}>It looks like you don't have friends...</p>

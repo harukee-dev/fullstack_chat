@@ -3,6 +3,9 @@ import cl from './friendModal.module.css'
 import { AppDispatch, useAppSelector } from '../../../../store'
 import { setIsOpened } from '../../../../slices/userProfileSlice'
 import { easeInOut, easeOut, motion } from 'framer-motion'
+import { API_URL } from '../../../../constants'
+import { useEffect, useRef } from 'react'
+import { io, Socket } from 'socket.io-client'
 
 interface IFriendModal {
   username: string
@@ -21,13 +24,57 @@ export const FriendModal: React.FC<IFriendModal> = ({
   userId,
   banner,
 }) => {
+  const socket = useRef<Socket | null>(null)
   const { onlineFriends } = useAppSelector((state) => state.friends)
   const isUserOnline = onlineFriends.includes(userId)
   const dispatch = useDispatch<AppDispatch>()
+  const currentUserId = localStorage.getItem('user-id')
+  const token = useAppSelector((state) => state.auth.token)
+
+  useEffect(() => {
+    if (!currentUserId || !token) return
+
+    socket.current = io(API_URL, {
+      query: { userId: currentUserId },
+      auth: { token },
+      transports: ['websocket'],
+    })
+
+    return () => {
+      socket.current?.disconnect()
+      socket.current = null
+    }
+  }, [currentUserId, token])
 
   const handleClose = (e: any) => {
     if (e.target === e.currentTarget) {
       dispatch(setIsOpened(false))
+    }
+  }
+
+  const handleDeleteFriend = async (
+    requesterId: string,
+    recipientId: string
+  ) => {
+    try {
+      console.log(requesterId, recipientId)
+      await fetch(API_URL + '/friends/deleteFriend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipientId, requesterId }),
+      })
+      if (socket.current) {
+        socket.current.emit('joinPersonalRoom', currentUserId)
+        socket.current.emit('sendFriendDeleted', {
+          user1: requesterId,
+          user2: recipientId,
+        })
+        dispatch(setIsOpened(false))
+      }
+    } catch (e) {
+      console.log('Error fetching post "DELETE-FRIEND": ', e)
     }
   }
 
@@ -69,7 +116,14 @@ export const FriendModal: React.FC<IFriendModal> = ({
             <div className={cl.buttonsContainer}>
               <button className={cl.button}>Message</button>
               <button className={cl.button}>Call</button>
-              <button className={cl.deleteButton}>Remove friend</button>
+              <button
+                onClick={() =>
+                  currentUserId && handleDeleteFriend(userId, currentUserId)
+                }
+                className={cl.deleteButton}
+              >
+                Remove friend
+              </button>
             </div>
           </div>
         </div>

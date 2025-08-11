@@ -18,13 +18,11 @@ interface IFriend {
 }
 
 interface IFriendCard {
-  deleteFunc: (requesterId: string, recipientId: string) => void
   currentUserId: string
   friendData: IFriend
 }
 
 export const FriendCard: React.FC<IFriendCard> = ({
-  deleteFunc,
   currentUserId,
   friendData,
 }) => {
