@@ -11,6 +11,7 @@ import { setFriends } from '../../slices/friendsSlice'
 import acceptIcon from './images/accept-icon.svg'
 import { FriendCard } from './Components/FriendCard/FriendCard'
 import { PendingCard } from './Components/PendingCard/PendingCard'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface IRequest {
   avatar: string
@@ -226,8 +227,6 @@ const Pending: React.FC<IPending> = ({
       user2: recipientId,
     })
 
-    const data = await response.json()
-    setStatus(data.message)
     filterRequests(requesterId)
   }
 
@@ -238,9 +237,6 @@ const Pending: React.FC<IPending> = ({
       body: JSON.stringify({ requesterId, recipientId }),
     })
 
-    const data = await response.json()
-
-    setStatus(data.message)
     filterRequests(requesterId)
   }
 
@@ -293,7 +289,13 @@ const AddFriend: React.FC<IAddFriend> = ({
       const data = await response.json()
 
       if (response.ok) {
-        setStatus(data.message)
+        if (data.message === 'Request sent!') {
+          setStatus(data.message)
+          setTimeout(() => {
+            setStatus('')
+          }, 10000)
+        }
+
         socket.emit('newRequest', {
           requesterId: currentUserId,
           recipientUsername: username,
@@ -306,6 +308,9 @@ const AddFriend: React.FC<IAddFriend> = ({
         )
       } else {
         setStatus(data.message || 'Error occured')
+        setTimeout(() => {
+          setStatus('')
+        }, 10000)
       }
     } catch (error) {
       setStatus('fetch error to /friends/send-requiest')
@@ -330,7 +335,19 @@ const AddFriend: React.FC<IAddFriend> = ({
           Send Invite
         </button>
       </div>
-      <p className={cl.statusAddFriend}>{status}</p>
+      <AnimatePresence>
+        {status !== '' && (
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            exit={{ y: 10, opacity: 0 }}
+            className={cl.statusAddFriend}
+          >
+            {status}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

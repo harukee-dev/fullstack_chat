@@ -172,6 +172,7 @@
 }
 
 .statusAddFriend {
-  color: rgb(209, 209, 209);
+  font-family: 'Jost Regular', sans-serif;
+  color: rgb(98, 218, 112);
   margin: 1% 0 0 0.5%;
 }
