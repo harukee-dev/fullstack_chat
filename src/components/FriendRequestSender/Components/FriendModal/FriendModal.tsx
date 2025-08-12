@@ -88,8 +88,8 @@ export const FriendModal: React.FC<IFriendModal> = ({
       className={cl.firstContainer}
     >
       <motion.div
-        initial={{ y: 125, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ scale: 0.75, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.75, opacity: 0 }}
         transition={{ duration: 0.3, delay: 0.2, ease: easeOut }}
         className={cl.mainContainer}
