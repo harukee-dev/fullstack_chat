@@ -6,6 +6,7 @@ import { easeInOut, easeOut, motion } from 'framer-motion'
 import { API_URL } from '../../../../constants'
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
+import { useNavigate } from 'react-router-dom'
 
 interface IFriendModal {
   username: string
@@ -25,6 +26,11 @@ export const FriendModal: React.FC<IFriendModal> = ({
   banner,
 }) => {
   const socket = useRef<Socket | null>(null)
+  const { chats } = useAppSelector((state) => state.chats)
+  const navigate = useNavigate()
+  const chat = chats.find((c: any) =>
+    c.members.some((m: any) => m._id === userId)
+  )._id
   const { onlineFriends } = useAppSelector((state) => state.friends)
   const isUserOnline = onlineFriends.includes(userId)
   const dispatch = useDispatch<AppDispatch>()
@@ -50,6 +56,11 @@ export const FriendModal: React.FC<IFriendModal> = ({
     if (e.target === e.currentTarget) {
       dispatch(setIsOpened(false))
     }
+  }
+
+  const handleMessage = () => {
+    navigate(`/main/chat/${chat}`)
+    dispatch(setIsOpened(false))
   }
 
   const handleDeleteFriend = async (
@@ -114,7 +125,9 @@ export const FriendModal: React.FC<IFriendModal> = ({
               </div>
             </div>
             <div className={cl.buttonsContainer}>
-              <button className={cl.button}>Message</button>
+              <button onClick={handleMessage} className={cl.button}>
+                Message
+              </button>
               <button className={cl.button}>Call</button>
               <button
                 onClick={() =>
