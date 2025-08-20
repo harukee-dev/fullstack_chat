@@ -15,6 +15,7 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { updateChat } from '../../slices/chatSlice'
 import { addMessageToChat, setMessagesForChat } from '../../slices/chatMessages'
+import { removeReplyMessage } from '../../slices/replyMessageSlice'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -44,6 +45,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
+    dispatch(removeReplyMessage())
 
     return () => localStorage.setItem('chat-id', '')
   }, [chatId])
