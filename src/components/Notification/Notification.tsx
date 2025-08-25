@@ -38,17 +38,22 @@ export const Notification: React.FC<INotification> = ({
   }
 
   const handleClick = () => {
-    navigate('/main/chat/' + chatId)
-    dispatch(setNotification(false))
-    dispatch(
-      setChats((prevChats: any) =>
-        prevChats.map((chat: any) =>
-          chat._id.toString() === chatId.toString()
-            ? { ...chat, isNewMessage: false }
-            : chat
+    if (chatId === '') {
+      navigate('/main/friends/pending/')
+      dispatch(setNotification(false))
+    } else {
+      navigate('/main/chat/' + chatId)
+      dispatch(setNotification(false))
+      dispatch(
+        setChats((prevChats: any) =>
+          prevChats.map((chat: any) =>
+            chat._id.toString() === chatId.toString()
+              ? { ...chat, isNewMessage: false }
+              : chat
+          )
         )
       )
-    )
+    }
   }
   return (
     <motion.div

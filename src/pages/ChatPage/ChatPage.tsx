@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
 import { Notification } from '../../components/Notification/Notification'
 import { AnimatePresence } from 'framer-motion'
+import { FriendModal } from '../../components/FriendRequestSender/Components/FriendModal/FriendModal'
 
 export const Chat = () => {
   const currentUserId = localStorage.getItem('user-id') || 'none'
@@ -16,6 +17,8 @@ export const Chat = () => {
   )
   const dispatch = useDispatch<AppDispatch>()
   const friends = useAppSelector((state) => state.friends.friends)
+  const { isOpened, username, avatar, description, isOnline, userId, banner } =
+    useAppSelector((state) => state.userProfileModal)
 
   const fetchFriends = async (userId: string) => {
     try {
@@ -53,6 +56,20 @@ export const Chat = () => {
             username={newMessage.username}
             text={newMessage.text}
             chatId={newMessage.chatId}
+          />
+        )}
+        {isOpened && (
+          <FriendModal
+            username={username}
+            avatar={avatar}
+            description={description}
+            isOnline={isOnline}
+            userId={userId}
+            banner={
+              banner !== ''
+                ? banner
+                : 'https://i.pinimg.com/736x/ff/6a/fc/ff6afc47e9e5489d99b3acf3e07c22c8.jpg'
+            }
           />
         )}
       </AnimatePresence>

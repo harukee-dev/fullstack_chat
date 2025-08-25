@@ -8,6 +8,7 @@ import { TypedUseSelectorHook, useSelector } from 'react-redux'
 import chatsReducer from './slices/chatSlice'
 import notificationReducer from './slices/notificationSlice'
 import messagesReducer from './slices/chatMessages'
+import userProfileModalReducer from './slices/userProfileSlice'
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     chats: chatsReducer,
     notification: notificationReducer,
     messagesByChatId: messagesReducer,
+    userProfileModal: userProfileModalReducer,
   },
 })
 

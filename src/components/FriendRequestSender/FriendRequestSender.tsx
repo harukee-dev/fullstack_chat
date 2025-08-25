@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { API_URL } from '../../constants'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import friendsIcon from './images/friends-gray.svg'
 import cl from './friendRequestSender.module.css'
 import messageIcon from './images/message-icon.svg'
@@ -11,6 +11,7 @@ import { setFriends } from '../../slices/friendsSlice'
 import acceptIcon from './images/accept-icon.svg'
 import { FriendCard } from './Components/FriendCard/FriendCard'
 import { PendingCard } from './Components/PendingCard/PendingCard'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface IRequest {
   avatar: string
@@ -31,28 +32,33 @@ export const FriendRequestSender: React.FC<IProps> = ({
   allRequests,
   setAllRequests,
 }) => {
-  const [headerTab, setHeaderTab] = useState<string>('list')
   const [status, setStatus] = useState<string>('')
   const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  const friends = useAppSelector((state) => state.friends.friends)
-
-  // HEADER HANDLERS
 
   const handleAll = () => {
-    setHeaderTab('list')
     navigate('/main/friends/list')
   }
 
   const handlePending = () => {
-    setHeaderTab('pending')
     navigate('/main/friends/pending')
   }
 
   const handleAdd = () => {
-    setHeaderTab('add')
     navigate('/main/friends/add')
   }
+
+  const useSectionType = (): 'pending' | 'list' | 'add' | null => {
+    const location = useLocation()
+    const path = location.pathname
+
+    if (path.startsWith('/main/friends/list')) return 'list'
+    if (path.startsWith('/main/friends/pending')) return 'pending'
+    if (path.startsWith('/main/friends/add')) return 'add'
+
+    return null
+  }
+
+  const currentPath = useSectionType()
 
   return (
     <div className={cl.friendsPage}>
@@ -76,7 +82,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handleAll}
           className={
-            headerTab === 'list' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'list' ? cl.headerActiveButton : cl.headerButton
           }
         >
           All
@@ -84,7 +90,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handlePending}
           className={
-            headerTab === 'pending' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'pending' ? cl.headerActiveButton : cl.headerButton
           }
         >
           Pending
@@ -92,7 +98,7 @@ export const FriendRequestSender: React.FC<IProps> = ({
         <button
           onClick={handleAdd}
           className={
-            headerTab === 'add' ? cl.headerActiveButton : cl.headerButton
+            currentPath === 'add' ? cl.headerActiveButton : cl.headerButton
           }
         >
           Add friend
@@ -177,38 +183,11 @@ const FriendsList: React.FC<IFriendsList> = ({ currentUserId, socket }) => {
     )
   }, [socket])
 
-  const handleDeleteFriend = async (
-    requesterId: string,
-    recipientId: string
-  ) => {
-    try {
-      console.log(requesterId, recipientId)
-      await fetch(API_URL + '/friends/deleteFriend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipientId, requesterId }),
-      })
-      socket.emit('joinPersonalRoom', currentUserId)
-      socket.emit('sendFriendDeleted', {
-        user1: requesterId,
-        user2: recipientId,
-      })
-    } catch (e) {
-      console.log('Error fetching post "DELETE-FRIEND": ', e)
-    }
-  }
-
   return (
     <div className={cl.friendsList}>
       {friends.length > 0 ? (
         friends.map((el: any) => (
-          <FriendCard
-            deleteFunc={handleDeleteFriend}
-            currentUserId={currentUserId}
-            friendData={el}
-          />
+          <FriendCard currentUserId={currentUserId} friendData={el} />
         ))
       ) : (
         <p className={cl.clearTitle}>It looks like you don't have friends...</p>
@@ -248,8 +227,6 @@ const Pending: React.FC<IPending> = ({
       user2: recipientId,
     })
 
-    const data = await response.json()
-    setStatus(data.message)
     filterRequests(requesterId)
   }
 
@@ -260,9 +237,6 @@ const Pending: React.FC<IPending> = ({
       body: JSON.stringify({ requesterId, recipientId }),
     })
 
-    const data = await response.json()
-
-    setStatus(data.message)
     filterRequests(requesterId)
   }
 
@@ -315,7 +289,13 @@ const AddFriend: React.FC<IAddFriend> = ({
       const data = await response.json()
 
       if (response.ok) {
-        setStatus(data.message)
+        if (data.message === 'Request sent!') {
+          setStatus(data.message)
+          setTimeout(() => {
+            setStatus('')
+          }, 10000)
+        }
+
         socket.emit('newRequest', {
           requesterId: currentUserId,
           recipientUsername: username,
@@ -328,6 +308,9 @@ const AddFriend: React.FC<IAddFriend> = ({
         )
       } else {
         setStatus(data.message || 'Error occured')
+        setTimeout(() => {
+          setStatus('')
+        }, 10000)
       }
     } catch (error) {
       setStatus('fetch error to /friends/send-requiest')
@@ -352,7 +335,19 @@ const AddFriend: React.FC<IAddFriend> = ({
           Send Invite
         </button>
       </div>
-      <p className={cl.statusAddFriend}>{status}</p>
+      <AnimatePresence>
+        {status !== '' && (
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            exit={{ y: 10, opacity: 0 }}
+            className={cl.statusAddFriend}
+          >
+            {status}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

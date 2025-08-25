@@ -1,32 +1,54 @@
 import React, { useState } from 'react'
 import cl from './friendCard.module.css'
 import deleteFriendIcon from './images/delete-friend.png'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../../../../store'
+import {
+  setIsOpened,
+  setUserModalData,
+} from '../../../../slices/userProfileSlice'
 
 interface IFriend {
   avatar: string
   username: string
   id: string
+  description: string
+  isOnline: boolean
+  banner: string | null
 }
 
 interface IFriendCard {
-  deleteFunc: (requesterId: string, recipientId: string) => void
   currentUserId: string
   friendData: IFriend
 }
 
 export const FriendCard: React.FC<IFriendCard> = ({
-  deleteFunc,
   currentUserId,
   friendData,
 }) => {
-  const [isFlipped, setIsFlipped] = useState(false)
-
+  const dispatch = useDispatch<AppDispatch>()
   const handleClick = () => {
-    setIsFlipped((a) => !a)
+    dispatch(
+      setUserModalData({
+        username: friendData.username,
+        description:
+          friendData.description !== '' ? friendData.description : 'Clear',
+        avatar: friendData.avatar,
+        isOnline: friendData.isOnline,
+        userId: friendData.id,
+        banner:
+          friendData.banner ||
+          'https://i.pinimg.com/1200x/a1/10/0a/a1100a7d501b743aff598359c55e6dc0.jpg',
+      })
+    )
+    dispatch(setIsOpened(true))
   }
 
   return (
     <div
+      key={friendData.username}
+      className={cl.friendContainer}
+      onClick={handleClick}
       onMouseMove={(e) => {
         const card = e.currentTarget as HTMLDivElement
         const rect = card.getBoundingClientRect()
@@ -52,45 +74,17 @@ export const FriendCard: React.FC<IFriendCard> = ({
         const card = e.currentTarget as HTMLDivElement
         card.style.transform = 'rotateX(0deg) rotateY(0deg)'
         card.style.setProperty('--glare-opacity', `0`)
-        setIsFlipped(false)
       }}
-      className={cl.flipCard}
     >
-      <div className={`${cl.flipCardInner} ${isFlipped ? cl.flipped : ''}`}>
-        <div
-          key={friendData.username}
-          className={cl.friendContainer}
-          //   onClick={() => deleteFunc(friendData.id, currentUserId)}
-          onClick={handleClick}
-        >
-          <img
-            draggable={false}
-            src={friendData.avatar}
-            className={cl.avatarOnline}
-            alt="user-avatar"
-          />
-          <p className={cl.friendUsername} style={{ color: 'white' }}>
-            {friendData.username}
-          </p>
-        </div>
-        <div onClick={handleClick} className={cl.friendContainerBack}>
-          <button
-            onClick={(e) => {
-              deleteFunc(friendData.id, currentUserId)
-              e.stopPropagation()
-            }}
-            className={cl.deleteFriendButton}
-          >
-            <img
-              draggable={false}
-              className={cl.deleteFriendIcon}
-              src={deleteFriendIcon}
-              alt="delete-friend"
-            />
-          </button>
-          <p className={cl.friendUsername}>Delete?</p>
-        </div>
-      </div>
+      <img
+        draggable={false}
+        src={friendData.avatar}
+        className={cl.avatarOnline}
+        alt="user-avatar"
+      />
+      <p className={cl.friendUsername} style={{ color: 'white' }}>
+        {friendData.username}
+      </p>
     </div>
   )
 }

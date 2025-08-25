@@ -15,6 +15,7 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { useDispatch } from 'react-redux'
 import { updateChat } from '../../slices/chatSlice'
 import { addMessageToChat, setMessagesForChat } from '../../slices/chatMessages'
+import { removeReplyMessage } from '../../slices/replyMessageSlice'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -44,6 +45,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
+    dispatch(removeReplyMessage())
 
     return () => localStorage.setItem('chat-id', '')
   }, [chatId])
@@ -249,7 +251,12 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
 
   return (
     <div style={{ width: '100%', height: '100%', margin: '0', padding: '0' }}>
-      <div className={cl.light} />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className={cl.light}
+      />
       <div className={cl.chatHeader}>
         <div style={{ display: 'flex', gap: '.6vh' }}>
           <p className={cl.hashtag}>#</p>

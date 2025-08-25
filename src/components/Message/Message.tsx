@@ -116,7 +116,7 @@ export const Message: React.FC<IMessageProps> = ({
               </div>
             ) : (
               <p className={cl.username}>
-                ({time}) {message.senderId.username}
+                {message.senderId.username} ({time})
               </p>
             )}
             {isInteraction && (

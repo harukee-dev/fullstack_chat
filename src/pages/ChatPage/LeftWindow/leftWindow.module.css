@@ -26,8 +26,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: #000000;
   border: none;
   border-radius: 1vh;
@@ -47,8 +47,8 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: black;
   border: none;
   border-radius: 1vh;
@@ -60,6 +60,28 @@
   cursor: pointer;
   transition: 0.1s;
 }
+
+.friendsButtonActive {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 6.5vh;
+  max-height: 6.5vh;
+  border: none;
+  border-radius: 1vh;
+  background-color: #140617;
+  color: #944fbf;
+  text-align: start;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
 .icon {
   width: 3.4vh;
 }
@@ -71,12 +93,33 @@
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
-  height: 5.5vh;
-  max-height: 5.5vh;
+  height: 6.5vh;
+  max-height: 6.5vh;
   background-color: black;
   border: none;
   border-radius: 1vh;
   color: #7e7e7e;
+  font-family: 'Jost Regular', sans-serif;
+  font-weight: 400;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: 0.1s;
+  text-align: start;
+}
+
+.settingsButtonActive {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  padding-left: 2vh;
+  width: 26vw;
+  max-width: 27vw;
+  height: 6.5vh;
+  max-height: 6.5vh;
+  border: none;
+  border-radius: 1vh;
+  background-color: #140617;
+  color: #944fbf;
   font-family: 'Jost Regular', sans-serif;
   font-weight: 400;
   font-size: 2vh;
@@ -103,7 +146,7 @@
 .hr {
   width: 28vw;
   height: 1px;
-  background-color: #444444;
+  background-color: #242424;
   margin-top: 2vh;
 }
 
@@ -111,12 +154,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  border-top: #4e4e4e solid 1px;
-  background-color: black;
-  height: 9vh;
-  border-bottom-left-radius: 1vh;
-  border-bottom-right-radius: 1vh;
+  width: 25vw;
+  height: 8vh;
+  background-color: #0f0f0f;
+  border-radius: 1vh;
 }
 
 .yourAvatar {
@@ -129,20 +170,29 @@
   cursor: pointer;
 }
 
+.usernameAndStatus {
+  display: flex;
+  flex-direction: column;
+}
+
 .subUsername {
+  margin: 0;
+  padding: 0;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 1.75vh;
+  font-size: 1.9vh;
   color: white;
 }
 
 .subStatus {
+  margin: 0;
+  padding: 0;
   font-family: 'Jost Regular', sans-serif;
-  font-size: 1.75vh;
+  font-size: 1.55vh;
   color: #34e134;
   cursor: pointer;
 }
 
 .settingsIcon {
   cursor: pointer;
-  width: 2.6vh;
+  width: 2.95vh;
 }
