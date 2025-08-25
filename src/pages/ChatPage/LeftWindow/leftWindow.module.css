@@ -40,48 +40,6 @@
   text-align: start;
 }
 
-.friendsButton {
-  display: flex;
-  align-items: center;
-  gap: 1vh;
-  padding-left: 2vh;
-  width: 26vw;
-  max-width: 27vw;
-  height: 6.5vh;
-  max-height: 6.5vh;
-  background-color: black;
-  border: none;
-  border-radius: 1vh;
-  color: #7e7e7e;
-  text-align: start;
-  font-family: 'Jost Regular', sans-serif;
-  font-weight: 400;
-  font-size: 2vh;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-.friendsButtonActive {
-  display: flex;
-  align-items: center;
-  gap: 1vh;
-  padding-left: 2vh;
-  width: 26vw;
-  max-width: 27vw;
-  height: 6.5vh;
-  max-height: 6.5vh;
-  border: none;
-  border-radius: 1vh;
-  background-color: #140617;
-  color: #944fbf;
-  text-align: start;
-  font-family: 'Jost Regular', sans-serif;
-  font-weight: 400;
-  font-size: 2vh;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
 .icon {
   width: 3.4vh;
 }
@@ -89,7 +47,7 @@
 .settingsButton {
   display: flex;
   align-items: center;
-  gap: 1vh;
+  gap: 1.5vh;
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
@@ -110,7 +68,7 @@
 .settingsButtonActive {
   display: flex;
   align-items: center;
-  gap: 1vh;
+  gap: 1.5vh;
   padding-left: 2vh;
   width: 26vw;
   max-width: 27vw;
@@ -118,8 +76,8 @@
   max-height: 6.5vh;
   border: none;
   border-radius: 1vh;
-  background-color: #140617;
-  color: #944fbf;
+  background-color: #0d0d0d;
+  color: #dcdcdc;
   font-family: 'Jost Regular', sans-serif;
   font-weight: 400;
   font-size: 2vh;
@@ -129,18 +87,18 @@
 }
 
 .boostyButton:hover {
-  background-color: #140617;
-  color: #944fbf;
+  background-color: #0d0d0d;
+  color: #dcdcdc;
 }
 
 .friendsButton:hover {
-  background-color: #140617;
-  color: #944fbf;
+  background-color: #0d0d0d;
+  color: #dcdcdc;
 }
 
 .settingsButton:hover {
-  background-color: #140617;
-  color: #944fbf;
+  background-color: #0d0d0d;
+  color: #dcdcdc;
 }
 
 .hr {
@@ -194,5 +152,10 @@
 
 .settingsIcon {
   cursor: pointer;
-  width: 2.95vh;
+  width: 2.5vh;
+}
+
+.settingsIconAlt {
+  cursor: pointer;
+  width: 2.7vh;
 }
