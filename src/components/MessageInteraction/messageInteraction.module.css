@@ -18,6 +18,8 @@
 }
 
 .icon {
+  width: 2.1vh;
+  height: 2.1vh;
   transition: filter 0.1s ease;
 }
 

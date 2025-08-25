@@ -5,8 +5,8 @@ import { IMessage } from '../../types/IMessage'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
-import replyIcon from './images/reply-other-message.svg'
-import replyIconMessage from './images/reply-render.svg'
+import replyIcon from './images/reply-other-message.png'
+import replyIconMessage from './images/reply-render.png'
 
 interface IMessageProps {
   message: IMessage
@@ -108,6 +108,7 @@ export const Message: React.FC<IMessageProps> = ({
                 <div className={cl.reply}>
                   <p className={cl.replyText}>{message.replyMessage.text}</p>
                   <img
+                    style={{ width: '1.8vh' }}
                     draggable={false}
                     src={replyIconMessage}
                     alt="reply-icon"

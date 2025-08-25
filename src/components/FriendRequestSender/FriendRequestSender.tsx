@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { API_URL } from '../../constants'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import friendsIcon from './images/friends-gray.svg'
+import friendsIcon from './images/friends-gray.png'
 import cl from './friendRequestSender.module.css'
 import messageIcon from './images/message-icon.svg'
 import deleteFriendIcon from './images/delete-friend-icon.svg'
