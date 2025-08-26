@@ -107,7 +107,12 @@ export const FriendModal: React.FC<IFriendModal> = ({
       >
         <img className={cl.banner} src={banner} alt="BANNER" />
         <div className={cl.avatarAndInfoContainer}>
-          <img className={cl.avatar} src={avatar} alt="AVATAR" />
+          <img
+            className={cl.avatar}
+            draggable={false}
+            src={avatar}
+            alt="AVATAR"
+          />
           <div className={cl.infoAndButtonsContainer}>
             <div className={cl.nicknameAndStatusContainer}>
               <p className={cl.nickname}>{username}</p>

@@ -12,7 +12,7 @@
   border-radius: 1vh;
   background-color: rgba(0, 0, 0, 0.479);
   border: 1px solid #ffffff14;
-  box-shadow: inset 0 0 2vh #ffffff1a;
+  box-shadow: inset 0 0 2vh #ffffff10;
   backdrop-filter: blur(2px);
 }
 
@@ -28,7 +28,7 @@
   border-radius: 1vh;
   background-color: rgba(0, 0, 0, 0.479);
   border: #4e4e4e2c solid 1px;
-  box-shadow: inset 0 0 2vh #ffffff1d;
+  box-shadow: inset 0 0 2vh #ffffff0c;
   backdrop-filter: blur(2px);
 }
 
