@@ -43,6 +43,9 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const currentChatName = localStorage.getItem('current-chat-name')
   const replyMessage = useAppSelector((state) => state.reply.message)
   const [isReply, setIsReply] = useState<boolean>(false)
+  const [isSearch, setIsSearch] = useState<boolean>(false)
+  const [searchMessages, setSearchMessages] = useState<IMessage[]>([])
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     setIsReply(replyMessage !== null)
@@ -58,7 +61,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       behavior: 'auto',
     })
     hasScrolledRef.current = true
-  }, [isReply])
+  }, [isReply, isSearch])
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
@@ -261,8 +264,13 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
     )
   }
 
+  // SEARCH FUNCTION
+
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
+      setSearchMessages(messages.filter((el) => el.text.includes(search)))
+      if (search === '') setIsSearch(false)
+      else setIsSearch(true)
     }
   }
 
@@ -290,6 +298,7 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
         isShowPinned={isShowPinnedMessages}
         handleShowPinned={handleShowPinned}
         handleSearch={handleSearch}
+        setSearch={setSearch}
       />
       <div
         onScroll={handleScroll}
@@ -298,7 +307,12 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
       >
         {/* Можно здесь потом добавить Пин и Поиск */}
 
-        {(isShowPinnedMessages ? pinnedMessages : messages).map((el, index) => {
+        {(isShowPinnedMessages
+          ? pinnedMessages
+          : isSearch
+          ? searchMessages
+          : messages
+        ).map((el, index) => {
           const currentMessageDate = new Date(el.timestamp ?? new Date())
           const prevMessage = isShowPinnedMessages
             ? pinnedMessages[index - 1]
@@ -355,6 +369,7 @@ interface IChatPanel {
   isOpened: boolean
   setIsNotFound: React.Dispatch<React.SetStateAction<boolean>>
   isNotFound: boolean
+  setSearch: any
 }
 
 const ChatPanel: React.FC<IChatPanel> = ({
@@ -364,6 +379,7 @@ const ChatPanel: React.FC<IChatPanel> = ({
   isOpened,
   setIsNotFound,
   isNotFound,
+  setSearch,
 }) => {
   return (
     <div>
@@ -380,6 +396,7 @@ const ChatPanel: React.FC<IChatPanel> = ({
               Show {isShowPinned ? 'all' : 'pinned'} messages
             </button>
             <input
+              onChange={(event) => setSearch(event.target.value)}
               onKeyDown={handleSearch}
               className={cl.panelInput}
               type="text"
