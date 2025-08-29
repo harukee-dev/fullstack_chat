@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux'
 import { updateChat } from '../../slices/chatSlice'
 import { addMessageToChat, setMessagesForChat } from '../../slices/chatMessages'
 import { removeReplyMessage } from '../../slices/replyMessageSlice'
+import { SystemNotification } from '../SystemNotification/SystemNotification'
 
 interface IChatComponentProps {
   setShowScrollButton: (value: boolean) => void
@@ -46,6 +47,9 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const [isSearch, setIsSearch] = useState<boolean>(false)
   const [searchMessages, setSearchMessages] = useState<IMessage[]>([])
   const [search, setSearch] = useState('')
+  const { isSystemNotification, text } = useAppSelector(
+    (state) => state.systemNotification
+  )
 
   useEffect(() => {
     setIsReply(replyMessage !== null)
@@ -300,6 +304,9 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
         handleSearch={handleSearch}
         setSearch={setSearch}
       />
+      <AnimatePresence>
+        {isSystemNotification && <SystemNotification text={text} />}
+      </AnimatePresence>
       <div
         onScroll={handleScroll}
         className={isReply ? cl.chatWithPaddingBottom : cl.chat}
