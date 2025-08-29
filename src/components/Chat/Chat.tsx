@@ -28,7 +28,6 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   chatRef,
   socket,
 }) => {
-  const { chats } = useAppSelector((state) => state.chats)
   const [messages, setMessages] = useState<IMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pinnedMessages, setPinnedMessages] = useState<IMessage[]>([])
@@ -371,10 +370,10 @@ const ChatPanel: React.FC<IChatPanel> = ({
       <AnimatePresence>
         {isOpened && (
           <motion.div
-            initial={{ opacity: 0, x: 5, y: -5 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            exit={{ opacity: 0, x: 5, y: -5 }}
+            exit={{ opacity: 0, y: -15 }}
             className={cl.panelContainer}
           >
             <button onClick={handleShowPinned} className={cl.panelButton}>
