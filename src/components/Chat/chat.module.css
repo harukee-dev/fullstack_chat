@@ -17,6 +17,20 @@
   scrollbar-width: 0.9vh;
 }
 
+.chatWithPaddingBottom {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  min-height: 85vh;
+  max-height: 97vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10vh 2vh 18vh 2vh;
+  width: 100%;
+  scrollbar-width: 0.9vh;
+}
+
 .chat::-webkit-scrollbar {
   width: 0.9vh; /* Ширина полосы прокрутки */
 }

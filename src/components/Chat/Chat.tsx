@@ -42,6 +42,24 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
   const { chatId } = useParams<{ chatId: string }>()
   const { messagesByChatId } = useAppSelector((state) => state.messagesByChatId)
   const currentChatName = localStorage.getItem('current-chat-name')
+  const replyMessage = useAppSelector((state) => state.reply.message)
+  const [isReply, setIsReply] = useState<boolean>(false)
+
+  useEffect(() => {
+    setIsReply(replyMessage !== null)
+  }, [replyMessage])
+
+  useEffect(() => {
+    hasScrolledRef.current = false
+    const chatEl = chatRef.current
+    if (!chatEl || hasScrolledRef.current) return
+
+    chatEl.scrollTo({
+      top: chatEl.scrollHeight,
+      behavior: 'auto',
+    })
+    hasScrolledRef.current = true
+  }, [isReply])
 
   useEffect(() => {
     if (chatId) localStorage.setItem('chat-id', chatId)
@@ -274,7 +292,11 @@ export const ChatComponent: React.FC<IChatComponentProps> = ({
         handleShowPinned={handleShowPinned}
         handleSearch={handleSearch}
       />
-      <div onScroll={handleScroll} className={cl.chat} ref={chatRef}>
+      <div
+        onScroll={handleScroll}
+        className={isReply ? cl.chatWithPaddingBottom : cl.chat}
+        ref={chatRef}
+      >
         {/* Можно здесь потом добавить Пин и Поиск */}
 
         {(isShowPinnedMessages ? pinnedMessages : messages).map((el, index) => {
