@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch, useAppSelector } from '../../store'
 import { removeReplyMessage } from '../../slices/replyMessageSlice'
 import closeIcon from './images/close_icon.png'
-import { EmojiPicker } from '../EmojiPicker/EmojiPicker'
 import sendIcon from './images/send-icon.svg'
 
 interface Interaction {

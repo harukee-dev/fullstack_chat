@@ -8,6 +8,7 @@ const { secret } = require('./config')
 const server = http.createServer(app)
 const Message = require('./models/Message')
 const friendsRouter = require('./routes/friends')
+const path = require('path')
 
 const CLIENT_URL = 'http://localhost:3000'
 // const CLIENT_URL = 'https://omnio-web.netlify.app'
@@ -32,6 +33,7 @@ const io = new Server(server, {
 })
 
 const { setupSocketHandlers } = require('./socketHandler')
+const ACTIONS = require('./actions')
 setupSocketHandlers(io)
 
 io.use((socket, next) => {

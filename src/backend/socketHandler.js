@@ -2,12 +2,25 @@ const jwt = require('jsonwebtoken')
 const Message = require('./models/Message')
 const { secret } = require('./config')
 const User = require('./models/User')
-const { io } = require('socket.io-client')
 const Chat = require('./models/Chat')
+const ACTIONS = require('./actions')
+const { version, validate } = require('uuid')
 
 // Множества пользователей
 const typingUsers = new Set()
 const onlineUsers = new Map()
+
+function getClientRooms(io) {
+  const { rooms } = io.sockets.adapter
+
+  return Array.from(rooms.keys()).filter(
+    (roomID) => validate(roomID) && version(roomID) === 4
+  )
+}
+
+function shareRoomsInfo(io) {
+  io.emit(ACTIONS.SHARE_ROOMS, { rooms: getClientRooms(io) })
+}
 
 // Аутентификация по JWT
 function authenticateSocket(socket, next) {
@@ -242,6 +255,7 @@ function setupSocketHandlers(io) {
   io.use(authenticateSocket)
 
   io.on('connection', async (socket) => {
+    shareRoomsInfo(io)
     const userId = socket.user.id
     userSockets.set(userId.toString(), socket.id)
     socket.join(userId.toString())
@@ -397,6 +411,71 @@ function setupSocketHandlers(io) {
         })
       }
     })
+    socket.on(ACTIONS.JOIN, (config) => {
+      const { room: roomID } = config
+      if (!roomID) return
+
+      // 1️⃣ Сразу добавляем сокет в комнату
+      socket.join(roomID)
+
+      // 2️⃣ Список всех клиентов в комнате
+      const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || [])
+
+      // 3️⃣ Сообщаем каждому клиенту про всех остальных
+      clients.forEach((clientID) => {
+        if (clientID === socket.id) return
+
+        // Старые клиенты узнают о новом
+        io.to(clientID).emit(ACTIONS.ADD_PEER, {
+          peerID: socket.id,
+          createOffer: false,
+        })
+
+        // Новый клиент узнает о старых
+        socket.emit(ACTIONS.ADD_PEER, {
+          peerID: clientID,
+          createOffer: true,
+        })
+      })
+
+      // 4️⃣ Обновляем комнаты у всех
+      shareRoomsInfo(io)
+    })
+    function leaveRoom() {
+      const { rooms } = socket
+      Array.from(rooms).forEach((roomID) => {
+        const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || [])
+        clients.forEach((clientID) => {
+          io.to(clientID).emit(ACTIONS.REMOVE_PEER, {
+            peerID: socket.id,
+          })
+
+          socket.emit(ACTIONS.REMOVE_PEER, {
+            peerID: clientID,
+          })
+        })
+
+        socket.leave(roomID)
+      })
+      shareRoomsInfo(io)
+    }
+
+    socket.on(ACTIONS.RELAY_SDP, ({ peerID, sessionDescription }) => {
+      io.to(peerID).emit(ACTIONS.SESSION_DESCRIPTION, {
+        peerID: socket.id,
+        sessionDescription,
+      })
+    })
+
+    socket.on(ACTIONS.RELAY_ICE, ({ peerID, iceCandidate }) => {
+      io.to(peerID).emit(ACTIONS.ICE_CANDIDATE, {
+        peerID: socket.id,
+        iceCandidate,
+      })
+    })
+
+    socket.on(ACTIONS.LEAVE, leaveRoom)
+    socket.on('disconnecting', leaveRoom)
   })
 }
 
