@@ -28,6 +28,7 @@ import {
   unpinMessageInChat,
   pinMessageInChat as pinInChat,
 } from '../../../slices/chatMessages'
+import { useSocket } from '../../../SocketContext'
 
 interface IRequest {
   avatar: string
@@ -43,7 +44,8 @@ export const RightWindow = () => {
   const { chats } = useAppSelector((state) => state.chats)
   const token = useSelector((state: RootState) => state.auth.token)
   const isAuth = !!token
-  const [socket, setSocket] = useState<Socket | null>(null)
+  // const [socket, setSocket] = useState<Socket | null>(null)
+  const { socket } = useSocket()
   const [usersTyping, setUsersTyping] = useState<string[]>([])
   const username = localStorage.getItem('username')
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
@@ -132,19 +134,12 @@ export const RightWindow = () => {
   }, [originalTitle])
 
   useEffect(() => {
-    if (!isAuth || !currentUserId || !token) return
-
-    const newSocket = io(API_URL, {
-      query: { userId: currentUserId },
-      auth: { token },
-      transports: ['websocket'],
-    })
+    const newSocket = socket
+    if (!newSocket) return
 
     newSocket.on('connect_error', (error) => {
       console.log('Ошибка подключения:', error)
     })
-
-    setSocket(newSocket)
 
     newSocket.on('onlineChatUsersList', (onlineUserIds: string[]) => {
       console.log('Online Users IDS: ', onlineUserIds)

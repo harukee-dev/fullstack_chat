@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import cl from './myMessage.module.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import { IMessage } from '../../types/IMessage'
@@ -6,7 +6,11 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setReplyMessage } from '../../slices/replyMessageSlice'
 import { MessageInteraction } from '../MessageInteraction/MessageInteraction'
-import replyIcon from './images/reply-render.svg'
+import replyIcon from './images/reply-render.png'
+import {
+  setSystemNotification,
+  setSystemNotificationText,
+} from '../../slices/systemNotificationSlice'
 
 interface IMessageProps {
   message: IMessage
@@ -51,12 +55,32 @@ export const MyMessage: React.FC<IMessageProps> = ({
     })
   }, [socket])
 
+  let timeout = useRef<any>(null)
+
   const handlePin = () => {
     if (message && !isPinned) {
       socket.emit('newPin', { _id: message._id })
+      dispatch(setSystemNotification(false))
+      if (timeout.current) clearTimeout(timeout.current)
+      setTimeout(() => {
+        dispatch(setSystemNotificationText('successfully pinned'))
+        dispatch(setSystemNotification(true))
+        timeout.current = setTimeout(() => {
+          dispatch(setSystemNotification(false))
+        }, 2000)
+      }, 410)
     }
     if (message && isPinned) {
       socket.emit('unpin', { _id: message._id })
+      dispatch(setSystemNotification(false))
+      if (timeout.current) clearTimeout(timeout.current)
+      setTimeout(() => {
+        dispatch(setSystemNotificationText('successfully unpinned'))
+        dispatch(setSystemNotification(true))
+        timeout.current = setTimeout(() => {
+          dispatch(setSystemNotification(false))
+        }, 2000)
+      }, 410)
     }
   }
 
@@ -68,10 +92,16 @@ export const MyMessage: React.FC<IMessageProps> = ({
 
   const handleDelete = () => {
     socket.emit('deleteMessage', { _id: message._id })
-    console.log('request to delete, _id: ' + message._id)
+    dispatch(setSystemNotification(false))
+    if (timeout.current) clearTimeout(timeout.current)
+    setTimeout(() => {
+      dispatch(setSystemNotificationText('successfully deleted'))
+      dispatch(setSystemNotification(true))
+      timeout.current = setTimeout(() => {
+        dispatch(setSystemNotification(false))
+      }, 2000)
+    }, 410)
   }
-
-  // WORK HERE
 
   const handleMouseEnter = () => {
     setIsInteraction(() => true)
@@ -86,12 +116,24 @@ export const MyMessage: React.FC<IMessageProps> = ({
     setIsEditing(false)
 
     if (
-      /[a-zA-Zа-яА-Я0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(textareaValue)
+      /[a-zA-Zа-яА-Я0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+        textareaValue
+      ) &&
+      textareaValue !== message.text
     ) {
       socket.emit('editMessage', {
         _id: message._id,
         text: textareaValue,
       })
+      dispatch(setSystemNotification(false))
+      if (timeout.current) clearTimeout(timeout.current)
+      setTimeout(() => {
+        dispatch(setSystemNotificationText('successfully edited'))
+        dispatch(setSystemNotification(true))
+        timeout.current = setTimeout(() => {
+          dispatch(setSystemNotification(false))
+        }, 2000)
+      }, 410)
     } else {
       setTextareaValue(cache)
     }
@@ -120,7 +162,12 @@ export const MyMessage: React.FC<IMessageProps> = ({
             >
               <div className={cl.reply}>
                 <p className={cl.replyText}>{message.replyMessage.text}</p>
-                <img draggable={false} src={replyIcon} alt="reply-icon" />
+                <img
+                  style={{ width: '1.8vh' }}
+                  draggable={false}
+                  src={replyIcon}
+                  alt="reply-icon"
+                />
               </div>
               <p className={cl.username}>
                 ({time}) {message.senderId.username}

@@ -37,8 +37,10 @@
 }
 
 .avatarOnline {
-  width: 5vh;
   height: 5vh;
+  max-height: 5vh;
+  width: 5vh;
+  max-width: 5vh;
   margin-left: 1.25vh;
   border-radius: 100%;
   position: relative;
@@ -48,7 +50,9 @@
 }
 .avatarOffline {
   height: 5vh;
+  max-height: 5vh;
   width: 5vh;
+  max-width: 5vh;
   margin-left: 1.25vh;
   border-radius: 100%;
   position: relative;

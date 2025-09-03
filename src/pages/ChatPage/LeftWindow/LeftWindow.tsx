@@ -1,16 +1,16 @@
 import { ChatsList } from '../../../components/ChatsList/ChatsList'
 import cl from './leftWindow.module.css'
 import { TIP_URL } from '../../../constants'
-import moneyIconGray from './images/money-gray.svg'
-import moneyIconPurple from './images/money-purple.svg'
-import friendsIconGray from './images/friends-gray.svg'
-import friendsIconPurple from './images/friends-purple.svg'
-import fluxIconGray from './images/flux-gray.svg'
-import fluxIconPurple from './images/flux-purple.svg'
+import moneyIconGray from './images/money-gray.png'
+import moneyIconPurple from './images/money-purple.png'
+import friendsIconGray from './images/friends-gray.png'
+import friendsIconPurple from './images/friends-purple.png'
+import fluxIconGray from './images/flux-gray.png'
+import fluxIconPurple from './images/flux-purple.png'
 import { useEffect, useMemo, useState } from 'react'
-import micIcon from './images/mic-icon.svg'
-import headphonesIcon from './images/headphones-icon.svg'
-import settingsIcon from './images/settings-icon.svg'
+import micIcon from './images/mic-icon.png'
+import headphonesIcon from './images/headphones-icon.png'
+import settingsIcon from './images/settings-icon.png'
 import { matchPath, useLocation, useNavigate } from 'react-router-dom'
 
 export const LeftWindow = () => {
@@ -77,8 +77,8 @@ export const LeftWindow = () => {
             onMouseLeave={() => setFriendsHover(false)}
             className={
               currentPath === 'friends'
-                ? cl.friendsButtonActive
-                : cl.friendsButton
+                ? cl.settingsButtonActive
+                : cl.settingsButton
             }
             onClick={() => navigate('/main/friends/list')}
           >
@@ -151,7 +151,7 @@ export const LeftWindow = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '1vw',
+                gap: '1.2vw',
                 marginRight: '2.15vw',
               }}
             >
@@ -169,7 +169,7 @@ export const LeftWindow = () => {
               />
               <img
                 draggable={false}
-                className={cl.settingsIcon}
+                className={cl.settingsIconAlt}
                 src={settingsIcon}
                 alt="settings-icon"
               />

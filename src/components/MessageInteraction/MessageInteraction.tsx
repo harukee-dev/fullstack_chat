@@ -1,8 +1,8 @@
 import cl from './messageInteraction.module.css'
-import replyIcon from './images/reply.svg'
-import deleteIcon from './images/delete.svg'
-import pinIcon from './images/pin.svg'
-import editIcon from './images/edit.svg'
+import replyIcon from './images/reply.png'
+import deleteIcon from './images/delete.png'
+import pinIcon from './images/pin.png'
+import editIcon from './images/edit.png'
 
 interface IMessageInteractionProps {
   replyFunc: any
