@@ -20,6 +20,8 @@ export const TestPage = () => {
     if (!socket) {
       console.log('!socket')
       return
+    } else {
+      console.log('socket')
     }
     socket.on(ACTIONS.SHARE_ROOMS, ({ rooms = [] } = {}) => {
       if (rootNode.current) {
