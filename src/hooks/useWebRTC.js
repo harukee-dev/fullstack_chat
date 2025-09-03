@@ -36,7 +36,7 @@ export default function useWebRTC(roomID) {
       }
 
       peerConnections.current[peerID] = new RTCPeerConnection({
-        iceServers: freeice(),
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       })
 
       peerConnections.current[peerID].onicecandidate = (event) => {
