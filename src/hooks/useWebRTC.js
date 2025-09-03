@@ -166,10 +166,14 @@ export default function useWebRTC(roomID) {
   useEffect(() => {
     async function startCapture() {
       localMediaStream.current = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
         video: {
-          width: 1280,
-          height: 720,
+          width: 1920,
+          height: 1080,
         },
       })
 
