@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@picovoice/web-voice-processor": "^4.0.9",
     "@reduxjs/toolkit": "^2.6.1",
+    "@shiguredo/rnnoise-wasm": "^2025.1.5",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -33,12 +35,13 @@
     "socket.io-client": "^4.8.1",
     "typescript": "^4.9.5",
     "uuid": "^11.1.0",
+    "voice-activity-detection": "^0.0.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "client": "react-scripts start",
+    "client": "react-app-rewired start",
     "start": "node src/backend/server.js",
-    "build": "react-scripts build",
+    "build": "react-app-rewired build",
     "heroku-postbuild": "npm run build"
   },
   "eslintConfig": {
@@ -60,6 +63,7 @@
     ]
   },
   "devDependencies": {
-    "@types/jwt-decode": "^2.2.1"
+    "@types/jwt-decode": "^2.2.1",
+    "react-app-rewired": "^2.2.1"
   }
 }

@@ -29,26 +29,50 @@ export const Room = () => {
     }
   }, [token, currentUserId])
 
-  const { clients, provideMediaRef } = useWebRTC(roomID)
+  const { clients, provideMediaRef, isSpeaking, setThresholdDb, thresholdDb } =
+    useWebRTC(roomID)
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <h1>Room {roomID}</h1>
-      {clients.map((clientID: string) => (
-        <div key={clientID} style={{ flex: '1 1 40%' }}>
-          <video
-            ref={(instance) => provideMediaRef(clientID, instance)}
-            autoPlay
-            playsInline
-            muted={clientID === LOCAL_VIDEO}
-            style={{
-              width: '30vw',
-              borderRadius: '8px',
-              backgroundColor: '#000',
-            }}
-          />
-        </div>
-      ))}
+
+      {/* Настройка порога */}
+      <div>
+        <label htmlFor="threshold">
+          🎚 Порог чувствительности (дБ): {thresholdDb}
+        </label>
+        <input
+          id="threshold"
+          type="range"
+          min="-60"
+          max="0"
+          step="1"
+          onChange={(e) => setThresholdDb(parseInt(e.target.value))}
+          style={{ width: '300px' }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        {clients.map((clientID: string) => (
+          <div key={clientID} style={{ flex: '1 1 40%' }}>
+            <video
+              ref={(instance) => provideMediaRef(clientID, instance)}
+              autoPlay
+              playsInline
+              muted={clientID === LOCAL_VIDEO}
+              style={{
+                width: '30vw',
+                borderRadius: '1vh',
+                backgroundColor: '#000',
+                border:
+                  clientID === LOCAL_VIDEO && isSpeaking
+                    ? '1px solid lime'
+                    : '1px solid transparent',
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
