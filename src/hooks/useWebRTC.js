@@ -9,7 +9,7 @@ export default function useWebRTC(roomID) {
   const { socket } = useSocket()
   const [clients, updateClients] = useStateWithCallback([])
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const [thresholdDb, setThresholdDb] = useState(-42) // разумный дефолт, можно регулировать
+  const [thresholdDb, setThresholdDb] = useState(-42)
 
   const addNewClient = useCallback(
     (newClient, cb) => {
@@ -49,12 +49,12 @@ export default function useWebRTC(roomID) {
       const analyser = analyserRef.current
       const bufferLen = analyser.fftSize
       const data = new Uint8Array(bufferLen)
-      analyser.getByteTimeDomainData(data) // time-domain 0..255
+      analyser.getByteTimeDomainData(data)
 
       // compute RMS
       let sum = 0
       for (let i = 0; i < bufferLen; i++) {
-        const v = (data[i] - 128) / 128 // -1..1
+        const v = (data[i] - 128) / 128
         sum += v * v
       }
       const rms = Math.sqrt(sum / bufferLen)
@@ -73,7 +73,6 @@ export default function useWebRTC(roomID) {
         }
         isSpeakingRef.current = true
         setIsSpeaking(true)
-        // fade in quickly
         gainNode.current.gain.cancelScheduledValues(
           audioContext.current.currentTime
         )
@@ -82,12 +81,9 @@ export default function useWebRTC(roomID) {
           audioContext.current.currentTime,
           0.01
         )
-        // debug
-        // console.log('🔊 Говорит', `RMS:${rms.toFixed(5)} dB:${db.toFixed(1)} thr:${currentThreshold}`)
       }
 
       if (!isCurrentlySpeaking && isSpeakingRef.current) {
-        // wait 150ms of silence before turning off
         if (!silenceTimeout.current) {
           silenceTimeout.current = setTimeout(() => {
             isSpeakingRef.current = false
@@ -101,13 +97,11 @@ export default function useWebRTC(roomID) {
               0.05
             )
             silenceTimeout.current = null
-            // console.log('🔇 Тишина', `dB:${db.toFixed(1)} thr:${currentThreshold}`)
           }, 150)
         }
       }
     } catch (err) {
-      // не ломаем всё из-за ошибок анализа
-      // console.warn('checkAudioLevel error', err)
+      // ignore errors
     }
   }, [])
 
@@ -120,7 +114,7 @@ export default function useWebRTC(roomID) {
         latencyHint: 'interactive',
       })
       gainNode.current = audioContext.current.createGain()
-      gainNode.current.gain.value = 0 // по умолчанию заглушено, VAD откроет при голосе
+      gainNode.current.gain.value = 0
     } catch (error) {
       console.warn('Failed to initialize audio processing:', error)
     }
@@ -224,7 +218,7 @@ export default function useWebRTC(roomID) {
     [checkAudioLevel]
   )
 
-  // --- Peer connection handlers (как в старой версии) ---
+  // === Peer connection handlers ===
   useEffect(() => {
     async function handleNewPeer({ peerID, createOffer }) {
       if (peerID in peerConnections.current) {
@@ -379,7 +373,6 @@ export default function useWebRTC(roomID) {
         localMediaStream.current.getTracks().forEach((track) => track.stop())
         localMediaStream.current = null
       }
-      // leave room
       try {
         socket.emit(ACTIONS.LEAVE)
       } catch (e) {}
