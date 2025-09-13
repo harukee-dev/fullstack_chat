@@ -64,10 +64,7 @@ export const Room = () => {
                 width: '30vw',
                 borderRadius: '1vh',
                 backgroundColor: '#000',
-                border:
-                  clientID === LOCAL_VIDEO && isSpeaking
-                    ? '1px solid lime'
-                    : '1px solid transparent',
+                border: isSpeaking ? '1px solid lime' : '1px solid transparent',
               }}
             />
           </div>
