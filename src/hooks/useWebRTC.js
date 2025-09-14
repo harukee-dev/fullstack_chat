@@ -3,6 +3,8 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import useStateWithCallback from './useStateWithCallback'
 import ACTIONS from '../backend/actions'
 import { useSocket } from '../SocketContext'
+import userJoinSound from './join-sound.mp3'
+import userLeaveSound from './leave-sound.mp3'
 
 // создание константы LOCAL_VIDEO - оно будет использоваться для вывода локального видео (вебки/стрима)
 export const LOCAL_VIDEO = 'LOCAL_VIDEO'
@@ -42,10 +44,20 @@ export default function useWebRTC(roomID) {
   // Состояния войс-детекшена
   const isSpeakingRef = useRef(false) // состояние гс активности (говорит/не говорит)
   const thresholdRef = useRef(thresholdDb) // порог чувствительности - синхронится со стейтом но используется в колбеках без замыканий
+  const audioPlayer = useRef(null)
+  const audioPlayerLeave = useRef(null)
 
   // useEffect для порога чувствительности - благодаря нему узел чувствительности всегда имеет актуальное значение
   useEffect(() => {
     thresholdRef.current = thresholdDb // обновлять значение узла чувтвительности из стейта
+    if (audioPlayer.current) {
+      audioPlayer.current.pause()
+      audioPlayer.current = null
+    }
+    if (audioPlayerLeave.current) {
+      audioPlayerLeave.current.pause()
+      audioPlayerLeave.current = null
+    }
   }, [thresholdDb]) // каждый раз когда стейт меняется
 
   // Проверка уровня звука (RMS -> dB) с гистерезисом
@@ -259,6 +271,8 @@ export default function useWebRTC(roomID) {
 
   // Обработка новых Peer соединений
   useEffect(() => {
+    audioPlayer.current = new Audio(userJoinSound)
+    audioPlayer.current.volume = 0.15
     async function handleNewPeer({ peerID, createOffer }) {
       // создаем асинхронную функцию, которая будет срабатывать при подключении нового клиента в звонок
       if (peerID in peerConnections.current) {
@@ -294,6 +308,11 @@ export default function useWebRTC(roomID) {
             if (peerMediaElements.current[peerID]) {
               // если элемент создан
               peerMediaElements.current[peerID].srcObject = remoteStream // назначаем медиапоток video элементу
+
+              if (audioPlayer.current) {
+                audioPlayer.current.currentTime = 0
+                audioPlayer.current.play().catch((e) => console.log(e))
+              }
             } else {
               // иначе, если элемент еще не создан
               let settled = false // создаем временную переменную - создан ли элемент
@@ -302,6 +321,12 @@ export default function useWebRTC(roomID) {
                 if (peerMediaElements.current[peerID]) {
                   // если элемент создался
                   peerMediaElements.current[peerID].srcObject = remoteStream // назначаем медиапоток video элементу
+
+                  if (audioPlayer.current) {
+                    audioPlayer.current.currentTime = 0
+                    audioPlayer.current.play().catch((e) => console.log(e))
+                  }
+
                   settled = true // задаем значение временное переменной, что все создалось, чтобы закончить интервал
                 }
                 if (settled) clearInterval(interval) // если переменная true, то есть элемент создался, то сбрасываем интервал
@@ -332,7 +357,13 @@ export default function useWebRTC(roomID) {
     }
 
     socket.on(ACTIONS.ADD_PEER, handleNewPeer) // подписываемся на событие добавления нового пира
-    return () => socket.off(ACTIONS.ADD_PEER) // и отписываемся при размонтировании
+    return () => {
+      if (audioPlayer.current) {
+        audioPlayer.current.pause()
+        audioPlayer.current = null
+      }
+      socket.off(ACTIONS.ADD_PEER)
+    } // и отписываемся при размонтировании
   }, [socket, addNewClient]) // тем самым обработка входащих подключений с правильной очисткой при размонтировании
 
   // Процесс установления соединения (то что выше):
@@ -409,6 +440,8 @@ export default function useWebRTC(roomID) {
   // Обработка удаления пира (при его выходе из звонка)
   useEffect(() => {
     // создаем эффект
+    audioPlayerLeave.current = new Audio(userLeaveSound)
+    audioPlayerLeave.current.volume = 0.15
     const handleRemovePeer = ({ peerID }) => {
       // делаем функцию для обработки сигнала об удалении пира
       if (peerConnections.current[peerID])
@@ -417,6 +450,10 @@ export default function useWebRTC(roomID) {
       delete peerConnections.current[peerID] // удаляем это соединение с пиром из списка текущих пир соединений
       delete peerMediaElements.current[peerID] // удаляем медиа (аудио/видео) этого пира из списка текущих медиа элементов
       updateClients((list) => list.filter((c) => c !== peerID)) // обновляем стейт текущих клиентов, состоящих в звонке
+      if (audioPlayerLeave.current) {
+        audioPlayerLeave.current.currentTime = 0
+        audioPlayerLeave.current.play().catch((e) => console.log(e))
+      }
     }
 
     socket.on(ACTIONS.REMOVE_PEER, handleRemovePeer) // делаем обработку вышенаписанной функцией сигнала об удалении пира (отключении из звонка какого-то пользователя)

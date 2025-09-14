@@ -1,34 +1,9 @@
-import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import useWebRTC, { LOCAL_VIDEO } from '../../hooks/useWebRTC'
-import { io } from 'socket.io-client'
-import { API_URL } from '../../constants'
-import { useAppSelector } from '../../store'
 import { easeInOut, motion } from 'framer-motion'
 
 export const Room = () => {
   const { id: roomID } = useParams()
-  const currentUserId = localStorage.getItem('user-id')
-  const { token } = useAppSelector((state) => state.auth)
-
-  const [socket, setSocket] = useState<any>(null)
-
-  useEffect(() => {
-    if (!token || !currentUserId) return
-
-    const s = io(API_URL, {
-      query: { userId: currentUserId },
-      auth: { token },
-      transports: ['websocket'],
-    })
-
-    setSocket(s)
-
-    return () => {
-      s.disconnect()
-      setSocket(null)
-    }
-  }, [token, currentUserId])
 
   const { clients, provideMediaRef, isSpeaking, setThresholdDb, thresholdDb } =
     useWebRTC(roomID)
@@ -71,7 +46,15 @@ export const Room = () => {
             layout
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.35, ease: easeInOut }}
+            transition={{
+              duration: 0.35,
+              ease: easeInOut,
+              delay: 0.2,
+              layout: {
+                duration: 0.3,
+                ease: easeInOut,
+              },
+            }}
             key={clientID}
           >
             <video
