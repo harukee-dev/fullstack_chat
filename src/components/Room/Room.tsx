@@ -4,6 +4,7 @@ import useWebRTC, { LOCAL_VIDEO } from '../../hooks/useWebRTC'
 import { io } from 'socket.io-client'
 import { API_URL } from '../../constants'
 import { useAppSelector } from '../../store'
+import { easeInOut, motion } from 'framer-motion'
 
 export const Room = () => {
   const { id: roomID } = useParams()
@@ -33,14 +34,26 @@ export const Room = () => {
     useWebRTC(roomID)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1vh',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '90vh',
+      }}
+    >
       <h1>Room {roomID}</h1>
-
-      {/* Настройка порога */}
-      <div>
-        <label htmlFor="threshold">
-          🎚 Порог чувствительности (дБ): {thresholdDb}
-        </label>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1vh',
+        }}
+      >
+        <p>{thresholdDb}dB</p>
         <input
           id="threshold"
           type="range"
@@ -52,9 +65,15 @@ export const Room = () => {
         />
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1vh' }}>
         {clients.map((clientID: string) => (
-          <div key={clientID} style={{ flex: '1 1 40%' }}>
+          <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, ease: easeInOut }}
+            key={clientID}
+          >
             <video
               ref={(instance) => provideMediaRef(clientID, instance)}
               autoPlay
@@ -67,7 +86,7 @@ export const Room = () => {
                 border: isSpeaking ? '1px solid lime' : '1px solid transparent',
               }}
             />
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
