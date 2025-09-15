@@ -1,12 +1,14 @@
 import { useParams } from 'react-router-dom'
 import useWebRTC, { LOCAL_VIDEO } from '../../hooks/useWebRTC'
 import { easeInOut, motion } from 'framer-motion'
+import { useState } from 'react'
 
 export const Room = () => {
   const { id: roomID } = useParams()
+  const [isMicrophoneMuted, setIsMicrophoneMuted] = useState<boolean>(false)
 
   const { clients, provideMediaRef, isSpeaking, setThresholdDb, thresholdDb } =
-    useWebRTC(roomID)
+    useWebRTC(roomID, isMicrophoneMuted)
 
   return (
     <div
@@ -38,6 +40,12 @@ export const Room = () => {
           onChange={(e) => setThresholdDb(parseInt(e.target.value))}
           style={{ width: '300px' }}
         />
+        <button
+          onClick={() => setIsMicrophoneMuted((m) => !m)}
+          style={{ color: 'black', cursor: 'pointer' }}
+        >
+          {isMicrophoneMuted ? 'unmute' : 'mute'} microphone
+        </button>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1vh' }}>

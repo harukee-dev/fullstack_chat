@@ -10,7 +10,7 @@ import userLeaveSound from './leave-sound.mp3'
 export const LOCAL_VIDEO = 'LOCAL_VIDEO'
 
 // функция useWebRTC(принимает в себя айди комнаты, чтобы понимать, куда подключать пользователя)
-export default function useWebRTC(roomID) {
+export default function useWebRTC(roomID, isMicrophoneMuted) {
   const { socket } = useSocket() // инициализация сокета из контекста для передачи и принятия сигналов
   const [clients, updateClients] = useStateWithCallback([]) // стейт клиентов, состоящих в звонке
   const [isSpeaking, setIsSpeaking] = useState(false) // стейт, говорит ли сейчас юзер (проходит ли громкость его микрофона через порог чувствительности)
@@ -46,6 +46,11 @@ export default function useWebRTC(roomID) {
   const thresholdRef = useRef(thresholdDb) // порог чувствительности - синхронится со стейтом но используется в колбеках без замыканий
   const audioPlayer = useRef(null)
   const audioPlayerLeave = useRef(null)
+  const isMicrophoneMutedRef = useRef(null)
+
+  useEffect(() => {
+    isMicrophoneMutedRef.current = isMicrophoneMuted
+  }, [isMicrophoneMuted])
 
   // useEffect для порога чувствительности - благодаря нему узел чувствительности всегда имеет актуальное значение
   useEffect(() => {
@@ -88,7 +93,8 @@ export default function useWebRTC(roomID) {
 
       // Проверка порога чувствительности
       const currentThreshold = thresholdRef.current // достаем чувствительность из узла в константу
-      const isCurrentlySpeaking = db > currentThreshold // сравниваем текущую громкость с порогом - таким образом вычисляем, говорит клиент или нет
+      const isCurrentlySpeaking =
+        db > currentThreshold && isMicrophoneMutedRef.current !== true // сравниваем текущую громкость с порогом - таким образом вычисляем, говорит клиент или нет
 
       // Мгновенное включение, выключение с задержкой
       if (isCurrentlySpeaking && !isSpeakingRef.current) {
