@@ -1,14 +1,34 @@
 import { useParams } from 'react-router-dom'
 import useWebRTC, { LOCAL_VIDEO } from '../../hooks/useWebRTC'
-import { easeInOut, motion } from 'framer-motion'
-import { useState } from 'react'
+import { AnimatePresence, easeInOut, motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { useSocket } from '../../SocketContext'
+import cl from './room.module.css'
 
 export const Room = () => {
   const { id: roomID } = useParams()
   const [isMicrophoneMuted, setIsMicrophoneMuted] = useState<boolean>(false)
+  const [isCameraOn, setIsCameraOn] = useState<boolean>(false)
 
-  const { clients, provideMediaRef, isSpeaking, setThresholdDb, thresholdDb } =
-    useWebRTC(roomID, isMicrophoneMuted)
+  const {
+    clients,
+    provideMediaRef,
+    isSpeaking,
+    setThresholdDb,
+    thresholdDb,
+    peerUserInfo,
+  } = useWebRTC(roomID, isMicrophoneMuted, isCameraOn)
+
+  const { socket } = useSocket()
+  const currentUserId = localStorage.getItem('user-id')
+  const currentUserAvatar = localStorage.getItem('avatar')
+
+  useEffect(() => {
+    socket?.emit('joinedToCall', {
+      userId: currentUserId,
+      roomID,
+    })
+  }, [socket])
 
   return (
     <div
@@ -46,9 +66,15 @@ export const Room = () => {
         >
           {isMicrophoneMuted ? 'unmute' : 'mute'} microphone
         </button>
+        <button
+          onClick={() => setIsCameraOn((c) => !c)}
+          style={{ color: 'black', cursor: 'pointer' }}
+        >
+          {isCameraOn ? 'disable' : 'enable'} camera
+        </button>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1vh' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7vh' }}>
         {clients.map((clientID: string) => (
           <motion.div
             layout
@@ -66,17 +92,62 @@ export const Room = () => {
             key={clientID}
           >
             <video
-              ref={(instance) => provideMediaRef(clientID, instance)}
+              ref={(instance) => {
+                provideMediaRef(clientID, instance)
+              }}
               autoPlay
               playsInline
               muted={clientID === LOCAL_VIDEO}
               style={{
-                width: '30vw',
-                borderRadius: '1vh',
-                backgroundColor: '#000',
-                border: isSpeaking ? '1px solid lime' : '1px solid transparent',
+                width: '0',
+                // borderRadius: '1vh',
+                // backgroundColor: '#000',
+                // border:
+                //   clientID === LOCAL_VIDEO && isSpeaking
+                //     ? '1px solid lime'
+                //     : '1px solid transparent',
               }}
             />
+            <div className={cl.avatarContainer}>
+              <AnimatePresence>
+                {isSpeaking && (
+                  <motion.div
+                    key="waves-container"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className={cl.wave1}></div>
+                    <div className={cl.wave2}></div>
+                    <div className={cl.wave3}></div>
+                    <div className={cl.wave4}></div>
+                    <div className={cl.wave5}></div>
+                    <div className={cl.outline}></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <img
+                src={
+                  clientID === LOCAL_VIDEO
+                    ? currentUserAvatar
+                    : // @ts-ignore
+                      peerUserInfo[clientID]?.avatar || ''
+                }
+                alt="avatar"
+                className={isSpeaking ? cl.avatarActive : cl.avatar}
+              />
+            </div>
+
+            {clientID === LOCAL_VIDEO && isMicrophoneMuted && (
+              <p
+                style={{
+                  position: 'absolute',
+                }}
+              >
+                muted
+              </p>
+            )}
           </motion.div>
         ))}
       </div>
