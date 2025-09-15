@@ -272,7 +272,7 @@ export default function useWebRTC(roomID) {
   // Обработка новых Peer соединений
   useEffect(() => {
     audioPlayer.current = new Audio(userJoinSound)
-    audioPlayer.current.volume = 0.15
+    audioPlayer.current.volume = 1.0
     async function handleNewPeer({ peerID, createOffer }) {
       // создаем асинхронную функцию, которая будет срабатывать при подключении нового клиента в звонок
       if (peerID in peerConnections.current) {
@@ -441,7 +441,7 @@ export default function useWebRTC(roomID) {
   useEffect(() => {
     // создаем эффект
     audioPlayerLeave.current = new Audio(userLeaveSound)
-    audioPlayerLeave.current.volume = 0.15
+    audioPlayerLeave.current.volume = 1.0
     const handleRemovePeer = ({ peerID }) => {
       // делаем функцию для обработки сигнала об удалении пира
       if (peerConnections.current[peerID])
