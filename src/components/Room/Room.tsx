@@ -4,6 +4,7 @@ import { AnimatePresence, easeInOut, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useSocket } from '../../SocketContext'
 import cl from './room.module.css'
+import mutedMicrophoneIcon from './images/muted-microphone-icon.png'
 
 export const Room = () => {
   const { id: roomID } = useParams()
@@ -74,9 +75,10 @@ export const Room = () => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7vh' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1vh' }}>
         {clients.map((clientID: string) => (
           <motion.div
+            className={cl.userContainer}
             layout
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -110,7 +112,7 @@ export const Room = () => {
             />
             <div className={cl.avatarContainer}>
               <AnimatePresence>
-                {isSpeaking && (
+                {isSpeaking && clientID === LOCAL_VIDEO && (
                   <motion.div
                     key="waves-container"
                     initial={{ opacity: 0 }}
@@ -135,19 +137,39 @@ export const Room = () => {
                       peerUserInfo[clientID]?.avatar || ''
                 }
                 alt="avatar"
-                className={isSpeaking ? cl.avatarActive : cl.avatar}
+                className={
+                  isSpeaking && clientID === LOCAL_VIDEO
+                    ? cl.avatarActive
+                    : cl.avatar
+                }
               />
             </div>
 
-            {clientID === LOCAL_VIDEO && isMicrophoneMuted && (
-              <p
-                style={{
-                  position: 'absolute',
-                }}
-              >
-                muted
-              </p>
-            )}
+            <AnimatePresence>
+              {clientID === LOCAL_VIDEO && isMicrophoneMuted && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: easeInOut,
+                    delay: 0.2,
+                    layout: {
+                      duration: 0.3,
+                      ease: easeInOut,
+                    },
+                  }}
+                  className={cl.mutedMicrophoneContainer}
+                >
+                  <img
+                    className={cl.mutedMicrophoneIcon}
+                    src={mutedMicrophoneIcon}
+                    alt="muted-microphone"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </div>

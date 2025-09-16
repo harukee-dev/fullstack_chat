@@ -123,3 +123,26 @@
     border: 2px solid #a40afd00;
   }
 }
+
+.userContainer {
+  width: 20vh;
+  height: 20;
+}
+
+.mutedMicrophoneContainer {
+  z-index: 11;
+  position: absolute;
+  margin-top: -4vh;
+  margin-left: 7.25vh;
+  background-color: #a40afd;
+  width: 4vh;
+  height: 4vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100%;
+}
+
+.mutedMicrophoneIcon {
+  width: 2vh;
+}
