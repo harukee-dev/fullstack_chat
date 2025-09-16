@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { SystemNotification } from '../../components/SystemNotification/SystemNotification'
-import { useAppSelector } from '../../store'
-import { API_URL } from '../../constants'
-import { io } from 'socket.io-client'
 import ACTIONS from '../../backend/actions'
 import { v4 } from 'uuid'
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../../SocketContext'
+import cl from './testPage.module.css'
 
 export const TestPage = () => {
-  const { token } = useAppSelector((state) => state.auth)
-  const currentUserId = localStorage.getItem('user-id')
   const { socket } = useSocket()
   const navigate = useNavigate()
   const [rooms, updateRooms] = useState([])
@@ -31,25 +26,27 @@ export const TestPage = () => {
   }, [socket])
 
   return (
-    <div ref={rootNode}>
-      <h1>Available Rooms</h1>
+    <div className={cl.testPage} ref={rootNode}>
+      <h1 className={cl.mainTitle}>Available Rooms</h1>
 
-      <ul>
+      <div className={cl.roomsList}>
         {rooms.map((roomID) => (
-          <li key={roomID}>
-            {roomID}
+          <div className={cl.roomContainer} key={roomID}>
+            <p className={cl.roomId}>{roomID}</p>
             <button
+              className={cl.buttonJoin}
               onClick={() => {
                 navigate(`/test/room/${roomID}`)
               }}
             >
-              JOIN ROOM
+              Join
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
       <button
+        className={cl.buttonCreateRoom}
         onClick={() => {
           navigate(`/test/room/${v4()}`)
         }}

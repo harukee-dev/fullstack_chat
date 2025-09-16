@@ -3,16 +3,19 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import useStateWithCallback from './useStateWithCallback'
 import ACTIONS from '../backend/actions'
 import { useSocket } from '../SocketContext'
+import userJoinSound from './join-sound.mp3'
+import userLeaveSound from './leave-sound.mp3'
 
 // создание константы LOCAL_VIDEO - оно будет использоваться для вывода локального видео (вебки/стрима)
 export const LOCAL_VIDEO = 'LOCAL_VIDEO'
 
 // функция useWebRTC(принимает в себя айди комнаты, чтобы понимать, куда подключать пользователя)
-export default function useWebRTC(roomID) {
+export default function useWebRTC(roomID, isMicrophoneMuted, isCameraOn) {
   const { socket } = useSocket() // инициализация сокета из контекста для передачи и принятия сигналов
   const [clients, updateClients] = useStateWithCallback([]) // стейт клиентов, состоящих в звонке
   const [isSpeaking, setIsSpeaking] = useState(false) // стейт, говорит ли сейчас юзер (проходит ли громкость его микрофона через порог чувствительности)
   const [thresholdDb, setThresholdDb] = useState(-42) // стейт порога чувтствительности в dB - позже будет в редаксе через настройки
+  const currentUserId = localStorage.getItem('user-id')
 
   const addNewClient = useCallback(
     // функция добавления нового клиента в список клиентов звонка
@@ -25,6 +28,7 @@ export default function useWebRTC(roomID) {
     [updateClients]
   )
 
+  const peerUserInfo = useRef({})
   const peerConnections = useRef({}) // переменная всех текущих соединений с другими клиентами, состоящими в звонке
   const localMediaStream = useRef(null) // переменная хранящая локальный медиа-поток (вебка/демка/микрофон)
   const peerMediaElements = useRef({ [LOCAL_VIDEO]: null }) // переменная которая хранит ссылки на html video элементы для отображения видео клиентов звонка (в том числе личного видео)
@@ -42,11 +46,105 @@ export default function useWebRTC(roomID) {
   // Состояния войс-детекшена
   const isSpeakingRef = useRef(false) // состояние гс активности (говорит/не говорит)
   const thresholdRef = useRef(thresholdDb) // порог чувствительности - синхронится со стейтом но используется в колбеках без замыканий
+  const audioPlayer = useRef(null)
+  const audioPlayerLeave = useRef(null)
+  const isMicrophoneMutedRef = useRef(null)
+
+  useEffect(() => {
+    isMicrophoneMutedRef.current = isMicrophoneMuted
+  }, [isMicrophoneMuted])
 
   // useEffect для порога чувствительности - благодаря нему узел чувствительности всегда имеет актуальное значение
   useEffect(() => {
     thresholdRef.current = thresholdDb // обновлять значение узла чувтвительности из стейта
+    if (audioPlayer.current) {
+      audioPlayer.current.pause()
+      audioPlayer.current = null
+    }
+    if (audioPlayerLeave.current) {
+      audioPlayerLeave.current.pause()
+      audioPlayerLeave.current = null
+    }
   }, [thresholdDb]) // каждый раз когда стейт меняется
+
+  useEffect(() => {
+    async function handleCameraToggle() {
+      if (isCameraOn) {
+        // Включаем камеру
+        try {
+          const videoStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: 1920,
+              height: 1080,
+              frameRate: 60,
+            },
+          })
+
+          const videoTrack = videoStream.getVideoTracks()[0]
+
+          if (localMediaStream.current) {
+            // Добавляем видео трек к существующему потоку
+            localMediaStream.current.addTrack(videoTrack)
+
+            // Обновляем все peer соединения
+            Object.keys(peerConnections.current).forEach((peerID) => {
+              const sender = peerConnections.current[peerID]
+                .getSenders()
+                .find((s) => s.track && s.track.kind === 'video')
+
+              if (sender) {
+                sender.replaceTrack(videoTrack)
+              } else {
+                peerConnections.current[peerID].addTrack(
+                  videoTrack,
+                  localMediaStream.current
+                )
+              }
+            })
+          }
+
+          // Обновляем локальное видео
+          const localVideoElement = peerMediaElements.current[LOCAL_VIDEO]
+          if (localVideoElement) {
+            localVideoElement.srcObject = localMediaStream.current
+            localVideoElement.style.backgroundColor = 'transparent'
+          }
+        } catch (error) {
+          console.error('Error enabling camera:', error)
+        }
+      } else {
+        // Выключаем камеру
+        if (localMediaStream.current) {
+          const videoTracks = localMediaStream.current.getVideoTracks()
+          videoTracks.forEach((track) => track.stop())
+
+          // Удаляем видео треки из потока
+          videoTracks.forEach((track) =>
+            localMediaStream.current.removeTrack(track)
+          )
+
+          // Обновляем все peer соединения
+          Object.keys(peerConnections.current).forEach((peerID) => {
+            const senders = peerConnections.current[peerID].getSenders()
+            senders.forEach((sender) => {
+              if (sender.track && sender.track.kind === 'video') {
+                peerConnections.current[peerID].removeTrack(sender)
+              }
+            })
+          })
+        }
+
+        // Обновляем локальное видео
+        const localVideoElement = peerMediaElements.current[LOCAL_VIDEO]
+        if (localVideoElement) {
+          localVideoElement.srcObject = null
+          localVideoElement.style.backgroundColor = '#000'
+        }
+      }
+    }
+
+    handleCameraToggle()
+  }, [isCameraOn])
 
   // Проверка уровня звука (RMS -> dB) с гистерезисом
   const checkAudioLevel = useCallback(() => {
@@ -76,7 +174,8 @@ export default function useWebRTC(roomID) {
 
       // Проверка порога чувствительности
       const currentThreshold = thresholdRef.current // достаем чувствительность из узла в константу
-      const isCurrentlySpeaking = db > currentThreshold // сравниваем текущую громкость с порогом - таким образом вычисляем, говорит клиент или нет
+      const isCurrentlySpeaking =
+        db > currentThreshold && isMicrophoneMutedRef.current !== true // сравниваем текущую громкость с порогом - таким образом вычисляем, говорит клиент или нет
 
       // Мгновенное включение, выключение с задержкой
       if (isCurrentlySpeaking && !isSpeakingRef.current) {
@@ -243,9 +342,11 @@ export default function useWebRTC(roomID) {
         audioDestination.stream
           .getAudioTracks()
           .forEach((t) => processedStream.addTrack(t)) // добавляем обработанные аудио треки (после обработки) из нашего выходного потока в медиапоток результата
-        originalStream
-          .getVideoTracks()
-          .forEach((t) => processedStream.addTrack(t)) // добавляем оригинальные видео треки (без обработки) из нашего выходного потока в медиапоток результата
+        if (isCameraOn) {
+          originalStream
+            .getVideoTracks()
+            .forEach((t) => processedStream.addTrack(t))
+        } // добавляем оригинальные видео треки (без обработки) из нашего выходного потока в медиапоток результата
         // вся обработка происходила в audioDesctionation, а после того, как мы закончили все этапы обработки - мы перенесли их в новый медиапоток, который будем уже выводить
         return processedStream // возвращаем обработанный поток
       } catch (error) {
@@ -259,12 +360,16 @@ export default function useWebRTC(roomID) {
 
   // Обработка новых Peer соединений
   useEffect(() => {
-    async function handleNewPeer({ peerID, createOffer }) {
+    audioPlayer.current = new Audio(userJoinSound)
+    audioPlayer.current.volume = 1.0
+    async function handleNewPeer({ peerID, createOffer, userInfo }) {
       // создаем асинхронную функцию, которая будет срабатывать при подключении нового клиента в звонок
       if (peerID in peerConnections.current) {
         // если клиент уже есть в списке подключенных к звонку клиентов
         return console.warn(`Already connected to peer ${peerID}`) // делаем лог в консоль, что он уже подключен
       } // это защита от дубликатов соединений
+
+      peerUserInfo.current[peerID] = userInfo
 
       peerConnections.current[peerID] = new RTCPeerConnection({
         // создаем новое WebRTC соединение с STUN-сервером
@@ -287,13 +392,21 @@ export default function useWebRTC(roomID) {
         streams: [remoteStream], // обработчик входящих медиапотоков, ждем пока придут оба трека (аудио + видео)
       }) => {
         tracksNumber++
-        if (tracksNumber === 2) {
+        if (
+          (isCameraOn && tracksNumber === 2) ||
+          (!isCameraOn && tracksNumber === 1)
+        ) {
           // когда получили два трека - добавляем нового клиента в звонок (убеждаемся, что пришло и аудио, и видео)
           tracksNumber = 0 // обнуляем счетчик треков для следующего подключения
           addNewClient(peerID, () => {
             if (peerMediaElements.current[peerID]) {
               // если элемент создан
               peerMediaElements.current[peerID].srcObject = remoteStream // назначаем медиапоток video элементу
+
+              if (audioPlayer.current) {
+                audioPlayer.current.currentTime = 0
+                audioPlayer.current.play().catch((e) => console.log(e))
+              }
             } else {
               // иначе, если элемент еще не создан
               let settled = false // создаем временную переменную - создан ли элемент
@@ -302,6 +415,12 @@ export default function useWebRTC(roomID) {
                 if (peerMediaElements.current[peerID]) {
                   // если элемент создался
                   peerMediaElements.current[peerID].srcObject = remoteStream // назначаем медиапоток video элементу
+
+                  if (audioPlayer.current) {
+                    audioPlayer.current.currentTime = 0
+                    audioPlayer.current.play().catch((e) => console.log(e))
+                  }
+
                   settled = true // задаем значение временное переменной, что все создалось, чтобы закончить интервал
                 }
                 if (settled) clearInterval(interval) // если переменная true, то есть элемент создался, то сбрасываем интервал
@@ -313,14 +432,22 @@ export default function useWebRTC(roomID) {
 
       if (localMediaStream.current) {
         // если локальный медиапоток есть
-        localMediaStream.current.getTracks().forEach((track) => {
-          // проходимся по всем трекам медиапотока (аудио и видео, позже и демка)
+        const audioTracks = localMediaStream.current.getAudioTracks()
+        audioTracks.forEach((track) => {
           peerConnections.current[peerID].addTrack(
-            // добавляем наши локальные треки в соединение, тем самым отправляем наш микрофон и камеру другому пользователю
             track,
             localMediaStream.current
           )
         })
+        if (isCameraOn) {
+          const videoTracks = localMediaStream.current.getVideoTracks()
+          videoTracks.forEach((track) => {
+            peerConnections.current[peerID].addTrack(
+              track,
+              localMediaStream.current
+            )
+          })
+        }
       }
 
       if (createOffer) {
@@ -332,8 +459,14 @@ export default function useWebRTC(roomID) {
     }
 
     socket.on(ACTIONS.ADD_PEER, handleNewPeer) // подписываемся на событие добавления нового пира
-    return () => socket.off(ACTIONS.ADD_PEER) // и отписываемся при размонтировании
-  }, [socket, addNewClient]) // тем самым обработка входащих подключений с правильной очисткой при размонтировании
+    return () => {
+      if (audioPlayer.current) {
+        audioPlayer.current.pause()
+        audioPlayer.current = null
+      }
+      socket.off(ACTIONS.ADD_PEER)
+    } // и отписываемся при размонтировании
+  }, [socket, addNewClient, isCameraOn]) // тем самым обработка входащих подключений с правильной очисткой при размонтировании
 
   // Процесс установления соединения (то что выше):
   // 1. Сервер -> к тебе подключается новый пир
@@ -409,6 +542,8 @@ export default function useWebRTC(roomID) {
   // Обработка удаления пира (при его выходе из звонка)
   useEffect(() => {
     // создаем эффект
+    audioPlayerLeave.current = new Audio(userLeaveSound)
+    audioPlayerLeave.current.volume = 1.0
     const handleRemovePeer = ({ peerID }) => {
       // делаем функцию для обработки сигнала об удалении пира
       if (peerConnections.current[peerID])
@@ -417,6 +552,10 @@ export default function useWebRTC(roomID) {
       delete peerConnections.current[peerID] // удаляем это соединение с пиром из списка текущих пир соединений
       delete peerMediaElements.current[peerID] // удаляем медиа (аудио/видео) этого пира из списка текущих медиа элементов
       updateClients((list) => list.filter((c) => c !== peerID)) // обновляем стейт текущих клиентов, состоящих в звонке
+      if (audioPlayerLeave.current) {
+        audioPlayerLeave.current.currentTime = 0
+        audioPlayerLeave.current.play().catch((e) => console.log(e))
+      }
     }
 
     socket.on(ACTIONS.REMOVE_PEER, handleRemovePeer) // делаем обработку вышенаписанной функцией сигнала об удалении пира (отключении из звонка какого-то пользователя)
@@ -428,7 +567,7 @@ export default function useWebRTC(roomID) {
     async function startCapture() {
       // создаем асинхронную функцию для запуска медиазахвата
       try {
-        const originalStream = await navigator.mediaDevices.getUserMedia({
+        const constraints = {
           audio: {
             // берем аудио с найстроками качества ниже
             echoCancellation: true, // эхоподавление включено
@@ -436,13 +575,18 @@ export default function useWebRTC(roomID) {
             autoGainControl: false, // автоусиление выключено
             channelCount: 1, // 1 канал, то есть моно звук (одинаковый в обоих наушниках)
           },
-          video: {
-            // берем видео с настройками качества ниже
-            width: 1920, // фулл хд
-            height: 1080, // фулл хд
-            frameRate: 60, // 60 фпс
-          },
-        })
+          video: isCameraOn
+            ? {
+                // берем видео с настройками качества ниже
+                width: 1920, // фулл хд
+                height: 1080, // фулл хд
+                frameRate: 60, // 60 фпс
+              }
+            : false,
+        }
+        const originalStream = await navigator.mediaDevices.getUserMedia(
+          constraints
+        )
 
         const finalStream = await processAudioStream(originalStream) // обрабатываем сырой аудиопоток через нашу систему (шумодав, войс-детекшн и тд)
         localMediaStream.current = finalStream // сохраняем обработанный поток в реф, чтобы использовать его для подключения к другим пирам
@@ -453,11 +597,15 @@ export default function useWebRTC(roomID) {
           if (localVideoElement) {
             // если с элементом все хорошо
             localVideoElement.volume = 0 // то выставляем ему громкость 0 (чтобы мы не слышали сами себя в наушниках)
-            localVideoElement.srcObject = finalStream // и назначаем наш поток video элементу
+            if (!isCameraOn) {
+              localVideoElement.srcObject = null
+            } else {
+              localVideoElement.srcObject = finalStream
+            } // и назначаем наш поток video элементу
           }
         })
 
-        socket.emit(ACTIONS.JOIN, { room: roomID }) // отправляем серверу запрос на присоединение к комнате
+        socket.emit(ACTIONS.JOIN, { room: roomID, userId: currentUserId }) // отправляем серверу запрос на присоединение к комнате
       } catch (error) {
         console.error('Error starting media capture:', error) // обработка ошибок при получении медиапотока
       }
@@ -500,5 +648,6 @@ export default function useWebRTC(roomID) {
     isSpeaking, // состояние активности голоса для индикации говорит/не говорит
     thresholdDb, // текущий порог чувствительности
     setThresholdDb, // функция изменения порога чувствительности
+    peerUserInfo: peerUserInfo.current, // информация о пользователях пиров
   }
 }

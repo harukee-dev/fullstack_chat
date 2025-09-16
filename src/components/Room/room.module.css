@@ -1,0 +1,148 @@
+.avatarContainer {
+  position: relative;
+  display: inline-block;
+  /* filter: drop-shadow(0 0 5vh rgba(100, 100, 255, 0.571)); */
+}
+
+.avatar {
+  width: 12vh;
+  height: 12vh;
+  border-radius: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 10;
+  border: 3px solid transparent;
+}
+
+.avatarActive {
+  width: 12vh;
+  height: 12vh;
+  border-radius: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 10;
+  border: 3px solid rgba(174, 0, 255, 0.589);
+}
+
+.wave1 {
+  position: absolute;
+  width: 7vh;
+  height: 7vh;
+  background-color: rgba(0, 145, 255, 0.502);
+  filter: blur(3vh);
+  border-radius: 100%;
+  animation: wave 4s infinite ease-in-out;
+}
+
+.wave2 {
+  position: absolute;
+  left: 5vh;
+  top: 1vh;
+  width: 8vh;
+  height: 8vh;
+  background-color: rgba(4, 0, 255, 0.681);
+  filter: blur(3vh);
+  border-radius: 100%;
+  animation: wave 6s infinite ease-in-out;
+}
+
+.wave3 {
+  position: absolute;
+  left: 4vh;
+  top: 4vh;
+  width: 8vh;
+  height: 8vh;
+  background-color: rgba(255, 0, 204, 0.545);
+  filter: blur(3vh);
+  border-radius: 100%;
+  animation: wave 6 5s infinite ease-in-out;
+}
+
+.wave4 {
+  position: absolute;
+  top: 5vh;
+  width: 8vh;
+  height: 8vh;
+  background-color: rgba(140, 0, 255, 0.559);
+  filter: blur(3vh);
+  border-radius: 100%;
+  animation: wave 3s infinite ease-in-out;
+}
+
+@keyframes wave {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  40% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  60% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.outline {
+  position: absolute;
+  border-radius: 100%;
+  left: -0.5vh;
+  top: -0.5vh;
+  width: 13vh;
+  height: 13vh;
+  animation: outline 0.7s infinite;
+}
+
+@keyframes outline {
+  0% {
+    border: 2px solid #a40afd00;
+  }
+  50% {
+    border: 2px solid #a40afd54;
+  }
+  100% {
+    border: 2px solid #a40afd00;
+  }
+}
+
+.userContainer {
+  width: 20vh;
+  height: 20;
+}
+
+.mutedMicrophoneContainer {
+  z-index: 11;
+  position: absolute;
+  margin-top: -4vh;
+  margin-left: 7.25vh;
+  background-color: #a40afd;
+  width: 4vh;
+  height: 4vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100%;
+}
+
+.mutedMicrophoneIcon {
+  width: 2vh;
+}
