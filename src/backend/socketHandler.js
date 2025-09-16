@@ -519,6 +519,16 @@ function setupSocketHandlers(io) {
       const user = await User.findById(message.userId)
       io.emit
     })
+
+    socket.on('muted', (message) => {
+      socket.to(message.recipientId).emit('muted', { userId: message.senderId })
+    })
+
+    socket.on('unmuted', (message) => {
+      socket
+        .to(message.recipientId)
+        .emit('unmuted', { userId: message.senderId })
+    })
   })
 }
 
