@@ -529,6 +529,18 @@ function setupSocketHandlers(io) {
         .to(message.recipientId)
         .emit('unmuted', { userId: message.senderId })
     })
+
+    socket.on('speaking', (message) => {
+      socket
+        .to(message.recipientId)
+        .emit('speaking', { userId: message.senderId })
+    })
+
+    socket.on('unspeaking', (message) => {
+      socket
+        .to(message.recipientId)
+        .emit('unspeaking', { userId: message.senderId })
+    })
   })
 }
 

@@ -16,6 +16,7 @@ export const Room = () => {
   const [isMicrophoneMuted, setIsMicrophoneMuted] = useState<boolean>(false)
   const [isCameraOn, setIsCameraOn] = useState<boolean>(false)
   const [mutedUsers, setMutedUsers] = useState<string[]>([])
+  const [speakingUsers, setSpeakingUsers] = useState<string[]>([])
 
   const {
     clients,
@@ -30,7 +31,6 @@ export const Room = () => {
   const currentUserId = localStorage.getItem('user-id')
   const currentUserAvatar = localStorage.getItem('avatar')
 
-  // Уведомление о присоединении к комнате
   useEffect(() => {
     if (socket && currentUserId && roomID) {
       socket.emit('joinedToCall', {
@@ -40,7 +40,7 @@ export const Room = () => {
     }
   }, [socket, roomID, currentUserId])
 
-  // Обработка socket событий
+  // Обработка событий mute/unmute
   useEffect(() => {
     const handleMuted = (message: SocketMessage) => {
       setMutedUsers((prev) => [...prev, message.userId])
@@ -59,35 +59,79 @@ export const Room = () => {
     }
   }, [socket])
 
-  // Уведомление других пользователей о изменении состояния микрофона
+  // Обработка событий speaking/unspeaking (ИСПРАВЛЕНО - разные события)
+  useEffect(() => {
+    const handleSpeaking = (message: SocketMessage) => {
+      setSpeakingUsers((prev) => [...prev, message.userId])
+    }
+
+    const handleUnspeaking = (message: SocketMessage) => {
+      setSpeakingUsers((prev) => prev.filter((id) => id !== message.userId))
+    }
+
+    socket?.on('speaking', handleSpeaking) // ИСПРАВЛЕНО: 'speaking' вместо 'muted'
+    socket?.on('unspeaking', handleUnspeaking) // ИСПРАВЛЕНО: 'unspeaking' вместо 'unmuted'
+
+    return () => {
+      socket?.off('speaking', handleSpeaking)
+      socket?.off('unspeaking', handleUnspeaking)
+    }
+  }, [socket])
+
+  // Уведомление о mute/unmute (ИСПРАВЛЕНО - убрано изменение состояния)
   useEffect(() => {
     if (!socket || !currentUserId) return
 
-    const notifyPeers = (event: 'muted' | 'unmuted') => {
-      clients.forEach((clientID: string) => {
-        if (clientID !== LOCAL_VIDEO) {
-          // @ts-ignore
-          const peerInfo = peerUserInfo[clientID]
-          if (peerInfo?.userId) {
-            socket.emit(event, {
-              senderId: currentUserId,
-              recipientId: peerInfo.userId,
-            })
-          }
+    clients.forEach((clientID: string) => {
+      if (clientID !== LOCAL_VIDEO) {
+        // @ts-ignore
+        const peerInfo = peerUserInfo[clientID]
+        if (peerInfo?.userId) {
+          socket.emit(isMicrophoneMuted ? 'muted' : 'unmuted', {
+            senderId: currentUserId,
+            recipientId: peerInfo.userId,
+          })
         }
-      })
-    }
+      }
+    })
 
-    if (isMicrophoneMuted) {
-      setMutedUsers((prev) => [...prev, currentUserId])
-      notifyPeers('muted')
-    } else {
-      setMutedUsers((prev) => prev.filter((id) => id !== currentUserId))
-      notifyPeers('unmuted')
-    }
+    // Только локальное обновление для текущего пользователя
+    setMutedUsers((prev) => {
+      if (isMicrophoneMuted) {
+        return prev.includes(currentUserId) ? prev : [...prev, currentUserId]
+      } else {
+        return prev.filter((id) => id !== currentUserId)
+      }
+    })
   }, [isMicrophoneMuted, socket, currentUserId, clients, peerUserInfo])
 
-  // Функция для получения userId по clientID
+  // Уведомление о speaking/unspeaking (ИСПРАВЛЕНО - убрано изменение состояния)
+  useEffect(() => {
+    if (!socket || !currentUserId) return
+
+    clients.forEach((clientID: string) => {
+      if (clientID !== LOCAL_VIDEO) {
+        // @ts-ignore
+        const peerInfo = peerUserInfo[clientID]
+        if (peerInfo?.userId) {
+          socket.emit(isSpeaking ? 'speaking' : 'unspeaking', {
+            senderId: currentUserId,
+            recipientId: peerInfo.userId,
+          })
+        }
+      }
+    })
+
+    // Только локальное обновление для текущего пользователя
+    setSpeakingUsers((prev) => {
+      if (isSpeaking) {
+        return prev.includes(currentUserId) ? prev : [...prev, currentUserId]
+      } else {
+        return prev.filter((id) => id !== currentUserId)
+      }
+    })
+  }, [isSpeaking, socket, currentUserId, clients, peerUserInfo]) // ИСПРАВЛЕНО: добавлены зависимости
+
   const getUserIdByClientId = useCallback(
     (clientID: string): string | null => {
       if (clientID === LOCAL_VIDEO) {
@@ -99,7 +143,6 @@ export const Room = () => {
     [currentUserId, peerUserInfo]
   )
 
-  // Функция для получения аватара по clientID
   const getAvatarByClientId = useCallback(
     (clientID: string): string | null => {
       if (clientID === LOCAL_VIDEO) {
@@ -111,13 +154,20 @@ export const Room = () => {
     [currentUserAvatar, peerUserInfo]
   )
 
-  // Проверка, заглушен ли пользователь
   const isUserMuted = useCallback(
     (clientID: string): boolean => {
       const userId = getUserIdByClientId(clientID)
       return userId ? mutedUsers.includes(userId) : false
     },
     [mutedUsers, getUserIdByClientId]
+  )
+
+  const isUserSpeaking = useCallback(
+    (clientID: string): boolean => {
+      const userId = getUserIdByClientId(clientID)
+      return userId ? speakingUsers.includes(userId) : false
+    },
+    [speakingUsers, getUserIdByClientId]
   )
 
   return (
@@ -169,6 +219,8 @@ export const Room = () => {
         {clients.map((clientID: string) => {
           const avatar = getAvatarByClientId(clientID)
           const muted = isUserMuted(clientID)
+          const speaking = isUserSpeaking(clientID)
+          const isCurrentUser = clientID === LOCAL_VIDEO
 
           return (
             <motion.div
@@ -193,14 +245,14 @@ export const Room = () => {
                 }}
                 autoPlay
                 playsInline
-                muted={clientID === LOCAL_VIDEO}
+                muted={isCurrentUser}
                 style={{
                   width: '0',
                 }}
               />
               <div className={cl.avatarContainer}>
                 <AnimatePresence>
-                  {isSpeaking && clientID === LOCAL_VIDEO && (
+                  {(isCurrentUser && isSpeaking) || speaking ? (
                     <motion.div
                       key="waves-container"
                       initial={{ opacity: 0 }}
@@ -215,14 +267,14 @@ export const Room = () => {
                       <div className={cl.wave5}></div>
                       <div className={cl.outline}></div>
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
                 {avatar && (
                   <img
                     src={avatar}
                     alt="avatar"
                     className={
-                      isSpeaking && clientID === LOCAL_VIDEO
+                      (isCurrentUser && isSpeaking) || speaking
                         ? cl.avatarActive
                         : cl.avatar
                     }
