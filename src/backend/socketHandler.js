@@ -9,7 +9,6 @@ const { version, validate } = require('uuid')
 // Множества пользователей
 const typingUsers = new Set()
 const onlineUsers = new Map()
-const roomUsers = new Map()
 
 function getClientRooms(io) {
   const { rooms } = io.sockets.adapter
@@ -412,75 +411,39 @@ function setupSocketHandlers(io) {
         })
       }
     })
-    socket.on(ACTIONS.JOIN, async (config) => {
-      const { room: roomID, userId } = config
+    socket.on(ACTIONS.JOIN, (config) => {
+      const { room: roomID } = config
       if (!roomID) return
-
-      // Получаем информацию о пользователе из базы данных
-      let userInfo = {}
-      try {
-        const user = await User.findById(userId).select('username avatar')
-        if (user) {
-          userInfo = {
-            userId: user._id.toString(),
-            username: user.username,
-            avatar: user.avatar,
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user info:', error)
-      }
 
       // 1️⃣ Сразу добавляем сокет в комнату
       socket.join(roomID)
 
-      // 2️⃣ Сохраняем информацию о пользователе
-      if (!roomUsers.has(roomID)) {
-        roomUsers.set(roomID, new Map())
-      }
-      roomUsers.get(roomID).set(socket.id, userInfo)
-
-      // 3️⃣ Список всех клиентов в комнате с информацией о пользователях
+      // 2️⃣ Список всех клиентов в комнате
       const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || [])
-      const clientsWithInfo = clients.map((clientID) => ({
-        peerID: clientID,
-        userInfo: roomUsers.get(roomID).get(clientID) || {},
-      }))
 
-      // 4️⃣ Сообщаем каждому клиенту про всех остальных с информацией о пользователях
-      clientsWithInfo.forEach(({ peerID, userInfo: clientUserInfo }) => {
-        if (peerID === socket.id) return
+      // 3️⃣ Сообщаем каждому клиенту про всех остальных
+      clients.forEach((clientID) => {
+        if (clientID === socket.id) return
 
         // Старые клиенты узнают о новом
-        io.to(peerID).emit(ACTIONS.ADD_PEER, {
+        io.to(clientID).emit(ACTIONS.ADD_PEER, {
           peerID: socket.id,
-          userInfo, // Добавляем информацию о пользователе
           createOffer: false,
         })
 
         // Новый клиент узнает о старых
         socket.emit(ACTIONS.ADD_PEER, {
-          peerID: peerID,
-          userInfo: clientUserInfo, // Добавляем информацию о пользователе
+          peerID: clientID,
           createOffer: true,
         })
       })
 
-      // 5️⃣ Обновляем комнаты у всех
+      // 4️⃣ Обновляем комнаты у всех
       shareRoomsInfo(io)
     })
     function leaveRoom() {
       const { rooms } = socket
-
       Array.from(rooms).forEach((roomID) => {
-        // Удаляем информацию о пользователе
-        if (roomUsers.has(roomID)) {
-          roomUsers.get(roomID).delete(socket.id)
-          if (roomUsers.get(roomID).size === 0) {
-            roomUsers.delete(roomID)
-          }
-        }
-
         const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || [])
         clients.forEach((clientID) => {
           io.to(clientID).emit(ACTIONS.REMOVE_PEER, {
@@ -494,7 +457,6 @@ function setupSocketHandlers(io) {
 
         socket.leave(roomID)
       })
-
       shareRoomsInfo(io)
     }
 
@@ -514,33 +476,6 @@ function setupSocketHandlers(io) {
 
     socket.on(ACTIONS.LEAVE, leaveRoom)
     socket.on('disconnecting', leaveRoom)
-
-    socket.on('joinedToCall', async (message) => {
-      const user = await User.findById(message.userId)
-      io.emit
-    })
-
-    socket.on('muted', (message) => {
-      socket.to(message.recipientId).emit('muted', { userId: message.senderId })
-    })
-
-    socket.on('unmuted', (message) => {
-      socket
-        .to(message.recipientId)
-        .emit('unmuted', { userId: message.senderId })
-    })
-
-    socket.on('speaking', (message) => {
-      socket
-        .to(message.recipientId)
-        .emit('speaking', { userId: message.senderId })
-    })
-
-    socket.on('unspeaking', (message) => {
-      socket
-        .to(message.recipientId)
-        .emit('unspeaking', { userId: message.senderId })
-    })
   })
 }
 
