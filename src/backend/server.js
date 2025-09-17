@@ -10,10 +10,8 @@ const Message = require('./models/Message')
 const friendsRouter = require('./routes/friends')
 const path = require('path')
 
-// const CLIENT_URL = 'http://localhost:3000'
-
-const CLIENT_URL = 'https://omnio-space.fun'
-
+const CLIENT_URL = 'http://localhost:3000'
+// const CLIENT_URL = 'https://omnio-space.fun'
 
 app.use(
   cors({
