@@ -207,12 +207,12 @@ export const Room = () => {
         >
           {isMicrophoneMuted ? 'unmute' : 'mute'} microphone
         </button>
-        <button
+        {/* <button
           onClick={() => setIsCameraOn((c) => !c)}
           style={{ color: 'black', cursor: 'pointer' }}
         >
           {isCameraOn ? 'disable' : 'enable'} camera
-        </button>
+        </button> */}
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1vh' }}>
