@@ -9,9 +9,10 @@ const server = http.createServer(app)
 const Message = require('./models/Message')
 const friendsRouter = require('./routes/friends')
 const path = require('path')
+const mediasoup = require('mediasoup')
+const config = require('./config')
 
 const CLIENT_URL = 'http://localhost:3000'
-// const CLIENT_URL = 'https://omnio-space.fun'
 
 app.use(
   cors({
@@ -20,7 +21,6 @@ app.use(
 )
 
 const authRouter = require('./authRouter')
-
 const mongoose = require('mongoose')
 
 const io = new Server(server, {
@@ -32,9 +32,19 @@ const io = new Server(server, {
   },
 })
 
-const { setupSocketHandlers } = require('./socketHandler')
+const { setupSocketHandlers, initializeMediaSoup } = require('./socketHandler')
 const ACTIONS = require('./actions')
-setupSocketHandlers(io)
+
+// Инициализация mediasoup ДО настройки сокетов
+async function initMediaSoup() {
+  try {
+    await initializeMediaSoup()
+    console.log('Mediasoup workers initialized successfully')
+  } catch (error) {
+    console.error('Failed to initialize mediasoup workers:', error)
+    process.exit(1)
+  }
+}
 
 io.use((socket, next) => {
   console.log('handshake:', socket.handshake)
@@ -67,7 +77,14 @@ async function start() {
     await mongoose.connect(
       'mongodb+srv://adminuser:adminpassword@cluster0.oh6fb.mongodb.net/chat'
     )
-    server.listen(10000, () => {
+
+    // Инициализируем mediasoup перед запуском сервера
+    await initMediaSoup()
+
+    // Настраиваем обработчики сокетов после инициализации mediasoup
+    setupSocketHandlers(io)
+
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
   } catch (err) {
