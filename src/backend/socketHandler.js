@@ -532,16 +532,15 @@ function setupSocketHandlers(io) {
         )
 
         if (existingProducers.length > 0) {
-          setTimeout(() => {
-            socket.emit(
-              'existing-producers',
-              existingProducers.map((p) => ({
-                producerId: p.producer.id,
-                kind: p.kind,
-                userId: p.userId,
-              }))
-            )
-          }, 1000) // Задержка для гарантии инициализации клиента
+          // Отправляем сразу, без задержки
+          socket.emit(
+            'existing-producers',
+            existingProducers.map((p) => ({
+              producerId: p.producer.id,
+              kind: p.kind,
+              userId: p.userId,
+            }))
+          )
         }
 
         // Обработка подключения транспорта (общая для send и recv)

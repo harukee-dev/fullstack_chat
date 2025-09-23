@@ -145,6 +145,7 @@ export const Room = () => {
   )
 
   // Функция для создания consumer с использованием правильного transport
+  // Функция для создания consumer с правильной обработкой audio
   const handleCreateConsumer = useCallback(
     async (producerData: {
       producerId: string
@@ -157,9 +158,13 @@ export const Room = () => {
       }
 
       try {
-        console.log('Creating consumer for producer:', producerData.producerId)
+        console.log(
+          'Creating consumer for producer:',
+          producerData.producerId,
+          'kind:',
+          producerData.kind
+        )
 
-        // Используем функцию createConsumer из useMediaSoup
         const consumer = await createConsumer(
           producerData.producerId,
           //@ts-ignore
@@ -174,7 +179,23 @@ export const Room = () => {
           return null
         }
 
-        console.log('Consumer created successfully:', producerData.producerId)
+        console.log(
+          'Consumer created successfully:',
+          consumer.id,
+          'kind:',
+          consumer.kind
+        )
+
+        // Для audio consumer сразу запускаем трек
+        if (consumer.kind === 'audio' && consumer.track) {
+          // Создаем audio элемент для воспроизведения звука
+          const audioElement = new Audio()
+          audioElement.srcObject = new MediaStream([consumer.track])
+          audioElement.play().catch((error) => {
+            console.error('Error playing audio:', error)
+          })
+        }
+
         return consumer
       } catch (error) {
         console.error('Ошибка при создании consumer:', error)
@@ -183,6 +204,19 @@ export const Room = () => {
     },
     [device, createConsumer]
   )
+
+  useEffect(() => {
+    return () => {
+      // Только базовая очистка, без уведомления сервера
+      console.log('Component unmounting - basic cleanup')
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+
+      // НЕ уведомляем сервер здесь - только при явном выходе
+    }
+  }, [])
 
   // Обработка новых потребителей
   useEffect(() => {
@@ -307,6 +341,75 @@ export const Room = () => {
       socket.off('existing-producers', handleExistingProducers)
     }
   }, [socket, device, consumers, roomId, handleCreateConsumer])
+
+  const leaveRoom = useCallback(async () => {
+    console.log('Leaving room:', roomId)
+
+    // Уведомляем сервер о выходе
+    if (socket && roomId) {
+      socket.emit('leave-room', { roomId })
+    }
+
+    // Закрываем transports
+    closeTransports()
+
+    // Закрываем local stream
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop())
+      setLocalStream(null)
+    }
+
+    // Закрываем producers
+    Object.values(producersRef.current).forEach((producer) => {
+      if (producer && typeof producer.close === 'function') {
+        producer.close()
+      }
+    })
+    producersRef.current = {}
+    setProducers({})
+
+    // Закрываем consumers
+    Object.values(consumers).forEach((consumerData) => {
+      if (
+        consumerData.consumer &&
+        typeof consumerData.consumer.close === 'function'
+      ) {
+        consumerData.consumer.close()
+      }
+    })
+    setConsumers({})
+
+    setIsConnected(false)
+    isInitializedRef.current = false
+  }, [socket, roomId, localStream, consumers, closeTransports])
+
+  useEffect(() => {
+    if (!socket) return
+
+    // Логируем все входящие события
+    const originalEmit = socket.emit
+    socket.emit = function (...args) {
+      console.log('📤 SOCKET EMIT:', args[0], args[1])
+      return originalEmit.apply(this, args)
+    }
+
+    const logEvent = (eventName: string, data: any) => {
+      console.log('📥 SOCKET EVENT:', eventName, data)
+    }
+
+    socket.on('new-producer', (data) => logEvent('new-producer', data))
+    socket.on('existing-producers', (data) =>
+      logEvent('existing-producers', data)
+    )
+    socket.on('producer-close', (data) => logEvent('producer-close', data))
+
+    return () => {
+      socket.emit = originalEmit
+      socket.off('new-producer')
+      socket.off('existing-producers')
+      socket.off('producer-close')
+    }
+  }, [socket])
 
   // Основная логика подключения
   useEffect(() => {
@@ -653,6 +756,20 @@ export const Room = () => {
           }}
         >
           🔄 Reconnect
+        </button>
+        <button
+          onClick={leaveRoom}
+          style={{
+            marginLeft: '15px',
+            padding: '10px 20px',
+            backgroundColor: '#ff4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          🚪 Leave Room
         </button>
       </div>
 

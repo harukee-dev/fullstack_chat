@@ -1,0 +1,329 @@
+# Fullstack Chat - Technical Documentation
+
+## Project Overview
+
+Fullstack Chat is a real-time messaging application with video calling capabilities built on React/TypeScript frontend and Node.js/Express backend with WebRTC support via mediasoup.
+
+## Architecture
+
+### Frontend (React + TypeScript)
+
+- **Framework**: React 19 with TypeScript
+- **State Management**: Redux Toolkit
+- **Routing**: React Router DOM
+- **Real-time Communication**: Socket.io Client
+- **Video Calling**: Mediasoup Client
+- **Styling**: CSS Modules
+- **Animations**: Framer Motion
+
+### Backend (Node.js + Express)
+
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Real-time Communication**: Socket.io
+- **Video Calling**: Mediasoup
+- **Authentication**: JWT
+- **Password Hashing**: bcryptjs
+
+## Project Structure
+
+```
+src/
+├── backend/                 # Server-side code
+│   ├── models/             # MongoDB models
+│   ├── routes/             # API routes
+│   ├── config.js           # Server configuration
+│   ├── server.js           # Main server file
+│   ├── socketHandler.js    # WebSocket handlers
+│   └── authRouter.js       # Authentication routes
+├── components/             # React components
+│   ├── Chat/              # Chat components
+│   ├── Message/           # Message components
+│   ├── Room/              # Video room components
+│   ├── Notification/      # Notification components
+│   └── FriendRequestSender/ # Friend system components
+├── pages/                  # Application pages
+│   ├── ChatPage/          # Main chat interface
+│   ├── LoginPage/         # Login page
+│   └── RegisterPage/      # Registration page
+├── slices/                 # Redux slices
+│   ├── authSlice.ts       # Authentication state
+│   ├── friendsSlice.ts    # Friends management
+│   ├── chatSlice.ts       # Chat state
+│   └── chatMessages.ts    # Messages state
+├── types/                  # TypeScript type definitions
+├── hooks/                  # Custom React hooks
+├── store.ts               # Redux store configuration
+└── App.tsx                # Main application component
+```
+
+## Key Files
+
+### Frontend
+
+#### `src/App.tsx`
+
+Main application component with routing configuration:
+
+- Routes: `/login`, `/register`, `/main/*`, `/test`
+- Wraps app in SocketProvider for WebSocket communication
+- Redirects root path to login
+
+#### `src/store.ts`
+
+Redux store configuration with slices:
+
+- auth: Authentication state
+- friends: Friends management
+- chats: Chat state
+- messagesByChatId: Messages grouped by chat
+- notification: Notification state
+
+#### `src/pages/ChatPage/ChatPage.tsx`
+
+Main chat interface with:
+
+- LeftWindow: Chat list and friends
+- RightWindow: Messages and input
+- Notification system
+- Friend modal
+
+### Backend
+
+#### `src/backend/server.js`
+
+Main server file:
+
+- Express server setup
+- MongoDB connection
+- Mediasoup initialization
+- Socket.io configuration
+- CORS setup
+- Runs on port 10000
+
+#### `src/backend/config.js`
+
+Server configuration:
+
+- Mediasoup settings (workers, codecs, ports)
+- JWT secret key
+- RTC port ranges (10000-10100)
+- Audio/Video codec configuration
+
+#### `src/backend/socketHandler.js`
+
+WebSocket event handlers:
+
+- User connection/disconnection
+- Message broadcasting
+- Mediasoup room management
+- Video calling setup
+
+## Data Models
+
+### User Model
+
+```javascript
+{
+  username: String (unique),
+  description: String,
+  banner: String,
+  avatar: String,
+  password: String,
+  roles: [String],
+  online: Boolean,
+  subscription: String ('free' | 'flux'),
+  userChats: [ObjectId]
+}
+```
+
+### Message Model
+
+```javascript
+{
+  text: String,
+  senderId: ObjectId (User reference),
+  chatId: ObjectId (Chat reference),
+  timestamp: Date,
+  replyMessage: Object,
+  isPinned: Boolean
+}
+```
+
+### Chat Model
+
+```javascript
+{
+  name: String,
+  participants: [ObjectId],
+  isGroup: Boolean,
+  createdAt: Date
+}
+```
+
+### Friendship Model
+
+```javascript
+{
+  requesterId: ObjectId,
+  addresseeId: ObjectId,
+  status: String ('pending' | 'accepted' | 'rejected'),
+  createdAt: Date
+}
+```
+
+## API Endpoints
+
+### Authentication (`/auth`)
+
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+- `GET /auth/me` - Get current user
+
+### Friends (`/friends`)
+
+- `GET /friends/list/:userId` - Get user's friends
+- `POST /friends/request` - Send friend request
+- `PUT /friends/accept` - Accept friend request
+- `DELETE /friends/reject` - Reject friend request
+
+## Socket Events
+
+### Client to Server
+
+- `JOIN_CHAT` - Join chat room
+- `LEAVE_CHAT` - Leave chat room
+- `SEND_MESSAGE` - Send message
+- `TYPING_START` - Start typing indicator
+- `TYPING_STOP` - Stop typing indicator
+- `JOIN_ROOM` - Join video room
+- `LEAVE_ROOM` - Leave video room
+
+### Server to Client
+
+- `MESSAGE_RECEIVED` - New message
+- `USER_TYPING` - User typing
+- `USER_STOPPED_TYPING` - User stopped typing
+- `FRIEND_REQUEST` - Friend request received
+- `FRIEND_ACCEPTED` - Friend request accepted
+
+## Video Calling (Mediasoup)
+
+### Configuration
+
+- Workers: Number of CPU cores
+- RTC Ports: 10000-10100
+- Audio Codec: Opus (48kHz, 2 channels)
+- Video Codec: VP8
+
+### Key Components
+
+- `Room.tsx` - Video room interface
+- `useMediaSoup.js` - WebRTC hook
+- `socketHandler.js` - Mediasoup server logic
+
+## State Management
+
+### Redux Slices
+
+#### `authSlice.ts`
+
+- `token`: JWT token
+- `isAuthenticated`: Auth status
+- `user`: Current user data
+
+#### `friendsSlice.ts`
+
+- `friends`: Friends list
+- `pendingRequests`: Pending friend requests
+- `sentRequests`: Sent friend requests
+
+#### `chatSlice.ts`
+
+- `activeChat`: Currently selected chat
+- `chats`: All user chats
+- `isTyping`: Typing indicators
+
+#### `chatMessages.ts`
+
+- `messagesByChatId`: Messages grouped by chat ID
+- `loading`: Loading states
+- `error`: Error states
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js 16+
+- MongoDB (local or Atlas)
+- npm or yarn
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+```bash
+# Start server
+npm start
+
+# Start client (separate terminal)
+npm run client
+```
+
+### Production Build
+
+```bash
+npm run build
+```
+
+## Environment Variables
+
+Create `.env` file:
+
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/chat
+JWT_SECRET=your-secret-key
+SERVER_IP=your-server-ip
+PORT=10000
+```
+
+## Key Dependencies
+
+### Frontend
+
+- `react`: ^19.0.0
+- `@reduxjs/toolkit`: ^2.6.1
+- `socket.io-client`: ^4.8.1
+- `mediasoup-client`: ^3.16.3
+- `framer-motion`: ^12.6.5
+- `react-router-dom`: ^7.3.0
+
+### Backend
+
+- `express`: Web framework
+- `socket.io`: ^4.8.1
+- `mongoose`: ^8.12.1
+- `mediasoup`: ^3.19.2
+- `jsonwebtoken`: ^9.0.2
+- `bcryptjs`: ^3.0.2
+
+## Security
+
+- JWT authentication
+- Password hashing with bcryptjs
+- CORS configuration
+- Input validation with express-validator
+- Socket.io authentication middleware
+
+## Performance Considerations
+
+- Mediasoup workers scale with CPU cores
+- Redux state normalization
+- React.memo for component optimization
+- Lazy loading for routes
+- WebRTC transport optimization
