@@ -21,7 +21,24 @@ const config = {
           mimeType: 'audio/opus',
           clockRate: 48000,
           channels: 2,
+          parameters: {
+            useinbandfec: 1, // Forward Error Correction для лучшего качества
+            usedtx: 1, // Discontinuous Transmission для экономии трафика
+          },
         },
+        {
+          kind: 'audio',
+          mimeType: 'audio/PCMU',
+          clockRate: 8000,
+          channels: 1,
+        },
+        {
+          kind: 'audio',
+          mimeType: 'audio/PCMA',
+          clockRate: 8000,
+          channels: 1,
+        },
+
         {
           kind: 'video',
           mimeType: 'video/VP8',

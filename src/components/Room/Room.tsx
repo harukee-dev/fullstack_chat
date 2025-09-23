@@ -61,19 +61,28 @@ export const Room = () => {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: !isMicroMuted
             ? {
-                channelCount: 2,
                 echoCancellation: true,
                 noiseSuppression: true,
+                autoGainControl: true,
               }
             : false,
           video: cameraOn
             ? {
-                width: 1280,
+                width: 720,
                 height: 720,
-                frameRate: 30,
+                frameRate: 20,
               }
             : false,
         })
+        console.log(
+          'Audio Tracks:',
+          stream.getAudioTracks().map((track) => ({
+            kind: track.kind,
+            enabled: track.enabled,
+            muted: track.muted,
+            settings: track.getSettings(),
+          }))
+        )
         return stream
       } catch (error) {
         console.error('Ошибка при получении медиаданных пользователя', error)
@@ -189,10 +198,29 @@ export const Room = () => {
         // Для audio consumer сразу запускаем трек
         if (consumer.kind === 'audio' && consumer.track) {
           // Создаем audio элемент для воспроизведения звука
-          const audioElement = new Audio()
+
+          // const audioElement = new Audio()
+          // audioElement.srcObject = new MediaStream([consumer.track])
+          // audioElement.play().catch((error) => {
+          //   console.error('Error playing audio:', error)
+          // })
+          const audioElement = document.createElement('audio')
           audioElement.srcObject = new MediaStream([consumer.track])
+          audioElement.autoplay = true
+          // @ts-ignore
+          audioElement.playsInline = true
+          audioElement.muted = false
+
+          audioElement.style.display = 'none'
+          document.body.appendChild(audioElement)
+
+          consumer.audioElement = audioElement
+
           audioElement.play().catch((error) => {
-            console.error('Error playing audio:', error)
+            console.error(
+              'Ошибка при воспроизведении звука от consumer:',
+              error
+            )
           })
         }
 
@@ -267,6 +295,7 @@ export const Room = () => {
         }))
 
         consumer.on('transportclose', () => {
+          if (consumer.audioElement) consumer.audioElement.remove()
           console.log(
             'Consumer transport closed for producer:',
             data.producerId
