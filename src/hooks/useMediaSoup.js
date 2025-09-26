@@ -140,7 +140,7 @@ export const useMediaSoup = (roomId, isMicrophoneMuted, isCameraOn) => {
           reject(new Error('Transport creation timeout'))
         }, 15000)
 
-        socket.emit('join-room', { roomId, userId: socket.id }, (response) => {
+        socket.emit('join-room', { roomId }, (response) => {
           clearTimeout(timeout)
 
           if (!response) {

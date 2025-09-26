@@ -7,6 +7,8 @@ interface ConsumerData {
   consumer: any
   kind: string
   userId: string
+  username?: string
+  avatar?: string
 }
 
 interface Producers {
@@ -23,7 +25,7 @@ export const Room = () => {
   const currentUserId = localStorage.getItem('user-id')
   const { id: roomId } = useParams()
   const [isMicroMuted, setIsMicroMuted] = useState<boolean>(false)
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(true)
+  const [isCameraOn, setIsCameraOn] = useState<boolean>(false)
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [sendTransport, setSendTransport] = useState<any>(null) // переименовали для ясности
   const [producers, setProducers] = useState<Producers>({})
@@ -68,9 +70,9 @@ export const Room = () => {
             : false,
           video: cameraOn
             ? {
-                width: 720,
+                width: 1280,
                 height: 720,
-                frameRate: 20,
+                frameRate: 30,
               }
             : false,
         })
@@ -254,6 +256,8 @@ export const Room = () => {
       producerId: string
       kind: string
       userId: string
+      username?: string
+      avatar?: string
     }) => {
       try {
         console.log(
@@ -291,6 +295,8 @@ export const Room = () => {
             consumer,
             kind: data.kind,
             userId: data.userId,
+            username: data.username,
+            avatar: data.avatar,
           },
         }))
 
@@ -309,6 +315,7 @@ export const Room = () => {
 
         consumer.on('producerclose', () => {
           console.log('Producer closed, removing consumer:', data.producerId)
+          if (consumer.audioElement) consumer.audioElement.remove()
           setConsumers((prev) => {
             const newConsumers = { ...prev }
             delete newConsumers[data.producerId]
@@ -331,6 +338,9 @@ export const Room = () => {
           ) {
             newConsumers[data.producerId].consumer.close()
           }
+          if (newConsumers[data.producerId].consumer?.audioElement) {
+            newConsumers[data.producerId].consumer.audioElement.remove()
+          }
           delete newConsumers[data.producerId]
         }
         return newConsumers
@@ -343,6 +353,8 @@ export const Room = () => {
         producerId: string
         kind: string
         userId: string
+        username?: string
+        avatar?: string
       }>
     ) => {
       console.log('Received existing producers:', producersList)
@@ -358,7 +370,7 @@ export const Room = () => {
     socket.on('producer-close', handleProducerClose)
     socket.on('existing-producers', handleExistingProducers)
 
-    // Запрашиваем существующие продюсеры при подключении
+    // Запрашиваем существующие продюсеры при подключении (ТОЛЬКО ОДИН РАЗ)
     if (roomId && recvTransportRef.current) {
       console.log('Requesting existing producers for room:', roomId)
       socket.emit('get-producers', roomId)
@@ -404,6 +416,9 @@ export const Room = () => {
         typeof consumerData.consumer.close === 'function'
       ) {
         consumerData.consumer.close()
+      }
+      if (consumerData.consumer?.audioElement) {
+        consumerData.consumer.audioElement.remove()
       }
     })
     setConsumers({})
@@ -636,6 +651,9 @@ export const Room = () => {
       ) {
         consumerData.consumer.close()
       }
+      if (consumerData.consumer?.audioElement) {
+        consumerData.consumer.audioElement.remove()
+      }
     })
     setConsumers({})
 
@@ -654,27 +672,34 @@ export const Room = () => {
         }
 
         return (
-          <video
-            key={producerId}
-            ref={(videoElement) => {
-              if (videoElement && consumerData.consumer.track) {
-                videoElement.srcObject = new MediaStream([
-                  consumerData.consumer.track,
-                ])
-                videoElement.play().catch(console.error)
-              }
-            }}
-            autoPlay
-            playsInline
-            muted={consumerData.userId === currentUserId}
-            style={{
-              width: '300px',
-              height: '200px',
-              border: '2px solid #333',
-              borderRadius: '8px',
-              margin: '10px',
-            }}
-          />
+          <div key={producerId} style={{ margin: '10px', textAlign: 'center' }}>
+            <video
+              ref={(videoElement) => {
+                if (videoElement && consumerData.consumer.track) {
+                  videoElement.srcObject = new MediaStream([
+                    consumerData.consumer.track,
+                  ])
+                  videoElement.play().catch(console.error)
+                }
+              }}
+              autoPlay
+              playsInline
+              muted={consumerData.userId === currentUserId}
+              style={{
+                display: 'none',
+              }}
+            />
+            <img
+              src={consumerData.avatar || '/default-avatar.png'}
+              alt={consumerData.username || 'User'}
+              style={{
+                width: '10vh',
+                height: '10vh',
+                borderRadius: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </div>
         )
       })
       .filter(Boolean)
@@ -683,26 +708,31 @@ export const Room = () => {
   // Локальное видео
   const renderLocalVideo = () => {
     if (!localStream) return null
+    const currentUserAvatar = localStorage.getItem('avatar')
 
     return (
-      <video
-        ref={(videoElement) => {
-          if (videoElement) {
-            videoElement.srcObject = localStream
-            videoElement.play().catch(console.error)
-          }
-        }}
-        autoPlay
-        playsInline
-        muted
-        style={{
-          width: '300px',
-          height: '200px',
-          border: '2px solid #007bff',
-          borderRadius: '8px',
-          margin: '10px',
-          transform: 'scaleX(-1)',
-        }}
+      // <video
+      //   ref={(videoElement) => {
+      //     if (videoElement) {
+      //       videoElement.srcObject = localStream
+      //       videoElement.play().catch(console.error)
+      //     }
+      //   }}
+      //   autoPlay
+      //   playsInline
+      //   muted
+      //   style={{
+      //     width: '30vw',
+      //     border: '1px solid #ffffff',
+      //     borderRadius: '1vh',
+      //     margin: '10px',
+      //     transform: 'scaleX(-1)',
+      //   }}
+      // />
+      <img
+        style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
+        src={currentUserAvatar || ''}
+        alt="user-avatar"
       />
     )
   }
@@ -755,7 +785,7 @@ export const Room = () => {
             cursor: 'pointer',
           }}
         >
-          {isMicroMuted ? '🔇 Unmute' : '🎤 Mute'}
+          {isMicroMuted ? ' Unmute' : ' Mute'}
         </button>
 
         <button
@@ -769,7 +799,7 @@ export const Room = () => {
             cursor: 'pointer',
           }}
         >
-          {isCameraOn ? '📷 Stop Camera' : '📹 Start Camera'}
+          {isCameraOn ? ' Stop Camera' : ' Start Camera'}
         </button>
 
         <button
@@ -784,7 +814,7 @@ export const Room = () => {
             cursor: 'pointer',
           }}
         >
-          🔄 Reconnect
+          Reconnect
         </button>
         <button
           onClick={leaveRoom}
@@ -798,13 +828,13 @@ export const Room = () => {
             cursor: 'pointer',
           }}
         >
-          🚪 Leave Room
+          Leave Room
         </button>
       </div>
 
       <div>
         <h3>Participants:</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', width: '90vw' }}>
           {renderLocalVideo()}
           {renderVideoElements()}
         </div>
@@ -819,12 +849,12 @@ export const Room = () => {
         }}
       >
         <h4>Connection Info:</h4>
-        <p>Device Initialized: {isDeviceInitialized ? '✅' : '❌'}</p>
-        <p>Send Transport Ready: {sendTransport ? '✅' : '❌'}</p>
-        <p>Recv Transport Ready: {recvTransportRef.current ? '✅' : '❌'}</p>
-        <p>Local Stream: {localStream ? '✅' : '❌'}</p>
-        <p>Audio Producer: {producers.audio ? '✅' : '❌'}</p>
-        <p>Video Producer: {producers.video ? '✅' : '❌'}</p>
+        <p>Device Initialized: {isDeviceInitialized ? 'yes' : 'no'}</p>
+        <p>Send Transport Ready: {sendTransport ? 'yes' : 'no'}</p>
+        <p>Recv Transport Ready: {recvTransportRef.current ? 'yes' : 'no'}</p>
+        <p>Local Stream: {localStream ? 'yes' : 'no'}</p>
+        <p>Audio Producer: {producers.audio ? 'yes' : 'no'}</p>
+        <p>Video Producer: {producers.video ? 'yes' : 'no'}</p>
         <p>Consumers: {Object.keys(consumers).length}</p>
         <p>User ID: {userIdRef.current}</p>
         <p>Reconnect Attempts: {reconnectAttempts}</p>

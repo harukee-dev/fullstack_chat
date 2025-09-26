@@ -80,8 +80,6 @@ async function getOrCreateRouter(roomId) {
   return router
 }
 
-// ... остальной код socketHandler.js остается без изменений ...
-
 function getClientRooms(io) {
   const { rooms } = io.sockets.adapter
 
@@ -452,19 +450,235 @@ function setupSocketHandlers(io) {
       })
     })
 
-    // Mediasoup обработчики
-    // В обработчике join-room, после создания send transport, добавить создание receive transport
-    socket.on('join-room', async ({ roomId, userId }, callback) => {
-      try {
-        console.log(`User ${userId} joining room ${roomId}`)
+    // Регистрируем медиа-обработчики ОДИН РАЗ на сокет
+    if (!socket.data.mediaHandlersRegistered) {
+      socket.data.mediaHandlersRegistered = true
 
-        if (!roomId || !userId) {
-          throw new Error('Missing roomId or userId')
+      // Обработка подключения транспорта
+      socket.on(
+        'connect-transport',
+        async ({ transportId, dtlsParameters }, callback) => {
+          try {
+            console.log('Connecting transport:', transportId)
+            const transportData = transports.get(transportId)
+            if (!transportData) {
+              throw new Error('Transport not found')
+            }
+
+            await transportData.transport.connect({ dtlsParameters })
+            callback({ success: true })
+          } catch (error) {
+            console.error('Transport connect error:', error)
+            callback({ success: false, error: error.message })
+          }
+        }
+      )
+
+      // Создание producer
+      socket.on(
+        'produce',
+        async ({ transportId, kind, rtpParameters, roomId }, callback) => {
+          try {
+            console.log(
+              'Creating producer:',
+              kind,
+              'for transport:',
+              transportId
+            )
+            const transportData = transports.get(transportId)
+            if (!transportData || transportData.type !== 'send') {
+              throw new Error('Send transport not found')
+            }
+
+            const producer = await transportData.transport.produce({
+              kind,
+              rtpParameters,
+            })
+
+            const user = await User.findById(userId)
+
+            // Сохраняем producer с правильным userId
+            producers.set(producer.id, {
+              producer,
+              userId: socket.user.id,
+              username: user.username,
+              avatar: user.avatar,
+              roomId,
+              kind,
+            })
+
+            console.log(
+              `Producer created: ${producer.id} for user ${socket.user.id}`
+            )
+
+            // Уведомляем всех в комнате о новом producer
+            socket.to(roomId).emit('new-producer', {
+              producerId: producer.id,
+              kind: producer.kind,
+              userId: socket.user.id,
+              username: user.username,
+              avatar: user.avatar,
+            })
+
+            callback({
+              success: true,
+              producerId: producer.id,
+            })
+          } catch (error) {
+            console.error('Produce error:', error)
+            callback({ success: false, error: error.message })
+          }
+        }
+      )
+
+      // Создание consumer
+      socket.on(
+        'consume',
+        async ({ transportId, producerId, rtpCapabilities }, callback) => {
+          try {
+            console.log('Creating consumer for producer:', producerId)
+            const transportData = transports.get(transportId)
+            const producerData = producers.get(producerId)
+
+            if (!transportData || transportData.type !== 'recv') {
+              throw new Error('Receive transport not found')
+            }
+            if (!producerData) {
+              throw new Error('Producer not found')
+            }
+
+            const router = await getOrCreateRouter(producerData.roomId)
+
+            // Проверяем, может ли router создать consumer
+            if (
+              !router.canConsume({
+                producerId: producerId,
+                rtpCapabilities: rtpCapabilities,
+              })
+            ) {
+              throw new Error('Cannot consume this producer')
+            }
+
+            const consumer = await transportData.transport.consume({
+              producerId: producerId,
+              rtpCapabilities: rtpCapabilities,
+              paused: false,
+            })
+
+            callback({
+              success: true,
+              consumerId: consumer.id,
+              kind: consumer.kind,
+              rtpParameters: consumer.rtpParameters,
+              producerId: producerId,
+            })
+          } catch (error) {
+            console.error('Consume error:', error)
+            callback({ success: false, error: error.message })
+          }
+        }
+      )
+
+      // Закрытие producer
+      socket.on('producer-close', ({ producerId, roomId }) => {
+        try {
+          const producerData = producers.get(producerId)
+          if (producerData && producerData.userId === socket.user.id) {
+            producerData.producer.close()
+            producers.delete(producerId)
+
+            // Уведомляем всех в комнате
+            socket.to(roomId).emit('producer-close', { producerId })
+            console.log(`Producer ${producerId} closed`)
+          }
+        } catch (error) {
+          console.error('Error closing producer:', error)
+        }
+      })
+
+      // Запрос существующих producers
+      socket.on('get-producers', (roomId) => {
+        try {
+          const roomProducers = Array.from(producers.values())
+            .filter((p) => p.roomId === roomId && p.userId !== socket.user.id)
+            .map((p) => ({
+              producerId: p.producer.id,
+              kind: p.kind,
+              userId: p.userId,
+              username: p.username,
+              avatar: p.avatar,
+            }))
+
+          socket.emit('existing-producers', roomProducers)
+        } catch (error) {
+          console.error('Error getting producers:', error)
+        }
+      })
+
+      // Выход из комнаты
+      socket.on('leave-room', ({ roomId }) => {
+        try {
+          console.log(`User ${socket.user.id} leaving room ${roomId}`)
+
+          // Закрываем все продюсеры пользователя в этой комнате
+          for (const [producerId, data] of Array.from(producers.entries())) {
+            if (data.userId === socket.user.id && data.roomId === roomId) {
+              data.producer.close()
+              producers.delete(producerId)
+              socket.to(roomId).emit('producer-close', { producerId })
+            }
+          }
+
+          // Закрываем транспорты пользователя
+          if (socket.transportIds) {
+            for (const transportId of [
+              socket.transportIds.send,
+              socket.transportIds.recv,
+            ]) {
+              if (transportId) {
+                const transportData = transports.get(transportId)
+                if (transportData) {
+                  transportData.transport.close()
+                  transports.delete(transportId)
+                }
+              }
+            }
+          }
+
+          // Удаляем пользователя из комнаты
+          const users = roomUsers.get(roomId)
+          if (users) {
+            users.delete(socket.user.id)
+            if (users.size === 0) {
+              roomUsers.delete(roomId)
+              const router = routers.get(roomId)
+              if (router) {
+                router.close()
+                routers.delete(roomId)
+              }
+            }
+          }
+
+          socket.leave(roomId)
+          console.log(`User ${socket.user.id} left room ${roomId}`)
+        } catch (error) {
+          console.error('Error leaving room:', error)
+        }
+      })
+    }
+
+    // Mediasoup обработчики
+    socket.on('join-room', async ({ roomId }, callback) => {
+      try {
+        console.log(`User ${socket.user.id} joining room ${roomId}`)
+
+        if (!roomId) {
+          throw new Error('Missing roomId')
         }
 
         const router = await getOrCreateRouter(roomId)
 
-        // Создаем SEND транспорт для пользователя (для отправки медиа)
+        // Создаем SEND транспорт для пользователя
         const sendTransport = await router.createWebRtcTransport({
           listenIps: config.mediasoup.webRtcTransport.listenIps,
           enableUdp: true,
@@ -473,7 +687,7 @@ function setupSocketHandlers(io) {
           initialAvailableOutgoingBitrate: 1000000,
         })
 
-        // Создаем RECEIVE транспорт для пользователя (для приема медиа)
+        // Создаем RECEIVE транспорт для пользователя
         const recvTransport = await router.createWebRtcTransport({
           listenIps: config.mediasoup.webRtcTransport.listenIps,
           enableUdp: true,
@@ -500,8 +714,13 @@ function setupSocketHandlers(io) {
         if (!roomUsers.has(roomId)) {
           roomUsers.set(roomId, new Map())
         }
-        roomUsers.get(roomId).set(userId, {
+
+        const user = await User.findById(userId)
+
+        roomUsers.get(roomId).set(socket.user.id, {
           socketId: socket.id,
+          username: user.username,
+          avatar: user.avatar,
           transports: [sendTransport.id, recvTransport.id],
         })
 
@@ -524,143 +743,31 @@ function setupSocketHandlers(io) {
           },
         })
 
-        console.log(`Transports created for user ${userId} in room ${roomId}`)
+        console.log(
+          `Transports created for user ${socket.user.id} in room ${roomId}`
+        )
 
         // Отправляем существующих producers новому пользователю
         const existingProducers = Array.from(producers.values()).filter(
-          (p) => p.roomId === roomId && p.userId !== userId
+          (p) => p.roomId === roomId && p.userId !== socket.user.id
         )
 
         if (existingProducers.length > 0) {
-          // Отправляем сразу, без задержки
           socket.emit(
             'existing-producers',
             existingProducers.map((p) => ({
               producerId: p.producer.id,
               kind: p.kind,
               userId: p.userId,
+              username: p.username,
+              avatar: p.avatar,
             }))
           )
         }
 
-        // Обработка подключения транспорта (общая для send и recv)
-        socket.on(
-          'connect-transport',
-          async ({ transportId, dtlsParameters }, callback) => {
-            try {
-              console.log('Connecting transport:', transportId)
-              const transportData = transports.get(transportId)
-              if (!transportData) {
-                throw new Error('Transport not found')
-              }
-
-              await transportData.transport.connect({ dtlsParameters })
-              callback({ success: true })
-            } catch (error) {
-              console.error('Transport connect error:', error)
-              callback({ success: false, error: error.message })
-            }
-          }
-        )
-
-        // Создание producer (только на send transport)
-        socket.on(
-          'produce',
-          async ({ transportId, kind, rtpParameters }, callback) => {
-            try {
-              console.log(
-                'Creating producer:',
-                kind,
-                'for transport:',
-                transportId
-              )
-              const transportData = transports.get(transportId)
-              if (!transportData || transportData.type !== 'send') {
-                throw new Error('Send transport not found')
-              }
-
-              const producer = await transportData.transport.produce({
-                kind,
-                rtpParameters,
-              })
-
-              // Сохраняем producer
-              producers.set(producer.id, {
-                producer,
-                userId,
-                roomId,
-                kind,
-              })
-
-              console.log(`Producer created: ${producer.id} for user ${userId}`)
-
-              // Уведомляем всех в комнате о новом producer
-              socket.to(roomId).emit('new-producer', {
-                producerId: producer.id,
-                kind: producer.kind,
-                userId: userId,
-              })
-
-              callback({
-                success: true,
-                producerId: producer.id,
-              })
-            } catch (error) {
-              console.error('Produce error:', error)
-              callback({ success: false, error: error.message })
-            }
-          }
-        )
-
-        // Создание consumer (только на recv transport)
-        socket.on(
-          'consume',
-          async ({ transportId, producerId, rtpCapabilities }, callback) => {
-            try {
-              console.log('Creating consumer for producer:', producerId)
-              const transportData = transports.get(transportId)
-              const producerData = producers.get(producerId)
-
-              if (!transportData || transportData.type !== 'recv') {
-                throw new Error('Receive transport not found')
-              }
-              if (!producerData) {
-                throw new Error('Producer not found')
-              }
-
-              // Проверяем, может ли router создать consumer
-              if (
-                !router.canConsume({
-                  producerId: producerId,
-                  rtpCapabilities: rtpCapabilities,
-                })
-              ) {
-                throw new Error('Cannot consume this producer')
-              }
-
-              const consumer = await transportData.transport.consume({
-                producerId: producerId,
-                rtpCapabilities: rtpCapabilities,
-                paused: false,
-              })
-
-              callback({
-                success: true,
-                consumerId: consumer.id,
-                kind: consumer.kind,
-                rtpParameters: consumer.rtpParameters,
-                producerId: producerId,
-              })
-            } catch (error) {
-              console.error('Consume error:', error)
-              callback({ success: false, error: error.message })
-            }
-          }
-        )
-
         // Присоединяем к комнате
         socket.join(roomId)
-        console.log(`User ${userId} successfully joined room ${roomId}`)
+        console.log(`User ${socket.user.id} successfully joined room ${roomId}`)
       } catch (error) {
         console.error('Join room error:', error)
         callback({
@@ -683,64 +790,35 @@ function setupSocketHandlers(io) {
       }
     })
 
-    // Закрытие producer
-    socket.on('producer-close', ({ producerId, roomId }) => {
-      try {
-        const producerData = producers.get(producerId)
-        if (producerData) {
-          producerData.producer.close()
-          producers.delete(producerId)
-
-          // Уведомляем всех в комнате
-          socket.to(roomId).emit('producer-close', { producerId })
-          console.log(`Producer ${producerId} closed`)
-        }
-      } catch (error) {
-        console.error('Error closing producer:', error)
-      }
-    })
-
-    // Запрос существующих producers
-    socket.on('get-producers', (roomId) => {
-      try {
-        const roomProducers = Array.from(producers.values())
-          .filter((p) => p.roomId === roomId && p.userId !== socket.user.id)
-          .map((p) => ({
-            producerId: p.producer.id,
-            kind: p.kind,
-            userId: p.userId,
-          }))
-
-        socket.emit('existing-producers', roomProducers)
-      } catch (error) {
-        console.error('Error getting producers:', error)
-      }
-    })
-
     // Обработка отключения
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id)
 
-      // Закрываем все transports пользователя
-      if (socket.transportId) {
-        const transport = transports.get(socket.transportId)
-        if (transport) {
-          transport.close()
-          transports.delete(socket.transportId)
+      // Закрываем все транспорты пользователя
+      if (socket.transportIds) {
+        for (const transportId of [
+          socket.transportIds.send,
+          socket.transportIds.recv,
+        ]) {
+          if (transportId) {
+            const transportData = transports.get(transportId)
+            if (transportData) {
+              transportData.transport.close()
+              transports.delete(transportId)
+            }
+          }
         }
       }
 
       // Удаляем все producers пользователя
-      const userProducers = Array.from(producers.entries()).filter(
-        ([_, data]) => data.userId === socket.user.id
-      )
-
-      userProducers.forEach(([producerId, data]) => {
-        data.producer.close()
-        producers.delete(producerId)
-        // Уведомляем комнату о закрытии producer
-        socket.to(data.roomId).emit('producer-close', { producerId })
-      })
+      for (const [producerId, data] of Array.from(producers.entries())) {
+        if (data.userId === socket.user.id) {
+          data.producer.close()
+          producers.delete(producerId)
+          // Уведомляем комнату о закрытии producer
+          socket.to(data.roomId).emit('producer-close', { producerId })
+        }
+      }
 
       // Удаляем пользователя из комнат
       for (const [roomId, users] of roomUsers.entries()) {
