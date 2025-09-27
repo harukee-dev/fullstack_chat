@@ -672,7 +672,7 @@ export const Room = () => {
         }
 
         return (
-          <div key={producerId} style={{ margin: '10px', textAlign: 'center' }}>
+          <div key={producerId}>
             <video
               ref={(videoElement) => {
                 if (videoElement && consumerData.consumer.track) {
