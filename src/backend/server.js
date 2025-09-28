@@ -12,8 +12,8 @@ const path = require('path')
 const mediasoup = require('mediasoup')
 const config = require('./config')
 
-// const CLIENT_URL = 'http://localhost:3000'
-const CLIENT_URL = 'https://omnio-space.fun'
+const CLIENT_URL = 'http://localhost:3000'
+// const CLIENT_URL = 'https://omnio-space.fun'
 
 app.use(
   cors({
