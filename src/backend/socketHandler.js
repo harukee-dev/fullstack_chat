@@ -615,6 +615,10 @@ function setupSocketHandlers(io) {
         }
       })
 
+      socket.on('new-room', (roomId) => {
+        io.emit('new-room', roomId)
+      })
+
       // Выход из комнаты
       socket.on('leave-room', ({ roomId }) => {
         try {

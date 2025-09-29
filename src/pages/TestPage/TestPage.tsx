@@ -8,7 +8,7 @@ import cl from './testPage.module.css'
 export const TestPage = () => {
   const { socket } = useSocket()
   const navigate = useNavigate()
-  const [rooms, updateRooms] = useState([])
+  const [rooms, updateRooms] = useState<any[]>([])
   const rootNode = useRef<any>(null)
 
   useEffect(() => {
@@ -18,10 +18,13 @@ export const TestPage = () => {
     } else {
       console.log('socket')
     }
-    socket.on(ACTIONS.SHARE_ROOMS, ({ rooms = [] } = {}) => {
-      if (rootNode.current) {
-        updateRooms(rooms)
-      }
+    // socket.on(ACTIONS.SHARE_ROOMS, ({ rooms = [] } = {}) => {
+    //   if (rootNode.current) {
+    //     updateRooms(rooms)
+    //   }
+    // })
+    socket.on('new-room', (roomId) => {
+      updateRooms([...rooms, roomId])
     })
   }, [socket])
 
@@ -48,7 +51,9 @@ export const TestPage = () => {
       <button
         className={cl.buttonCreateRoom}
         onClick={() => {
-          navigate(`/test/room/${v4()}`)
+          const newRoomId = v4()
+          navigate(`/test/room/${newRoomId}`)
+          socket?.emit('new-room', newRoomId)
         }}
       >
         Create New Room
