@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import ACTIONS from '../../backend/actions'
+import { useEffect, useState } from 'react'
 import { v4 } from 'uuid'
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../../SocketContext'
@@ -9,28 +8,25 @@ export const TestPage = () => {
   const { socket } = useSocket()
   const navigate = useNavigate()
   const [rooms, updateRooms] = useState<any[]>([])
-  const rootNode = useRef<any>(null)
 
   useEffect(() => {
     if (!socket) {
-      console.log('!socket')
       return
-    } else {
-      console.log('socket')
     }
-    // socket.on(ACTIONS.SHARE_ROOMS, ({ rooms = [] } = {}) => {
-    //   if (rootNode.current) {
-    //     updateRooms(rooms)
-    //   }
-    // })
     socket.on('new-room', (roomId) => {
       updateRooms([...rooms, roomId])
     })
   }, [socket])
 
+  const handleCreateRoom = () => {
+    const newRoomId = v4()
+    navigate(`/test/room/${newRoomId}`)
+    socket?.emit('new-room', newRoomId)
+  }
+
   return (
-    <div className={cl.testPage} ref={rootNode}>
-      <h1 className={cl.mainTitle}>Available Rooms</h1>
+    <div className={cl.testPage}>
+      <h1 className={cl.mainTitle}>Test omnio calls</h1>
 
       <div className={cl.roomsList}>
         {rooms.map((roomID) => (
@@ -42,21 +38,14 @@ export const TestPage = () => {
                 navigate(`/test/room/${roomID}`)
               }}
             >
-              Join
+              join
             </button>
           </div>
         ))}
       </div>
 
-      <button
-        className={cl.buttonCreateRoom}
-        onClick={() => {
-          const newRoomId = v4()
-          navigate(`/test/room/${newRoomId}`)
-          socket?.emit('new-room', newRoomId)
-        }}
-      >
-        Create New Room
+      <button className={cl.buttonCreateRoom} onClick={handleCreateRoom}>
+        Create Room
       </button>
     </div>
   )
