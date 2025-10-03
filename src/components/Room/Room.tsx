@@ -263,6 +263,19 @@ export const Room = () => {
       username?: string // ник юзера
       avatar?: string // аватарка юзера
     }) => {
+      if (consumers[data.producerId]) {
+        return
+      }
+      const existingAudioConsumer = Object.values(consumers).find(
+        (consumerData) =>
+          consumerData.userId === data.userId &&
+          consumerData.kind === 'audio' &&
+          data.kind === 'audio'
+      )
+
+      if (existingAudioConsumer) {
+        return
+      }
       try {
         console.log(
           'Received new producer:',
@@ -278,33 +291,29 @@ export const Room = () => {
           return
         }
 
-        if (consumers[data.producerId]) {
-          // если такой консюмер уже существует
-          console.log('Consumer already exists for producer:', data.producerId) // логируем это
-          return // и заканчиваем работу функции
-        }
-
-        const consumer = await handleCreateConsumer(data) // создаем консюмер из полученного продюсера для получения медиа от нового пользователя
+        // 1. Сначала создаём consumer для нового продюсера
+        const consumer = await handleCreateConsumer(data)
         if (!consumer) {
-          // если продюсер создался некорректно
-          console.error(
-            // логируем ошибку
-            'Failed to create consumer for producer:',
-            data.producerId
-          )
-          return // заканчиваем работу функции
+          // Если не удалось создать consumer — выходим
+          return
         }
+        // 2. Обновляем consumers: удаляем старые с этим userId и добавляем новый
+        setConsumers((prev) => {
+          // Если уже есть consumer с этим producerId — ничего не делаем
+          if (prev[data.producerId]) return prev
 
-        setConsumers((prev) => ({
-          ...prev,
-          [data.producerId]: {
-            consumer,
-            kind: data.kind,
-            userId: data.userId,
-            username: data.username,
-            avatar: data.avatar,
-          },
-        })) // сохраняем консюмер в массив с полной информацией о пользователе
+          // Добавляем новый consumer
+          return {
+            ...prev,
+            [data.producerId]: {
+              consumer,
+              kind: data.kind,
+              userId: data.userId,
+              username: data.username,
+              avatar: data.avatar,
+            },
+          }
+        })
 
         consumer.on('transportclose', () => {
           // при закрытии транспорта - то есть если мы выйдем из звонка
@@ -374,6 +383,9 @@ export const Room = () => {
 
       for (const producer of producersList) {
         // проходимся по каждому продюсеру из списка
+
+        if (consumers[producers.producerId]) continue
+
         if (producer.userId !== userIdRef.current) {
           // если этот продюсер не является нашим
           await handleNewProducer(producer) // вызываем функцию обработчик нового продюсера, которая создаст консюмер из этого продюсера для получения медиа данных от другого пользователя
@@ -515,6 +527,7 @@ export const Room = () => {
         console.log('Step 6: Creating producers...')
         if (!isMicroMuted) {
           // если микрофон не замучен, то создаем продюсер отправки нашего аудио
+
           await createProducer(sendTransport, stream, 'audio')
         }
         if (isCameraOn) {
@@ -567,97 +580,124 @@ export const Room = () => {
   ]) // зависимости
 
   // Обработка изменений state микрофона и камеры
+  // Добавьте ref для отслеживания текущего состояния обновления
+  const isUpdatingMediaRef = useRef(false)
+
+  // Обработка изменений state микрофона и камеры
   useEffect(() => {
     const updateMedia = async () => {
-      // функция обновления медиа при изменении настроек
-      if (!sendTransport || !localStream || !isConnected) {
-        // проверка, есть ли транспорт отправки, локальный стрим и подключение
+      if (
+        !sendTransport ||
+        !localStream ||
+        !isConnected ||
+        isUpdatingMediaRef.current
+      ) {
         return
       }
 
-      try {
-        const hasAudio = localStream.getAudioTracks().length > 0 // проверка, есть ли у локального стрима аудио треки
-        const hasVideo = localStream.getVideoTracks().length > 0 // проверка, есть ли у локального стрима видео треки
+      isUpdatingMediaRef.current = true
 
-        const needNewStream = // определяем, нужен ли новый поток (изменилось ли состоянии микрофона/камеры)
+      try {
+        const hasAudio = localStream.getAudioTracks().length > 0
+        const hasVideo = localStream.getVideoTracks().length > 0
+
+        const needNewStream =
           (isMicroMuted && hasAudio) ||
           (!isMicroMuted && !hasAudio) ||
           (!isCameraOn && hasVideo) ||
           (isCameraOn && !hasVideo)
 
         if (needNewStream) {
-          // если нужен новый поток - создаем стрим заново
           console.log('Recreating media stream...')
-          localStream.getTracks().forEach((track) => track.stop()) // закрывам все треки текущего локального стрима
+          localStream.getTracks().forEach((track) => track.stop())
 
-          const newStream = await getMediaStream(isCameraOn) // создаем новый локальный стрим
-          if (!newStream) return // проверка на корректное создание стрима
+          const newStream = await getMediaStream(isCameraOn)
+          if (!newStream) return
 
-          setLocalStream(newStream) // сохраняем стрим в state
+          setLocalStream(newStream)
 
+          // Закрываем старые продюсеры перед созданием новых
+          if (producersRef.current.audio) {
+            if (socket) {
+              socket.emit('producer-close', {
+                producerId: producersRef.current.audio.id,
+                roomId,
+              })
+            }
+            producersRef.current.audio.close()
+            producersRef.current.audio = null
+          }
+
+          if (producersRef.current.video) {
+            if (socket) {
+              socket.emit('producer-close', {
+                producerId: producersRef.current.video.id,
+                roomId,
+              })
+            }
+            producersRef.current.video.close()
+            producersRef.current.video = null
+          }
+
+          // Создаем новые продюсеры только если нужно
           if (!isMicroMuted) {
-            // если микрофон не замучен
-            await createProducer(sendTransport, newStream, 'audio') // создаем продюсер для отправки аудио нашего микрофона
+            await createProducer(sendTransport, newStream, 'audio')
           }
           if (isCameraOn) {
-            // если камера включена
-            await createProducer(sendTransport, newStream, 'video') // создаем продюсер для отправки нашего видео
+            await createProducer(sendTransport, newStream, 'video')
           }
         } else {
-          // если не нужен новый поток - обновляем только продюсеры
+          // Логика для аудио
           if (!isMicroMuted && !producersRef.current.audio) {
-            // если мы размутились
-            const audioTracks = localStream.getAudioTracks() // получаем из локального стрима аудио треки
+            const audioTracks = localStream.getAudioTracks()
             if (audioTracks.length > 0) {
-              // если они есть
-              await createProducer(sendTransport, localStream, 'audio') // то создаем продюсер для отправки аудио
+              await createProducer(sendTransport, localStream, 'audio')
             }
           } else if (isMicroMuted && producersRef.current.audio) {
-            // если мы замутились
-            if (socket && producersRef.current.audio) {
-              // и сокет и продюсер нашего аудио инициализированы
+            if (socket) {
               socket.emit('producer-close', {
-                // уведомляем сервер о закрытии продюсера аудио
-                producerId: producersRef.current.audio.id, // отправляем его (продюсера) айди
-                roomId, // и айди комнаты, в которой находимся
+                producerId: producersRef.current.audio.id,
+                roomId,
               })
             }
-            producersRef.current.audio.close() // закрываем аудио треки
-            producersRef.current.audio = null // и обнуляем ref аудио продюсеров
-            setProducers((prev) => ({ ...prev, audio: undefined })) // обновляем state продюсеров
+            producersRef.current.audio.close()
+            producersRef.current.audio = null
+            setProducers((prev) => ({ ...prev, audio: undefined }))
           }
-          // если мы включили камеру
+
+          // Логика для видео
           if (isCameraOn && !producersRef.current.video) {
-            const videoTracks = localStream.getVideoTracks() // получаем их нашего стрима видео
+            const videoTracks = localStream.getVideoTracks()
             if (videoTracks.length > 0) {
-              // если видео треки есть
-              await createProducer(sendTransport, localStream, 'video') // создаем продюсер для отправки видео
+              await createProducer(sendTransport, localStream, 'video')
             }
           } else if (!isCameraOn && producersRef.current.video) {
-            // если мы выключили камеру
-            if (socket && producersRef.current.video) {
-              // и если сокет и продюсер нашего видео трека инициализированы
+            if (socket) {
               socket.emit('producer-close', {
-                // уведомляем сервер о закрытии видео продюсера
-                producerId: producersRef.current.video.id, // с определенным айди продюсера
-                roomId, // и айди комнаты, в которой находимся
+                producerId: producersRef.current.video.id,
+                roomId,
               })
             }
-            producersRef.current.video.close() // закрываем все наши видео продюсеры
-            producersRef.current.video = null // обнуляем ref видео продюсеров
-            setProducers((prev) => ({ ...prev, video: undefined })) // и обновляем state продюсеров
+            producersRef.current.video.close()
+            producersRef.current.video = null
+            setProducers((prev) => ({ ...prev, video: undefined }))
           }
         }
       } catch (error) {
-        // отладка ошибок
         console.error('Error in updateMedia:', error)
+      } finally {
+        isUpdatingMediaRef.current = false
       }
     }
 
-    if (isConnected) {
-      // если мы подключены
-      updateMedia() // обновляем наши медиа при изменении зависимостей, которые указаны ниже
-    }
+    // Добавляем debounce для предотвращения множественных вызовов
+    const timeoutId = setTimeout(() => {
+      if (isConnected) {
+        updateMedia()
+      }
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
   }, [
     isMicroMuted,
     isCameraOn,
