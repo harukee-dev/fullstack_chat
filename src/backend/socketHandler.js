@@ -450,24 +450,30 @@ function setupSocketHandlers(io) {
       })
     })
 
+    // СОБЫТИЯ MEDIASOUP
     // Регистрируем медиа-обработчики ОДИН РАЗ на сокет
     if (!socket.data.mediaHandlersRegistered) {
-      socket.data.mediaHandlersRegistered = true
+      // если определенный сокет уже зарегистрирован, то мы не будем пересоздавать для него обработчики событий
+      // Чтобы избежать выполнение одних и тех же действий и ненужной дополнительной нагрузки на сервер
+      socket.data.mediaHandlersRegistered = true // выставляем, что сокет зарегистрировался
 
       // Обработка подключения транспорта
       socket.on(
-        'connect-transport',
+        'connect-transport', // событие - клиент просит подключить транспорт
         async ({ transportId, dtlsParameters }, callback) => {
+          // получаем айди транспорта для подключения и параметры шифрования DTLS
           try {
-            console.log('Connecting transport:', transportId)
-            const transportData = transports.get(transportId)
+            console.log('Connecting transport:', transportId) // логируем начало подключения транспорта
+            const transportData = transports.get(transportId) // находим транспорт по айди в мапе транспортов
             if (!transportData) {
+              // логируем ошибку, если транспорт не найден
               throw new Error('Transport not found')
             }
 
-            await transportData.transport.connect({ dtlsParameters })
-            callback({ success: true })
+            await transportData.transport.connect({ dtlsParameters }) // подключаем транспорт с заданными параметрами шифрования
+            callback({ success: true }) // отправляем клиенту сообщение об успешном подключении к транспорту
           } catch (error) {
+            // отладка ошибок
             console.error('Transport connect error:', error)
             callback({ success: false, error: error.message })
           }
@@ -476,28 +482,31 @@ function setupSocketHandlers(io) {
 
       // Создание producer
       socket.on(
-        'produce',
+        'produce', // событие - клиент просит создать producer
         async ({ transportId, kind, rtpParameters, roomId }, callback) => {
+          // принимает id транспорта, тип, rtp(протокол передачи медиа) параметры, и id комнаты
           try {
             console.log(
               'Creating producer:',
               kind,
               'for transport:',
               transportId
-            )
-            const transportData = transports.get(transportId)
+            ) // логируем начало создания producer
+            const transportData = transports.get(transportId) // находим траспорт по айди в мапе транспортов
             if (!transportData || transportData.type !== 'send') {
+              // логирование ошибки если транспорт не найден или не является транспортом отправки
               throw new Error('Send transport not found')
             }
 
             const producer = await transportData.transport.produce({
+              // создаем producer на транспорте с заданными параметрами
               kind,
               rtpParameters,
             })
 
-            const user = await User.findById(userId)
+            const user = await User.findById(userId) // находим пользователя в БД по его id
 
-            // Сохраняем producer с правильным userId
+            // сохраняем объект с самим продюсером, id комнаты, типом и данными и пользователе
             producers.set(producer.id, {
               producer,
               userId: socket.user.id,
@@ -509,9 +518,9 @@ function setupSocketHandlers(io) {
 
             console.log(
               `Producer created: ${producer.id} for user ${socket.user.id}`
-            )
+            ) // логирование успешного создания продюсера
 
-            // Уведомляем всех в комнате о новом producer
+            // уведомляем всем участником данной комнаты о новом продюсере
             socket.to(roomId).emit('new-producer', {
               producerId: producer.id,
               kind: producer.kind,
@@ -523,8 +532,9 @@ function setupSocketHandlers(io) {
             callback({
               success: true,
               producerId: producer.id,
-            })
+            }) // возвращаем клиенту успешное создание продюсера и его id
           } catch (error) {
+            // логирование ошибок при создании продюсера
             console.error('Produce error:', error)
             callback({ success: false, error: error.message })
           }
@@ -533,46 +543,53 @@ function setupSocketHandlers(io) {
 
       // Создание consumer
       socket.on(
-        'consume',
+        'consume', // событие - клиент просит создать consumer
         async ({ transportId, producerId, rtpCapabilities }, callback) => {
+          // получаем id транспорта и продюсера, также rtp (протокол передачи медиа данных)
           try {
-            console.log('Creating consumer for producer:', producerId)
-            const transportData = transports.get(transportId)
-            const producerData = producers.get(producerId)
+            console.log('Creating consumer for producer:', producerId) // логирование начала создания consumer
+            const transportData = transports.get(transportId) // находим нужный транспорт по его id
+            const producerData = producers.get(producerId) // находим нужный producer по его id
 
             if (!transportData || transportData.type !== 'recv') {
+              // если не нашли транспорт получения то логируем ошибку
               throw new Error('Receive transport not found')
             }
             if (!producerData) {
+              // если не нашли продюсер то логируем ошибку
               throw new Error('Producer not found')
             }
 
-            const router = await getOrCreateRouter(producerData.roomId)
+            const router = await getOrCreateRouter(producerData.roomId) // создаем/получаем роутер (компонент, управляющий медиа потоками в комнате)
 
             // Проверяем, может ли router создать consumer
             if (
               !router.canConsume({
+                // проверяет совместимость кодекод между producer и consumer
                 producerId: producerId,
                 rtpCapabilities: rtpCapabilities,
               })
             ) {
-              throw new Error('Cannot consume this producer')
+              throw new Error('Cannot consume this producer') // логирование ошибки
             }
 
             const consumer = await transportData.transport.consume({
-              producerId: producerId,
-              rtpCapabilities: rtpCapabilities,
-              paused: false,
+              // создаем consumer с заданными параметрами
+              producerId: producerId, // id продюсера, из которого мы создали consumer
+              rtpCapabilities: rtpCapabilities, // протокол передачи медиа данных
+              paused: false, // consumer сразу начинает получать медиа
             })
 
             callback({
-              success: true,
-              consumerId: consumer.id,
-              kind: consumer.kind,
-              rtpParameters: consumer.rtpParameters,
-              producerId: producerId,
+              // возвращаем клиенту сообщение об успешном создании consumer и сам consumer
+              success: true, // успешно
+              consumerId: consumer.id, // id консюмера, который мы создали
+              kind: consumer.kind, // тип (аудио или видео)
+              rtpParameters: consumer.rtpParameters, // протокол передачи медиа данных
+              producerId: producerId, // id продюсера, из которого мы сделали consumer
             })
           } catch (error) {
+            // отладка ошибок при создании consumer
             console.error('Consume error:', error)
             callback({ success: false, error: error.message })
           }
@@ -581,109 +598,129 @@ function setupSocketHandlers(io) {
 
       // Закрытие producer
       socket.on('producer-close', ({ producerId, roomId }) => {
+        // событие - клиент закрывает свой producer (для отправки медиа данных)
         try {
-          const producerData = producers.get(producerId)
+          const producerData = producers.get(producerId) // находим producer в мапе по его id
           if (producerData && producerData.userId === socket.user.id) {
-            producerData.producer.close()
-            producers.delete(producerId)
+            // если он есть и принадлежит пользователю
+            producerData.producer.close() // закрываем producer
+            producers.delete(producerId) // удаляем из мапа продюсеров
 
-            // Уведомляем всех в комнате
-            socket.to(roomId).emit('producer-close', { producerId })
-            console.log(`Producer ${producerId} closed`)
+            socket.to(roomId).emit('producer-close', { producerId }) // уведомляем всех пользователей комнаты о закрытии producer
+            console.log(`Producer ${producerId} closed`) // логируем успешное закрытие producer пользователя
           }
         } catch (error) {
+          // отладка ошибок
           console.error('Error closing producer:', error)
         }
       })
 
       // Запрос существующих producers
       socket.on('get-producers', (roomId) => {
+        // событие - новый участник комнаты запрашивает список существующих продюсеров
         try {
-          const roomProducers = Array.from(producers.values())
-            .filter((p) => p.roomId === roomId && p.userId !== socket.user.id)
+          const roomProducers = Array.from(producers.values()) // получаем из мапа продюсеров массив
+            .filter((p) => p.roomId === roomId && p.userId !== socket.user.id) // фильтруем его по id комнаты, и убираем producers пользователя, который запросил все существующие
             .map((p) => ({
-              producerId: p.producer.id,
-              kind: p.kind,
-              userId: p.userId,
-              username: p.username,
-              avatar: p.avatar,
+              // оставляем все продюсеры, прошедшие фильтрацию в таком виде
+              producerId: p.producer.id, // id продюсера
+              kind: p.kind, // тип (аудио или видео)
+              userId: p.userId, // id юзера этого producer
+              username: p.username, // ник юзера этого producer
+              avatar: p.avatar, // аватар юзера этого producer
             }))
 
-          socket.emit('existing-producers', roomProducers)
+          socket.emit('existing-producers', roomProducers) // возвращаем новому учатнику все существующие producers комнаты, в которую он вошел
         } catch (error) {
+          // отладка ошибок
           console.error('Error getting producers:', error)
         }
       })
 
+      // Создание новой комнаты - ОБРАБОТЧИК ДЛЯ ТЕСТОВОЙ ВЕРСИИ
       socket.on('new-room', (roomId) => {
-        io.emit('new-room', roomId)
+        // событие - клиент создает новую комнату
+        io.emit('new-room', roomId) // говорим всем остальным о том, что создалась новая комната
       })
 
       // Выход из комнаты
       socket.on('leave-room', ({ roomId }) => {
+        // событие - участник покидает комнату
         try {
-          console.log(`User ${socket.user.id} leaving room ${roomId}`)
+          console.log(`User ${socket.user.id} leaving room ${roomId}`) // логирование
 
-          // Закрываем все продюсеры пользователя в этой комнате
+          // закрываем все продюсеры пользователя в этой комнате
           for (const [producerId, data] of Array.from(producers.entries())) {
+            // проходимся по всем producers
             if (data.userId === socket.user.id && data.roomId === roomId) {
-              data.producer.close()
-              producers.delete(producerId)
-              socket.to(roomId).emit('producer-close', { producerId })
+              // если это producer нужного участника и он привязан к нужной комнате
+              data.producer.close() // закрываем его
+              producers.delete(producerId) // удаляем его из мапа producers
+              socket.to(roomId).emit('producer-close', { producerId }) // возвращаем пользователю id продюсера, который закрыли
             }
           }
 
-          // Закрываем транспорты пользователя
+          // закрываем транспорты пользователя
           if (socket.transportIds) {
+            // если у сокета пользователя есть транспорты
             for (const transportId of [
+              // проходимся по всем транспортам (и отправки, и получения)
               socket.transportIds.send,
               socket.transportIds.recv,
             ]) {
               if (transportId) {
-                const transportData = transports.get(transportId)
+                // если у транспорта есть id
+                const transportData = transports.get(transportId) // находим его в мапе
                 if (transportData) {
-                  transportData.transport.close()
-                  transports.delete(transportId)
+                  // если мы его нашли
+                  transportData.transport.close() // закрываем его
+                  transports.delete(transportId) // удаляем его из мапа транспортов
                 }
               }
             }
           }
 
-          // Удаляем пользователя из комнаты
-          const users = roomUsers.get(roomId)
+          // удаляем пользователя из комнаты
+          const users = roomUsers.get(roomId) // поулчаем всех users из нужной комнаты по ее id
           if (users) {
-            users.delete(socket.user.id)
+            // если нашли юзеров из нужной комнаты
+            users.delete(socket.user.id) // удаляем из списка этих юзеров нашего, который выходит из комнаты
             if (users.size === 0) {
-              roomUsers.delete(roomId)
-              const router = routers.get(roomId)
+              // если он был единственным в комнате
+              roomUsers.delete(roomId) // удаляем и саму комнату
+              const router = routers.get(roomId) // находим роутер этой комнаты
               if (router) {
+                // если нашли - закрываем его и удаляем из мапа роутеров
                 router.close()
                 routers.delete(roomId)
               }
             }
           }
 
-          socket.leave(roomId)
-          console.log(`User ${socket.user.id} left room ${roomId}`)
+          socket.leave(roomId) // отписываемся от комнаты в сокете
+          console.log(`User ${socket.user.id} left room ${roomId}`) // логируем
         } catch (error) {
+          // отладка ошибок
           console.error('Error leaving room:', error)
         }
       })
     }
 
-    // Mediasoup обработчики
+    // Присоединение к комнате
     socket.on('join-room', async ({ roomId }, callback) => {
+      // событие - клиент просит подключить к комнате по ее id
       try {
-        console.log(`User ${socket.user.id} joining room ${roomId}`)
+        console.log(`User ${socket.user.id} joining room ${roomId}`) // логируем попытку входа
 
         if (!roomId) {
+          // логируем ошибку, если такой комнаты нет
           throw new Error('Missing roomId')
         }
 
-        const router = await getOrCreateRouter(roomId)
+        const router = await getOrCreateRouter(roomId) // получаем роутер этой комнаты
 
-        // Создаем SEND транспорт для пользователя
         const sendTransport = await router.createWebRtcTransport({
+          // создаем транспорт для отправки медиа данных с заданными параметрами
           listenIps: config.mediasoup.webRtcTransport.listenIps,
           enableUdp: true,
           enableTcp: true,
@@ -691,88 +728,95 @@ function setupSocketHandlers(io) {
           initialAvailableOutgoingBitrate: 1000000,
         })
 
-        // Создаем RECEIVE транспорт для пользователя
         const recvTransport = await router.createWebRtcTransport({
+          // созданием транспорт для получения медиа данных с заданными параметрами
           listenIps: config.mediasoup.webRtcTransport.listenIps,
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
         })
 
-        // Сохраняем транспорты
+        // сохраняем транспорт отправки в Map с типом 'send'
         transports.set(sendTransport.id, {
           transport: sendTransport,
           type: 'send',
         })
+        // и так же транспорт получения с типом 'recv' - сокращенно от receive
         transports.set(recvTransport.id, {
           transport: recvTransport,
           type: 'recv',
         })
 
         socket.transportIds = {
+          // сохраняем в сокете данного пользователя id транспортов
           send: sendTransport.id,
           recv: recvTransport.id,
         }
 
-        // Сохраняем информацию о пользователе в комнате
+        // создаем Map для комнаты, если не существует
         if (!roomUsers.has(roomId)) {
           roomUsers.set(roomId, new Map())
         }
 
-        const user = await User.findById(userId)
+        const user = await User.findById(userId) // находим пользователя из БД по его id
 
         roomUsers.get(roomId).set(socket.user.id, {
-          socketId: socket.id,
-          username: user.username,
-          avatar: user.avatar,
-          transports: [sendTransport.id, recvTransport.id],
+          // сохраняем информацию о пользователе и его транспортах в комнате
+          socketId: socket.id, // id сокета
+          username: user.username, // ник
+          avatar: user.avatar, // аватар
+          transports: [sendTransport.id, recvTransport.id], // транспорты (send,recv)
         })
 
-        // Отправляем параметры транспортов клиенту
+        // отправляем параметры транспортов клиенту
         callback({
-          success: true,
+          success: true, // успешно
           transportOptions: {
+            // транспорты
             send: {
-              id: sendTransport.id,
-              iceParameters: sendTransport.iceParameters,
-              iceCandidates: sendTransport.iceCandidates,
-              dtlsParameters: sendTransport.dtlsParameters,
+              // транспорт отправки
+              id: sendTransport.id, // id транспорта
+              iceParameters: sendTransport.iceParameters, // ice параметры - для установления соединения через NAT
+              iceCandidates: sendTransport.iceCandidates, // ICE кандидаты - все возможные пути соединения
+              dtlsParameters: sendTransport.dtlsParameters, // DTLS параметры - для шифрования
             },
             recv: {
-              id: recvTransport.id,
-              iceParameters: recvTransport.iceParameters,
-              iceCandidates: recvTransport.iceCandidates,
-              dtlsParameters: recvTransport.dtlsParameters,
+              // транспорт получения
+              id: recvTransport.id, // id транспорта
+              iceParameters: recvTransport.iceParameters, // ICE параметры - для установления соединения через NAT
+              iceCandidates: recvTransport.iceCandidates, // ICE кандидаты - все возможные пути соединения
+              dtlsParameters: recvTransport.dtlsParameters, // DTLS параметры - для шифрования
             },
           },
         })
 
         console.log(
-          `Transports created for user ${socket.user.id} in room ${roomId}`
+          `Transports created for user ${socket.user.id} in room ${roomId}` // логируем успешное создание транспортов
         )
 
-        // Отправляем существующих producers новому пользователю
+        // отправляем существующих producers новому пользователю
         const existingProducers = Array.from(producers.values()).filter(
           (p) => p.roomId === roomId && p.userId !== socket.user.id
         )
 
         if (existingProducers.length > 0) {
+          // если они есть - отправляем их пользователю
           socket.emit(
             'existing-producers',
             existingProducers.map((p) => ({
-              producerId: p.producer.id,
-              kind: p.kind,
-              userId: p.userId,
-              username: p.username,
-              avatar: p.avatar,
+              producerId: p.producer.id, // id продюсера
+              kind: p.kind, // тип (аудио или видео)
+              userId: p.userId, // id юзера данного продюсера
+              username: p.username, // ник юзера данного продюсера
+              avatar: p.avatar, // аватар юзера данного продюсера
             }))
           )
         }
 
-        // Присоединяем к комнате
-        socket.join(roomId)
-        console.log(`User ${socket.user.id} successfully joined room ${roomId}`)
+        socket.join(roomId) // присоединяем пользователя к комнате
+        console.log(`User ${socket.user.id} successfully joined room ${roomId}`) // лоигурем
       } catch (error) {
+        // отладка ошибок при присоединении пользователя к комнате
         console.error('Join room error:', error)
         callback({
           success: false,
@@ -781,76 +825,86 @@ function setupSocketHandlers(io) {
       }
     })
 
-    // Получение capabilities роутера
+    // Получение capabilities роутера(параметры передачи медиа данных) - какие кодеки, параметры и тп он поддерживает (для совместимости)
     socket.on('get-router-rtp-capabilities', async ({ roomId }, callback) => {
       try {
-        const router = await getOrCreateRouter(roomId)
+        const router = await getOrCreateRouter(roomId) // находим роутер нужной комнаты
         callback({
-          rtpCapabilities: router.rtpCapabilities,
+          rtpCapabilities: router.rtpCapabilities, // возвращаем его rtp
         })
       } catch (error) {
+        // отладка ошибок
         console.error('Error getting router capabilities:', error)
         callback({ error: error.message })
       }
     })
 
-    // Обработка отключения
+    // обработка отключения
     socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id)
+      console.log('Client disconnected:', socket.id) // логирование
 
-      // Закрываем все транспорты пользователя
+      // удаляем все tranports пользователя
       if (socket.transportIds) {
+        // если у пользователя были транспорты
         for (const transportId of [
+          // проходимся по каждому (и send и recv)
           socket.transportIds.send,
           socket.transportIds.recv,
         ]) {
           if (transportId) {
-            const transportData = transports.get(transportId)
+            // если он есть
+            const transportData = transports.get(transportId) // находим его в мапе
             if (transportData) {
-              transportData.transport.close()
-              transports.delete(transportId)
+              // если нашли в мапе
+              transportData.transport.close() // закрываем его
+              transports.delete(transportId) // удаляем из мапа
             }
           }
         }
       }
 
-      // Удаляем все producers пользователя
+      // удаляем все producers пользователя
       for (const [producerId, data] of Array.from(producers.entries())) {
+        // проходимся по каждому producer на сервере
         if (data.userId === socket.user.id) {
-          data.producer.close()
-          producers.delete(producerId)
-          // Уведомляем комнату о закрытии producer
-          socket.to(data.roomId).emit('producer-close', { producerId })
+          // если это producer нашего пользователя
+          data.producer.close() // закрыаем его
+          producers.delete(producerId) // удаляем из мапа
+          socket.to(data.roomId).emit('producer-close', { producerId }) // уведомляем всех участников комнаты о закрытии producerы
         }
       }
 
-      // Удаляем пользователя из комнат
+      // удаляем пользователя из комнат
       for (const [roomId, users] of roomUsers.entries()) {
+        // проходимся по всем комнатам и юзерам на сервере
         if (users.has(socket.user.id)) {
-          users.delete(socket.user.id)
+          // если нашли юзера в мапе юзеров
+          users.delete(socket.user.id) // удаляем его из комнаты
           if (users.size === 0) {
-            roomUsers.delete(roomId)
-            // Удаляем router если комната пуста
-            const router = routers.get(roomId)
+            // если он был последним - удаляем комнату и роутер
+            roomUsers.delete(roomId) // удаление комнаты
+            const router = routers.get(roomId) // находим роутер комнаты
             if (router) {
-              router.close()
-              routers.delete(roomId)
+              // если нашли его
+              router.close() // закрываем его
+              routers.delete(roomId) // удаляем
             }
           }
         }
       }
 
       // Очистка online users
-      const socketsOfUser = onlineUsers.get(socket.user.id)
-      if (!socketsOfUser) return
+      const socketsOfUser = onlineUsers.get(socket.user.id) // получаем всех пользователей c id сокета пользователя
+      if (!socketsOfUser) return // если их нет - заканчиваем работу
 
-      socketsOfUser.delete(socket.id)
+      socketsOfUser.delete(socket.id) // удаляем из сокетов юзера
 
       if (socketsOfUser.size === 0) {
-        onlineUsers.delete(socket.user.id)
-        userSockets.delete(socket.user.id)
+        // если это был последний сокет юзера (то есть больше ни на каких других устройствах с этого акканта сейчас не сидят)
+        onlineUsers.delete(socket.user.id) // удаляем его из списка онлайн ползователей
+        userSockets.delete(socket.user.id) // удаляем сокет из сокетов юзеров
 
-        // Уведомляем участников чатов, что пользователь оффлайн
+        // уведомляем участников чатов, что пользователь оффлайн
         chatParticipants.forEach((participantId) => {
           io.to(participantId).emit('user-offline', { userId: socket.user.id })
         })

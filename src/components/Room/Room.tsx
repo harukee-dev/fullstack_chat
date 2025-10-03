@@ -1,123 +1,129 @@
+// Импорты
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
 
+// Интерфейс для данных о потребителе медиа
 interface ConsumerData {
-  consumer: any
-  kind: string
-  userId: string
-  username?: string
-  avatar?: string
+  consumer: any // объект Consumer - получает медиа от других пользователей
+  kind: string // тип медиа - 'audio'/'video'
+  userId: string // ID пользователя
+  username?: string // ник пользователя от которого мы получаем медиа
+  avatar?: string // аватарка пользователя от которого мы получаем медиа
 }
 
+// Интерфейс для производителей медиа - то есть для отправки медиа серверу
 interface Producers {
   [key: string]: any
-  audio?: any
-  video?: any
+  audio?: any // есть ли аудио в нашем медиа
+  video?: any // есть ли видео в нашем медиа
 }
 
+// Интерфейс для хранения всех потребителей
 interface Consumers {
-  [producerId: string]: ConsumerData
+  [producerId: string]: ConsumerData // ключ - айди продюсера, значение - данные о консюмере
 }
 
 export const Room = () => {
-  const currentUserId = localStorage.getItem('user-id')
-  const { id: roomId } = useParams()
-  const [isMicroMuted, setIsMicroMuted] = useState<boolean>(false)
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(false)
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
-  const [sendTransport, setSendTransport] = useState<any>(null) // переименовали для ясности
-  const [producers, setProducers] = useState<Producers>({})
-  const [consumers, setConsumers] = useState<Consumers>({})
-  const [isConnected, setIsConnected] = useState<boolean>(false)
-  const [reconnectAttempts, setReconnectAttempts] = useState<number>(0)
+  const currentUserId = localStorage.getItem('user-id') // текущий айди локального пользователя
+  const { id: roomId } = useParams() // айди комнаты звонка
+  const [isMicroMuted, setIsMicroMuted] = useState<boolean>(false) // замучен ли микрофон
+  const [isCameraOn, setIsCameraOn] = useState<boolean>(false) // включена ли камера
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null) // локальный стрим (звук и/или видео)
+  const [sendTransport, setSendTransport] = useState<any>(null) // транспорт для отправки медиа
+  const [producers, setProducers] = useState<Producers>({}) // объект с нашими продюсерами
+  const [consumers, setConsumers] = useState<Consumers>({}) // объект с консюмерами других пользователей
+  const [isConnected, setIsConnected] = useState<boolean>(false) // статус подключения к звонку
+  const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
+  const navigate = useNavigate() // функция навигации на нужный адрес
 
-  const { socket } = useSocket()
+  const { socket } = useSocket() // получаем сокет из контекста
   const {
-    device,
-    isDeviceInitialized,
-    isLoading,
-    error,
-    createTransports,
-    createConsumer, // добавляем эту функцию из useMediaSoup
-    closeTransports, // добавляем эту функцию
-    fullRetry,
+    device, // объект нашего девайса (ноута, телефона, компа и тд)
+    isDeviceInitialized, // инициализировано ли устройство
+    isLoading, // идет ли загрузка
+    error, // ошибки если есть
+    createTransports, // функция создания транспортов
+    createConsumer, // функция создания консюмера
+    closeTransports, // функция закрытия транспортов
+    fullRetry, // функция полного переподключения
     reconnectAttempts: mediaSoupAttempts,
   } = useMediaSoup(roomId || '', isMicroMuted, isCameraOn)
 
-  const producersRef = useRef<Producers>({})
-  const isInitializedRef = useRef(false)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const userIdRef = useRef<string>(socket?.id || '')
-  const recvTransportRef = useRef<any>(null) // добавляем ref для receive transport
+  const producersRef = useRef<Producers>({}) // ссылка на объект продюсеров (для быстрого доступа)
+  const isInitializedRef = useRef(false) // флаг инициализации (избегаем повторной инициализации)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null) // ссылка на таймер переподключения
+  const userIdRef = useRef<string>(socket?.id || '') // ID юзера (socket.id)
+  const recvTransportRef = useRef<any>(null) // транспорт для получения медиа (receive transport)
 
   useEffect(() => {
     userIdRef.current = socket?.id || ''
   }, [socket])
 
-  // Получение медиа потока
+  // Функция получения медиа потока
   const getMediaStream = useCallback(
-    async (cameraOn: boolean) => {
+    async (isCameraOn: boolean) => {
+      // принимаем состояние, включена ли камера
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: !isMicroMuted
+          // получаем локальный стрим из нашего девайса
+          audio: !isMicroMuted // если микрофон не замучен
             ? {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
+                // то будет аудио с такими настройками
+                echoCancellation: true, // эхоподавление
+                noiseSuppression: true, // шумоподавление
+                autoGainControl: true, // автоусиление громкости
               }
-            : false,
-          video: cameraOn
+            : false, // если микрофон замучен, то не отправляем звук
+          video: isCameraOn // если камера включена
             ? {
-                width: 1280,
-                height: 720,
-                frameRate: 30,
+                // отправляем наше видео с такими настройками
+                width: 1280, // HD
+                height: 720, // HD
+                frameRate: 30, // 30FPS
+                // позже сюда добавим возможность настраивать самому качество видео, если есть подписка
               }
-            : false,
+            : false, // если камера выключена, не отправляем ее
         })
-        console.log(
-          'Audio Tracks:',
-          stream.getAudioTracks().map((track) => ({
-            kind: track.kind,
-            enabled: track.enabled,
-            muted: track.muted,
-            settings: track.getSettings(),
-          }))
-        )
-        return stream
+        return stream // функция возвращает наш стрим
       } catch (error) {
+        // обработка ошибок при получении локального стрима
         console.error('Ошибка при получении медиаданных пользователя', error)
         return null
       }
     },
-    [isMicroMuted]
+    [isMicroMuted, isCameraOn] // в зависимостях замучен ли микрофон и включена ли камера
   )
 
-  // Создание Producer
+  // Создание Producer - объекта, который отправляет медиа данные на сервер
   const createProducer = useCallback(
     async (transport: any, stream: MediaStream, kind: string) => {
+      // принимаем транспорт, сам стрим и его тип (видео или аудио)
       if (!transport || !stream) {
+        // если нет транспорта или стрима то выводим ошибку и прекращаем работу функции
         console.error('ERR: !transport || !stream')
         return null
       }
 
       try {
         const tracks =
-          kind === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks()
+          kind === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks() // получаем аудио или видео треки стрима в зависимости от его kind
         if (tracks.length === 0) {
+          // если треков у стрима нет то возвращаем ошибку о пустом стриме
           console.error('ERR: no tracks for', kind)
           return null
         }
 
-        const track = tracks[0]
+        const track = tracks[0] // получаем первый трек стрима (то есть его основное аудио или видео)
         if (track.readyState !== 'live') {
+          // если трек не готов для трансляции, то выводим ошибку
           console.error('Track is not live:', kind)
           return null
         }
 
-        // Закрываем существующий producer
         if (producersRef.current[kind]) {
+          // если такой продюсер уже существует, то мы закрываем прошлый очищаем его
           console.log('Closing existing', kind, 'producer')
           producersRef.current[kind].close()
           producersRef.current[kind] = null
@@ -127,27 +133,30 @@ export const Room = () => {
         const producer = await transport.produce({
           track,
           appData: { mediaTag: kind },
-        })
+        }) // создаем продюсер из нашего транспорта
 
-        producersRef.current[kind] = producer
-        setProducers((prev) => ({ ...prev, [kind]: producer }))
-        console.log(`${kind} Producer создан:`, producer.id)
+        producersRef.current[kind] = producer // сохраняем его в нашей рефке
+        setProducers((prev) => ({ ...prev, [kind]: producer })) // добавляем в useState массив продюсеров
+        console.log(`${kind} Producer создан:`, producer.id) // логируем создание
 
         // Обработчики событий продюсера
         producer.on('transportclose', () => {
+          // при закрытии транспорта мы очищаем этот продюсер и удалем из массива
           console.log('Producer transport closed:', kind)
           producersRef.current[kind] = null
           setProducers((prev) => ({ ...prev, [kind]: undefined }))
         })
 
         producer.on('trackended', () => {
+          // при закрытии этого трека мы очищаем продюсер и удаляем из массива
           console.log('Producer track ended:', kind)
           producersRef.current[kind] = null
           setProducers((prev) => ({ ...prev, [kind]: undefined }))
         })
 
-        return producer
+        return producer // функция возвращает созданный продюсер со всеми его обработчиками событий
       } catch (error) {
+        // логируем ошибки при создании продюсера
         console.error('Ошибка при создании Producer:', error)
         return null
       }
@@ -155,17 +164,17 @@ export const Room = () => {
     []
   )
 
-  // Функция для создания consumer с использованием правильного transport
-  // Функция для создания consumer с правильной обработкой audio
+  // Создание Consumer - объекта, который получает медиа данные от других пользователей
   const handleCreateConsumer = useCallback(
     async (producerData: {
-      producerId: string
-      kind: string
-      userId: string
+      producerId: string // принимаем айди продюсера пользователя - из этого продюсера мы сделаем себе консюмер
+      kind: string // тип его данных (аудио или видео)
+      userId: string // айди юзера
     }) => {
       if (!recvTransportRef.current || !device) {
+        // проверка, существует ли транспорт для принятия медиа данных, инициализирован ли девайс
         console.error('Receive transport or device not available')
-        return null
+        return null // если нет - логируем ошибку
       }
 
       try {
@@ -174,15 +183,17 @@ export const Room = () => {
           producerData.producerId,
           'kind:',
           producerData.kind
-        )
+        ) // логируем начало процесса создания консюмера
 
         const consumer = await createConsumer(
+          // создаем консюмер, передавая функции создания айди продюсера, из которого мы будем делать консюмер, и его настройки кодеков
           producerData.producerId,
           //@ts-ignore
           device.rtpCapabilities
         )
 
         if (!consumer) {
+          // если консюмер не создался или создался некорректно, то логируем ошибку и прекращаем работу функции
           console.error(
             'Failed to create consumer for producer:',
             producerData.producerId
@@ -191,73 +202,66 @@ export const Room = () => {
         }
 
         console.log(
+          // если все хорошо прошло, то логируем успешное создание консюмера
           'Consumer created successfully:',
           consumer.id,
           'kind:',
           consumer.kind
         )
 
-        // Для audio consumer сразу запускаем трек
         if (consumer.kind === 'audio' && consumer.track) {
-          // Создаем audio элемент для воспроизведения звука
-
-          // const audioElement = new Audio()
-          // audioElement.srcObject = new MediaStream([consumer.track])
-          // audioElement.play().catch((error) => {
-          //   console.error('Error playing audio:', error)
-          // })
-          const audioElement = document.createElement('audio')
-          audioElement.srcObject = new MediaStream([consumer.track])
-          audioElement.autoplay = true
+          const audioElement = document.createElement('audio') // создаем html аудио элемент, через который будет воспроизводить аудио консюмера
+          audioElement.srcObject = new MediaStream([consumer.track]) // подключаем этот элемент к аудио треку консюмера, создавая медиа стрим в этом элементе
+          audioElement.autoplay = true // включаем автоматическое включение звука
           // @ts-ignore
           audioElement.playsInline = true
-          audioElement.muted = false
+          audioElement.muted = false // звук не замучен
 
-          audioElement.style.display = 'none'
-          document.body.appendChild(audioElement)
+          audioElement.style.display = 'none' // полностью прячем элемент, так как он у нас только для того, чтобы вывести звук
+          document.body.appendChild(audioElement) // добавляем в наше DOM этот невидимый аудио элемент
 
-          consumer.audioElement = audioElement
+          consumer.audioElement = audioElement // сохраняем ссылку на аудио элемент в консюмере
 
           audioElement.play().catch((error) => {
+            // воспроизводим звук этого аудио элемента, чтобы было слышно звук другого пользователя
             console.error(
+              // логирование ошибок при некорректном воспроизведении звука
               'Ошибка при воспроизведении звука от consumer:',
               error
             )
           })
         }
 
-        return consumer
+        return consumer // функция возвращает консюмер
       } catch (error) {
+        // логирование ошибок при создании консюмера
         console.error('Ошибка при создании consumer:', error)
         return null
       }
     },
-    [device, createConsumer]
+    [device, createConsumer] // в зависимости входит девайс, свойства которого могут меняться, и функцию создания консюмера
   )
 
+  // Базовая очистка при размонтировании
   useEffect(() => {
     return () => {
-      // Только базовая очистка, без уведомления сервера
-      console.log('Component unmounting - basic cleanup')
-
       if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
+        clearTimeout(reconnectTimeoutRef.current) // очизаем таймер переподключения
       }
-
-      // НЕ уведомляем сервер здесь - только при явном выходе
     }
   }, [])
 
-  // Обработка новых потребителей
+  // Обработка новых продюсеров (те, которые воспроизводят)
   useEffect(() => {
-    if (!socket || !device) return
+    if (!socket || !device) return // если сокет или девайс не инициализированы - прекращаем работу функции
 
     const handleNewProducer = async (data: {
-      producerId: string
-      kind: string
-      userId: string
-      username?: string
-      avatar?: string
+      // функция получения нового продюсера
+      producerId: string // айди продюсера
+      kind: string // тип медиа данных
+      userId: string // айди юзера, от которого получаем продюсер
+      username?: string // ник юзера
+      avatar?: string // аватарка юзера
     }) => {
       try {
         console.log(
@@ -266,27 +270,29 @@ export const Room = () => {
           data.kind,
           'from user:',
           data.userId
-        )
+        ) // логируем получение нового продюсера
 
-        // Не создаем consumer для собственных producers
         if (data.userId === userIdRef.current) {
+          // если это наш продюсер, то заканчиваем функцию - нам не нужно делать прослушивать наших же медиа данных
           console.log('Skipping own producer')
           return
         }
 
-        // Проверяем, не создали ли мы уже consumer для этого producer
         if (consumers[data.producerId]) {
-          console.log('Consumer already exists for producer:', data.producerId)
-          return
+          // если такой консюмер уже существует
+          console.log('Consumer already exists for producer:', data.producerId) // логируем это
+          return // и заканчиваем работу функции
         }
 
-        const consumer = await handleCreateConsumer(data)
+        const consumer = await handleCreateConsumer(data) // создаем консюмер из полученного продюсера для получения медиа от нового пользователя
         if (!consumer) {
+          // если продюсер создался некорректно
           console.error(
+            // логируем ошибку
             'Failed to create consumer for producer:',
             data.producerId
           )
-          return
+          return // заканчиваем работу функции
         }
 
         setConsumers((prev) => ({
@@ -298,141 +304,157 @@ export const Room = () => {
             username: data.username,
             avatar: data.avatar,
           },
-        }))
+        })) // сохраняем консюмер в массив с полной информацией о пользователе
 
         consumer.on('transportclose', () => {
-          if (consumer.audioElement) consumer.audioElement.remove()
+          // при закрытии транспорта - то есть если мы выйдем из звонка
+          if (consumer.audioElement) consumer.audioElement.remove() // если у консюмера есть аудиоэлемент, который выводи тего звук - убираем этот аудиоэлемент
           console.log(
             'Consumer transport closed for producer:',
             data.producerId
-          )
+          ) // логирование закрытия элемента
           setConsumers((prev) => {
             const newConsumers = { ...prev }
             delete newConsumers[data.producerId]
             return newConsumers
-          })
+          }) // удаляем этот консюмер из массива
         })
 
         consumer.on('producerclose', () => {
+          // при закрытии чужого продюсера - то есть если выйдет кто-то другой из звонка
           console.log('Producer closed, removing consumer:', data.producerId)
-          if (consumer.audioElement) consumer.audioElement.remove()
+          if (consumer.audioElement) consumer.audioElement.remove() // удаляем адиоэлемент, если он есть
           setConsumers((prev) => {
             const newConsumers = { ...prev }
             delete newConsumers[data.producerId]
             return newConsumers
-          })
+          }) // удаляем консюмер из массива
         })
       } catch (error) {
-        console.error('Ошибка при создании consumer:', error)
+        console.error('Ошибка при создании consumer:', error) // логирование ошибок
       }
     }
 
     const handleProducerClose = (data: { producerId: string }) => {
-      console.log('Producer closed:', data.producerId)
+      // обработчик закрытия продюсеров
+      console.log('Producer closed:', data.producerId) // логирование того, что закрылся определнный продюсер
       setConsumers((prev) => {
-        const newConsumers = { ...prev }
+        // изменяем массив консюмеров
+        const newConsumers = { ...prev } // получаем все консюмеры
         if (newConsumers[data.producerId]) {
+          // если в консюмерах есть ключ с айди нашего консюмера, который нужно закрыть
           if (
-            newConsumers[data.producerId].consumer &&
-            !newConsumers[data.producerId].consumer.closed
+            newConsumers[data.producerId].consumer && // и в этом ключе есть сам консюмер
+            !newConsumers[data.producerId].consumer.closed // и этот консюмер не закрыт
           ) {
-            newConsumers[data.producerId].consumer.close()
+            newConsumers[data.producerId].consumer.close() // то закрываем его
           }
           if (newConsumers[data.producerId].consumer?.audioElement) {
-            newConsumers[data.producerId].consumer.audioElement.remove()
+            // если внутри консюмера есть ссылка на аудио элемент
+            newConsumers[data.producerId].consumer.audioElement.remove() // удаляем этот аудио элемент
           }
-          delete newConsumers[data.producerId]
+          delete newConsumers[data.producerId] // удаляем из массива консюмер с нужным айдишником
         }
-        return newConsumers
+        return newConsumers // возвращаем измененный массив
       })
     }
 
-    // Получение списка существующих продюсеров
+    // Получение существующих продюсеров
     const handleExistingProducers = async (
       producersList: Array<{
-        producerId: string
-        kind: string
-        userId: string
-        username?: string
-        avatar?: string
+        // получаем список продюсеров, которые состоят из
+        producerId: string // айди продюсера
+        kind: string // тип продюсера (видео или аудио)
+        userId: string // айди юзера данного продюсера
+        username?: string // никнейм юзера данного продюсера
+        avatar?: string // аватарка юзера данного продюсера
       }>
     ) => {
-      console.log('Received existing producers:', producersList)
+      console.log('Received existing producers:', producersList) // логируем получение уже существующих продюсеров
 
       for (const producer of producersList) {
+        // проходимся по каждому продюсеру из списка
         if (producer.userId !== userIdRef.current) {
-          await handleNewProducer(producer)
+          // если этот продюсер не является нашим
+          await handleNewProducer(producer) // вызываем функцию обработчик нового продюсера, которая создаст консюмер из этого продюсера для получения медиа данных от другого пользователя
         }
       }
     }
 
-    socket.on('new-producer', handleNewProducer)
-    socket.on('producer-close', handleProducerClose)
-    socket.on('existing-producers', handleExistingProducers)
+    socket.on('new-producer', handleNewProducer) // обработчик сокета о новом продюсере
+    socket.on('producer-close', handleProducerClose) // обработчик сокета о закрытии продюсера
+    socket.on('existing-producers', handleExistingProducers) // обработчик сокета о всех существующих продюсерах
 
-    // Запрашиваем существующие продюсеры при подключении (ТОЛЬКО ОДИН РАЗ)
+    // Запрашиваем существующие продюсеры при подключении (только один раз)
     if (roomId && recvTransportRef.current) {
-      console.log('Requesting existing producers for room:', roomId)
-      socket.emit('get-producers', roomId)
+      // если мы находимся в руме и транспорт получения инициализирован
+      console.log('Requesting existing producers for room:', roomId) // логируем то, что запрашиваем существующих продюсеров
+      socket.emit('get-producers', roomId) // делаем запрос у сокета на существующих продюсеров
     }
 
     return () => {
+      // cleanup обработчиков сокетов
       socket.off('new-producer', handleNewProducer)
       socket.off('producer-close', handleProducerClose)
       socket.off('existing-producers', handleExistingProducers)
     }
-  }, [socket, device, consumers, roomId, handleCreateConsumer])
+  }, [socket, device, consumers, roomId, handleCreateConsumer]) // зависимости
 
+  // функция выхода из комнаты
   const leaveRoom = useCallback(async () => {
-    console.log('Leaving room:', roomId)
+    console.log('Leaving room:', roomId) // логируем выход из комнаты
 
-    // Уведомляем сервер о выходе
     if (socket && roomId) {
-      socket.emit('leave-room', { roomId })
+      // если сокет и айди комнаты инициализированы
+      socket.emit('leave-room', { roomId }) // выводим сокету, что покидаем комнату с определенным айди
     }
 
-    // Закрываем transports
-    closeTransports()
+    closeTransports() // закрываем все транспорты (как и для отправки, так и для получения)
 
-    // Закрываем local stream
     if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop())
-      setLocalStream(null)
+      // если локальный стрим инициализирован
+      localStream.getTracks().forEach((track) => track.stop()) // закрываем все треки локального стрима
+      setLocalStream(null) // обнуляем state локального стрима
     }
 
     // Закрываем producers
     Object.values(producersRef.current).forEach((producer) => {
+      // проходимся по каждому продюсеру
       if (producer && typeof producer.close === 'function') {
-        producer.close()
+        // если продюсер инициализирован и у него есть функция закрытия (второе для ts)
+        producer.close() // то закрываем продюсер
       }
     })
-    producersRef.current = {}
-    setProducers({})
+    producersRef.current = {} // обнуляем массив продюсеров
+    setProducers({}) // обнуляем state массив продюсеров
 
-    // Закрываем consumers
+    // Закрываем консюмеры
     Object.values(consumers).forEach((consumerData) => {
+      // проходимся по каждому консюмеру
       if (
-        consumerData.consumer &&
-        typeof consumerData.consumer.close === 'function'
+        consumerData.consumer && // если консюмер инициализирован
+        typeof consumerData.consumer.close === 'function' // и он имеет функцию закрытия
       ) {
-        consumerData.consumer.close()
+        consumerData.consumer.close() // тогда закрываем этот консюмер
       }
       if (consumerData.consumer?.audioElement) {
-        consumerData.consumer.audioElement.remove()
+        // если в консюмере сохранена ссылка на аудиоэлемент
+        consumerData.consumer.audioElement.remove() // то удаляем этот элемент из DOM
       }
     })
-    setConsumers({})
+    setConsumers({}) // обнуляем state массива консюмеров
 
-    setIsConnected(false)
-    isInitializedRef.current = false
-  }, [socket, roomId, localStream, consumers, closeTransports])
+    setIsConnected(false) // меняем статус подключения на false
+    isInitializedRef.current = false // сбрасываем флаг инициализации
+  }, [socket, roomId, localStream, consumers, closeTransports]) // прописываем зависимости
 
+  // Логирование Socket событий
   useEffect(() => {
-    if (!socket) return
+    if (!socket) return // проверка на инициализацию сокета
 
-    // Логируем все входящие события
-    const originalEmit = socket.emit
+    const originalEmit = socket.emit // перехватываем socket.emit для логирования исходящих событий
     socket.emit = function (...args) {
+      // логируем входящие события
       console.log('📤 SOCKET EMIT:', args[0], args[1])
       return originalEmit.apply(this, args)
     }
@@ -448,72 +470,87 @@ export const Room = () => {
     socket.on('producer-close', (data) => logEvent('producer-close', data))
 
     return () => {
+      // восстанавливаем оригинальный emit при cleanup
       socket.emit = originalEmit
       socket.off('new-producer')
       socket.off('existing-producers')
       socket.off('producer-close')
     }
-  }, [socket])
+  }, [socket]) // настраиваем зависимости
 
-  // Основная логика подключения
+  // Основная логика подключения (инициализации)
   useEffect(() => {
     const initializeRoom = async () => {
+      // функция инициализации комнаты
       if (!isDeviceInitialized || !roomId || isInitializedRef.current) {
+        // проверка, что девайс и айди комнаты инициализированы, и что комната еще не инициализирована
         return
       }
 
       try {
         console.log('Step 1: Initializing room...')
-        isInitializedRef.current = true
+        isInitializedRef.current = true // выставляем, что комната инициализирована
 
         console.log('Step 2: Creating transports...')
-        const { sendTransport, recvTransport } = await createTransports()
+        const { sendTransport, recvTransport } = await createTransports() // создаем транспорты отправки и получения медиа данных
 
         if (!sendTransport || !recvTransport) {
-          throw new Error('Failed to create transports')
+          // проверка, что транспорты создались корректно
+          throw new Error('Failed to create transports') // логирование ошибки
         }
 
-        setSendTransport(sendTransport)
-        recvTransportRef.current = recvTransport
+        setSendTransport(sendTransport) // сохраняем транспорт отправки
+        recvTransportRef.current = recvTransport // сохраняем транспорт получения
         console.log('Step 3: Transports created successfully')
 
         console.log('Step 4: Getting media stream...')
-        const stream = await getMediaStream(isCameraOn)
+        const stream = await getMediaStream(isCameraOn) // получаем локальный стрим с или без камеры
         if (!stream) {
           throw new Error('Failed to get media stream')
         }
 
-        setLocalStream(stream)
+        setLocalStream(stream) // сохраняем локальный стрим в state переменной
         console.log('Step 5: Media stream obtained')
 
         console.log('Step 6: Creating producers...')
         if (!isMicroMuted) {
+          // если микрофон не замучен, то создаем продюсер отправки нашего аудио
           await createProducer(sendTransport, stream, 'audio')
         }
         if (isCameraOn) {
+          // если камера включена, то создаем продюсер отправки нашего видео
           await createProducer(sendTransport, stream, 'video')
         }
 
-        setIsConnected(true)
-        setReconnectAttempts(0)
-        console.log('Room initialization completed successfully')
+        setIsConnected(true) // выставляем state, что мы подключились
+        setReconnectAttempts(0) // сбрасываем количество попыток переподключения
+        console.log('Room initialization completed successfully') // логирование успешного подключения
       } catch (error) {
-        console.error('Room initialization failed:', error)
-        isInitializedRef.current = false
-        setReconnectAttempts((prev) => prev + 1)
+        // отладка ошибок
+        console.error('Room initialization failed:', error) // логируем
+        isInitializedRef.current = false // выставляем, что комната не инициализирована
+        setReconnectAttempts((prev) => prev + 1) // увеличиваем state количества переподключенийы
 
+        // умная стратегия повторных попыток подключения
         if (reconnectAttempts < 3) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 8000)
+          // если количество попыток меньше 3 то пробуем еще раз (избежание бесконечных попыток подклчюения)
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 8000) // вычиление задержки
+          // Math.pow(2, reconnectAttempts) - возводим двойку в степень со значением количества попыток
+          // 1000 * Math.pow(2, reconnectAttempts) - переводим в миллисекунды
+          // Math.min(..., 8000) - ограничение максимальной задержки
           reconnectTimeoutRef.current = setTimeout(() => {
+            // запускем таймер, который через время delay сделает повторную попытку подключения
             initializeRoom()
           }, delay)
+          // таймер сохраняем в ref для того, чтобы можно было отменить при размонтировании компонента или при успешном подключении до устечении таймера
         }
       }
     }
 
-    initializeRoom()
+    initializeRoom() // вызываем функцию инициализации комнаты
 
     return () => {
+      // cleanup таймера при размонтировании (здесь нам и нужен ref)
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
       }
@@ -521,121 +558,142 @@ export const Room = () => {
   }, [
     isDeviceInitialized,
     roomId,
-    createTransports, // исправлено с createTransport на createTransports
+    createTransports,
     getMediaStream,
     isCameraOn,
     isMicroMuted,
     createProducer,
     reconnectAttempts,
-  ])
+  ]) // зависимости
 
-  // Обработка изменений состояний микрофона и камеры
+  // Обработка изменений state микрофона и камеры
   useEffect(() => {
     const updateMedia = async () => {
+      // функция обновления медиа при изменении настроек
       if (!sendTransport || !localStream || !isConnected) {
+        // проверка, есть ли транспорт отправки, локальный стрим и подключение
         return
       }
 
       try {
-        const hasAudio = localStream.getAudioTracks().length > 0
-        const hasVideo = localStream.getVideoTracks().length > 0
+        const hasAudio = localStream.getAudioTracks().length > 0 // проверка, есть ли у локального стрима аудио треки
+        const hasVideo = localStream.getVideoTracks().length > 0 // проверка, есть ли у локального стрима видео треки
 
-        const needNewStream =
+        const needNewStream = // определяем, нужен ли новый поток (изменилось ли состоянии микрофона/камеры)
           (isMicroMuted && hasAudio) ||
           (!isMicroMuted && !hasAudio) ||
           (!isCameraOn && hasVideo) ||
           (isCameraOn && !hasVideo)
 
         if (needNewStream) {
+          // если нужен новый поток - создаем стрим заново
           console.log('Recreating media stream...')
-          localStream.getTracks().forEach((track) => track.stop())
+          localStream.getTracks().forEach((track) => track.stop()) // закрывам все треки текущего локального стрима
 
-          const newStream = await getMediaStream(isCameraOn)
-          if (!newStream) return
+          const newStream = await getMediaStream(isCameraOn) // создаем новый локальный стрим
+          if (!newStream) return // проверка на корректное создание стрима
 
-          setLocalStream(newStream)
+          setLocalStream(newStream) // сохраняем стрим в state
 
           if (!isMicroMuted) {
-            await createProducer(sendTransport, newStream, 'audio')
+            // если микрофон не замучен
+            await createProducer(sendTransport, newStream, 'audio') // создаем продюсер для отправки аудио нашего микрофона
           }
           if (isCameraOn) {
-            await createProducer(sendTransport, newStream, 'video')
+            // если камера включена
+            await createProducer(sendTransport, newStream, 'video') // создаем продюсер для отправки нашего видео
           }
         } else {
+          // если не нужен новый поток - обновляем только продюсеры
           if (!isMicroMuted && !producersRef.current.audio) {
-            const audioTracks = localStream.getAudioTracks()
+            // если мы размутились
+            const audioTracks = localStream.getAudioTracks() // получаем из локального стрима аудио треки
             if (audioTracks.length > 0) {
-              await createProducer(sendTransport, localStream, 'audio')
+              // если они есть
+              await createProducer(sendTransport, localStream, 'audio') // то создаем продюсер для отправки аудио
             }
           } else if (isMicroMuted && producersRef.current.audio) {
+            // если мы замутились
             if (socket && producersRef.current.audio) {
+              // и сокет и продюсер нашего аудио инициализированы
               socket.emit('producer-close', {
-                producerId: producersRef.current.audio.id,
-                roomId,
+                // уведомляем сервер о закрытии продюсера аудио
+                producerId: producersRef.current.audio.id, // отправляем его (продюсера) айди
+                roomId, // и айди комнаты, в которой находимся
               })
             }
-            producersRef.current.audio.close()
-            producersRef.current.audio = null
-            setProducers((prev) => ({ ...prev, audio: undefined }))
+            producersRef.current.audio.close() // закрываем аудио треки
+            producersRef.current.audio = null // и обнуляем ref аудио продюсеров
+            setProducers((prev) => ({ ...prev, audio: undefined })) // обновляем state продюсеров
           }
-
+          // если мы включили камеру
           if (isCameraOn && !producersRef.current.video) {
-            const videoTracks = localStream.getVideoTracks()
+            const videoTracks = localStream.getVideoTracks() // получаем их нашего стрима видео
             if (videoTracks.length > 0) {
-              await createProducer(sendTransport, localStream, 'video')
+              // если видео треки есть
+              await createProducer(sendTransport, localStream, 'video') // создаем продюсер для отправки видео
             }
           } else if (!isCameraOn && producersRef.current.video) {
+            // если мы выключили камеру
             if (socket && producersRef.current.video) {
+              // и если сокет и продюсер нашего видео трека инициализированы
               socket.emit('producer-close', {
-                producerId: producersRef.current.video.id,
-                roomId,
+                // уведомляем сервер о закрытии видео продюсера
+                producerId: producersRef.current.video.id, // с определенным айди продюсера
+                roomId, // и айди комнаты, в которой находимся
               })
             }
-            producersRef.current.video.close()
-            producersRef.current.video = null
-            setProducers((prev) => ({ ...prev, video: undefined }))
+            producersRef.current.video.close() // закрываем все наши видео продюсеры
+            producersRef.current.video = null // обнуляем ref видео продюсеров
+            setProducers((prev) => ({ ...prev, video: undefined })) // и обновляем state продюсеров
           }
         }
       } catch (error) {
+        // отладка ошибок
         console.error('Error in updateMedia:', error)
       }
     }
 
     if (isConnected) {
-      updateMedia()
+      // если мы подключены
+      updateMedia() // обновляем наши медиа при изменении зависимостей, которые указаны ниже
     }
   }, [
     isMicroMuted,
     isCameraOn,
-    sendTransport, // используем sendTransport вместо transport
+    sendTransport,
     localStream,
     socket,
     roomId,
     isConnected,
     getMediaStream,
     createProducer,
-  ])
+  ]) // зависимости для обновления нашего медиа
 
-  // Функция для полного переподключения
+  // Фукнция полного переподключения
   const handleFullRetry = useCallback(async () => {
+    // объявляем функцию
     console.log('Initiating full retry...')
-    isInitializedRef.current = false
+    isInitializedRef.current = false // выставляем, что комната не инициализирована
 
+    // очищаем таймер переподключения, если он сейчас активен
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
 
-    // Закрываем транспорты
+    // закрываем и очищаем транспоррты
     closeTransports()
     setSendTransport(null)
     recvTransportRef.current = null
 
     if (localStream) {
+      // закрываем все треки локального стрима
       localStream.getTracks().forEach((track) => track.stop())
       setLocalStream(null)
     }
 
+    // закрываем все продюсеры
     Object.values(producersRef.current).forEach((producer) => {
       if (producer && typeof producer.close === 'function') {
         producer.close()
@@ -644,6 +702,7 @@ export const Room = () => {
     producersRef.current = {}
     setProducers({})
 
+    // закрываем все консюмеры
     Object.values(consumers).forEach((consumerData) => {
       if (
         consumerData.consumer &&
@@ -652,41 +711,45 @@ export const Room = () => {
         consumerData.consumer.close()
       }
       if (consumerData.consumer?.audioElement) {
-        consumerData.consumer.audioElement.remove()
+        consumerData.consumer.audioElement.remove() // также при закрытии консюмеров удаляем аудио элементы, привязанные к ним
       }
     })
     setConsumers({})
 
-    setReconnectAttempts(0)
-    setIsConnected(false)
+    setReconnectAttempts(0) // обнуляем количество попыток переподключения
+    setIsConnected(false) // выставляем, что мы не подключены
 
-    fullRetry()
-  }, [sendTransport, localStream, closeTransports, fullRetry, consumers])
+    fullRetry() // вызываем функцию полной повторной попытки подключения (50 строка)
+  }, [sendTransport, localStream, closeTransports, fullRetry, consumers]) // зависимости
 
-  // Отрисовка видео элементов
+  // Отрисовка других пользователей
   const renderVideoElements = () => {
     return Object.entries(consumers)
       .map(([producerId, consumerData]) => {
         if (!consumerData.consumer || !consumerData.consumer.track) {
           return null
         }
+        let isVideo = null
 
         return (
           <div key={producerId}>
             <video
               ref={(videoElement) => {
                 if (videoElement && consumerData.consumer.track) {
+                  isVideo = true
                   videoElement.srcObject = new MediaStream([
                     consumerData.consumer.track,
                   ])
                   videoElement.play().catch(console.error)
+                } else {
+                  isVideo = false
                 }
               }}
               autoPlay
               playsInline
               muted={consumerData.userId === currentUserId}
               style={{
-                display: 'none',
+                display: 'block',
               }}
             />
             <img
@@ -705,30 +768,12 @@ export const Room = () => {
       .filter(Boolean)
   }
 
-  // Локальное видео
+  // Отрисовка локального видео
   const renderLocalVideo = () => {
-    if (!localStream) return null
-    const currentUserAvatar = localStorage.getItem('avatar')
+    if (!localStream) return null // проверка на инициализацию локального стрима
+    const currentUserAvatar = localStorage.getItem('avatar') // достаем из LS нашу аватарку
 
     return (
-      // <video
-      //   ref={(videoElement) => {
-      //     if (videoElement) {
-      //       videoElement.srcObject = localStream
-      //       videoElement.play().catch(console.error)
-      //     }
-      //   }}
-      //   autoPlay
-      //   playsInline
-      //   muted
-      //   style={{
-      //     width: '30vw',
-      //     border: '1px solid #ffffff',
-      //     borderRadius: '1vh',
-      //     margin: '10px',
-      //     transform: 'scaleX(-1)',
-      //   }}
-      // />
       <img
         style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
         src={currentUserAvatar || ''}
@@ -736,7 +781,7 @@ export const Room = () => {
       />
     )
   }
-
+  // Отрисовка всего компонента
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>Room: {roomId}</h1>

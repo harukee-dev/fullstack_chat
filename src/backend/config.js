@@ -1,68 +1,81 @@
-const os = require('os')
+// Импорт модуля os
+const os = require('os') // встроенный модуль для работы с операционной системой сервера (машины, на которой стоит сервер)
 
+// Основная конфигурация
 const config = {
-  listenIp: '0.0.0.0',
-  listenPort: 3016,
+  listenIp: '0.0.0.0', // сервер слушает на всех сетевых интерфейсах
+  listenPort: 3016, // порт для mediasoup сервера (отдельный от http порта)
 
+  // Конфигурация mediasoup
   mediasoup: {
-    numWorkers: Object.keys(os.cpus()).length,
+    numWorkers: Object.keys(os.cpus()).length, // количество workers = количество CPU ядер в системе
+    // Worker - отдельный процесс mediasoup для обработки медиа (именно обработки)
 
+    // Настройки Worker процессов
     worker: {
-      rtcMinPort: 10000,
-      rtcMaxPort: 10100,
-      logLevel: 'debug',
-      logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
+      // Диапазон портов RTC
+      rtcMinPort: 10000, // минимальный порт для WebRTC
+      rtcMaxPort: 20000, // максимальный порт для WebRTC
+      // диапазон: 10000 портов (около 5000 соединений)
+
+      // Логирование
+      logLevel: 'debug', // максимальный уровень логирования
+      logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'], // типы событий для логирования: общая информация, ice кандидаты и соединения, шифрование, rtp пакеты, шифрование, контрольные пакеты
     },
 
+    // Конфигурация Router и кодеков
+    // Router - управляет медиа потоками в комнате, определяет поддерживаемые кодеки
     router: {
       mediaCodecs: [
         {
-          kind: 'audio',
-          mimeType: 'audio/opus',
-          clockRate: 48000,
-          channels: 2,
+          kind: 'audio', // для трека типа аудио
+          mimeType: 'audio/opus', // кодек opus (стандарт)
+          clockRate: 48000, // частота дискретизации
+          channels: 2, // стерео звук (2 канала)
           parameters: {
-            useinbandfec: 1, // Forward Error Correction для лучшего качества
-            usedtx: 1, // Discontinuous Transmission для экономии трафика
+            useinbandfec: 1, // Forward Error Correction(исправление ошибок) для лучшего качества
+            usedtx: 1, // Discontinuous Transmission (экономия трафика при тишине)
           },
         },
         {
-          kind: 'audio',
-          mimeType: 'audio/PCMU',
-          clockRate: 8000,
-          channels: 1,
-        },
-        {
-          kind: 'audio',
-          mimeType: 'audio/PCMA',
-          clockRate: 8000,
-          channels: 1,
-        },
-
-        {
-          kind: 'video',
-          mimeType: 'video/VP8',
-          clockRate: 90000,
+          kind: 'video', // для трека типа видео
+          mimeType: 'video/VP8', // Google's VP8 кодек - хороший кодек: широкая поддержка браузерами, хорошее качество при низкой задержке, открытый стандарт (не требует лицензий)
+          clockRate: 90000, // стандартная частота для видео
           parameters: {
-            'x-google-start-bitrate': 1000,
-            'x-google-max-bitrate': 2000,
+            'x-google-start-bitrate': 1000, // начальный битрейт - когда только подключили видео, чтобы оно сразу появилось, и битрейт постепенно появлялся, а не долгая загрузка сразу красивого видео
+            'x-google-max-bitrate': 2000, // максимальный битрейт
+          },
+        },
+        {
+          kind: 'video', // если VP8 видео не поддерживается
+          mimeType: 'video/H264', // кодек H264 - тоже очень широкоиспользуемый формат
+          clockRate: 90000, // стандартная частота
+          parameters: {
+            'packetization-mode': 1, // режим пакетизации
+            'profile-level-id': '42e01f',
           },
         },
       ],
     },
 
+    // Конфигурация WebRTCTransport
     webRtcTransport: {
       listenIps: [
         {
-          ip: '0.0.0.0',
-          announcedIp: process.env.SERVER_IP || '127.0.0.1',
+          ip: '0.0.0.0', // слушаем на всех интерфейсах
+          // ПОЗЖЕ НИЖЕ ВСТАВИТЬ PUBLIC_IP ЗАДЕПЛОЕННОГО СЕРВЕРА (некст строка 58)
+          announcedIp: process.env.SERVER_IP || '127.0.0.1', // адрес, который обращается к клиентам (пока что такой для разработки)
         },
       ],
-      initialAvailableOutgoingBitrate: 1000000,
-      minimumAvailableOutgoingBitrate: 600000,
-      maxSctpMessageSize: 262144,
+      // Настройки битрейта
+      initialAvailableOutgoingBitrate: 1000000, // начальная пропускная способность
+      minimumAvailableOutgoingBitrate: 600000, // минимальная пропускная способность
+      // SCTP настройки
+      maxSctpMessageSize: 262144, // максимальный размер SCTP сообщения (256КБ)
+      // SCTP - протокол для передачи данных (не медиа)
     },
   },
 }
 
-module.exports = { config, secret: 'JWTSECRETKEYACCESS' }
+// Экспорт конфигурации
+module.exports = { config, secret: 'JWTSECRETKEYACCESS' } // основаня конфигурация, секретный ключ JWT токенов
