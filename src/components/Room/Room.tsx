@@ -38,6 +38,7 @@ export const Room = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false) // статус подключения к звонку
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
   const navigate = useNavigate() // функция навигации на нужный адрес
+  const [isVideoCall, setIsVideoCall] = useState<boolean>(false)
 
   const { socket } = useSocket() // получаем сокет из контекста
   const {
@@ -763,6 +764,16 @@ export const Room = () => {
     fullRetry() // вызываем функцию полной повторной попытки подключения (50 строка)
   }, [sendTransport, localStream, closeTransports, fullRetry, consumers]) // зависимости
 
+  useEffect(() => {
+    // проверяем, есть ли видео у других пользователей
+    const hasOtherUsersVideo = Object.values(consumers).some(
+      (consumerData) => consumerData.kind === 'video'
+    )
+
+    // устанавливаем isVideoCall если есть наша камера или видео у других
+    setIsVideoCall(isCameraOn || hasOtherUsersVideo)
+  }, [isCameraOn, consumers])
+
   // Отрисовка других пользователей
   const renderVideoElements = () => {
     return Object.entries(consumers)
@@ -795,28 +806,31 @@ export const Room = () => {
                   display: 'none',
                 }}
               />
-              {/* <img
-                src={consumerData.avatar || '/default-avatar.png'}
-                alt={consumerData.username || 'User'}
-                style={{
-                  width: '10vh',
-                  height: '10vh',
-                  borderRadius: '100%',
-                  objectFit: 'cover',
-                }}
-              /> */}
-              <div className={cl.boxAvatarContainer}>
+              {isVideoCall ? (
+                <div className={cl.boxAvatarContainer}>
+                  <img
+                    src={consumerData.avatar || '/default-avatar.png'}
+                    alt={consumerData.username || 'user'}
+                    className={cl.boxAvatarBackground}
+                  />
+                  <img
+                    src={consumerData.avatar || '/default-avatar.png'}
+                    alt={consumerData.username || 'user'}
+                    className={cl.boxAvatarImage}
+                  />
+                </div>
+              ) : (
                 <img
                   src={consumerData.avatar || '/default-avatar.png'}
-                  alt={consumerData.username || 'user'}
-                  className={cl.boxAvatarBackground}
+                  alt={consumerData.username || 'User'}
+                  style={{
+                    width: '13vh',
+                    height: '13vh',
+                    borderRadius: '100%',
+                    objectFit: 'cover',
+                  }}
                 />
-                <img
-                  src={consumerData.avatar || '/default-avatar.png'}
-                  alt={consumerData.username || 'user'}
-                  className={cl.boxAvatarImage}
-                />
-              </div>
+              )}
             </div>
           )
         }
@@ -835,10 +849,7 @@ export const Room = () => {
                 autoPlay
                 playsInline
                 muted={consumerData.userId === currentUserId}
-                style={{
-                  display: 'block',
-                  width: '200px',
-                }}
+                className={cl.camera}
               />
             </div>
           )
@@ -859,17 +870,44 @@ export const Room = () => {
         //   src={currentUserAvatar || ''}
         //   alt="user-avatar"
         // />
-        <div className={cl.boxAvatarContainer}>
-          <img
-            src={currentUserAvatar || '/default-avatar.png'}
-            alt={'you'}
-            className={cl.boxAvatarBackground}
-          />
-          <img
-            src={currentUserAvatar || '/default-avatar.png'}
-            alt="you"
-            className={cl.boxAvatarImage}
-          />
+        // <div className={cl.boxAvatarContainer}>
+        //   <img
+        //     src={currentUserAvatar || '/default-avatar.png'}
+        //     alt={'you'}
+        //     className={cl.boxAvatarBackground}
+        //   />
+        //   <img
+        //     src={currentUserAvatar || '/default-avatar.png'}
+        //     alt="you"
+        //     className={cl.boxAvatarImage}
+        //   />
+        // </div>
+        <div>
+          {isVideoCall ? (
+            <div className={cl.boxAvatarContainer}>
+              <img
+                src={currentUserAvatar || '/default-avatar.png'}
+                alt={'you'}
+                className={cl.boxAvatarBackground}
+              />
+              <img
+                src={currentUserAvatar || '/default-avatar.png'}
+                alt={'you'}
+                className={cl.boxAvatarImage}
+              />
+            </div>
+          ) : (
+            <img
+              src={currentUserAvatar || '/default-avatar.png'}
+              alt={'you'}
+              style={{
+                width: '13vh',
+                height: '13vh',
+                borderRadius: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          )}
         </div>
       )
     } else {
@@ -884,10 +922,7 @@ export const Room = () => {
           autoPlay
           playsInline
           muted={true}
-          style={{
-            display: 'block',
-            width: '200px',
-          }}
+          className={cl.camera}
         />
       )
     }

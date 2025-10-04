@@ -171,3 +171,10 @@
   border-radius: 100%;
   box-shadow: 0 0 10vh #ffffffd1;
 }
+
+.camera {
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid rgb(102, 102, 102);
+}
