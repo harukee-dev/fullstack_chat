@@ -699,6 +699,7 @@ function setupSocketHandlers(io) {
 
           socket.leave(roomId) // отписываемся от комнаты в сокете
           console.log(`User ${socket.user.id} left room ${roomId}`) // логируем
+          io.to(roomId).emit('leave-from-room')
         } catch (error) {
           // отладка ошибок
           console.error('Error leaving room:', error)
@@ -814,6 +815,7 @@ function setupSocketHandlers(io) {
         }
 
         socket.join(roomId) // присоединяем пользователя к комнате
+        io.to(roomId).emit('joined-to-room')
         console.log(`User ${socket.user.id} successfully joined room ${roomId}`) // лоигурем
       } catch (error) {
         // отладка ошибок при присоединении пользователя к комнате

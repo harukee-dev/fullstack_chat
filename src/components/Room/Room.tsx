@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
 import cl from './room.module.css'
+import leaveSound from './sounds/leave-sound.mp3'
+import joinSound from './sounds/join-sound.mp3'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -39,6 +41,17 @@ export const Room = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
   const navigate = useNavigate() // функция навигации на нужный адрес
   const [isVideoCall, setIsVideoCall] = useState<boolean>(false)
+
+  const joinSoundRef = useRef<HTMLAudioElement | null>(null)
+  const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    joinSoundRef.current = new Audio(joinSound)
+    leaveSoundRef.current = new Audio(leaveSound)
+
+    joinSoundRef.current.load()
+    leaveSoundRef.current.load()
+  }, [])
 
   const { socket } = useSocket() // получаем сокет из контекста
   const {
@@ -366,6 +379,7 @@ export const Room = () => {
           }
           delete newConsumers[data.producerId] // удаляем из массива консюмер с нужным айдишником
         }
+
         return newConsumers // возвращаем измененный массив
       })
     }
@@ -460,6 +474,14 @@ export const Room = () => {
 
     setIsConnected(false) // меняем статус подключения на false
     isInitializedRef.current = false // сбрасываем флаг инициализации
+    if (leaveSoundRef.current) {
+      if (!leaveSoundRef.current.paused) {
+        leaveSoundRef.current.pause()
+      }
+
+      leaveSoundRef.current.currentTime = 0
+      leaveSoundRef.current.play()
+    }
   }, [socket, roomId, localStream, consumers, closeTransports]) // прописываем зависимости
 
   // Логирование Socket событий
@@ -540,6 +562,8 @@ export const Room = () => {
         setIsConnected(true) // выставляем state, что мы подключились
         setReconnectAttempts(0) // сбрасываем количество попыток переподключения
         console.log('Room initialization completed successfully') // логирование успешного подключения
+
+        socket?.emit('joined-to-room', roomId)
       } catch (error) {
         // отладка ошибок
         console.error('Room initialization failed:', error) // логируем
@@ -584,6 +608,39 @@ export const Room = () => {
   // Обработка изменений state микрофона и камеры
   // Добавьте ref для отслеживания текущего состояния обновления
   const isUpdatingMediaRef = useRef(false)
+
+  useEffect(() => {
+    socket?.on('joined-to-room', () => {
+      if (joinSoundRef.current) {
+        if (!joinSoundRef.current.paused) {
+          joinSoundRef.current.pause()
+        }
+
+        joinSoundRef.current.currentTime = 0
+        joinSoundRef.current.play()
+      }
+    })
+
+    return () => {
+      socket?.off('joined-to-room')
+    }
+  }, [])
+  useEffect(() => {
+    socket?.on('leave-from-room', () => {
+      if (leaveSoundRef.current) {
+        if (!leaveSoundRef.current.paused) {
+          leaveSoundRef.current.pause()
+        }
+
+        leaveSoundRef.current.currentTime = 0
+        leaveSoundRef.current.play()
+      }
+    })
+
+    return () => {
+      socket?.off('leave-from-room')
+    }
+  }, [])
 
   // Обработка изменений state микрофона и камеры
   useEffect(() => {
