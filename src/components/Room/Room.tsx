@@ -3,11 +3,13 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
+import { P } from 'framer-motion/dist/types.d-Cjd591yU'
 
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
   kind: string // тип медиа - 'audio'/'video'
+  type: ''
   userId: string // ID пользователя
   username?: string // ник пользователя от которого мы получаем медиа
   avatar?: string // аватарка пользователя от которого мы получаем медиа
@@ -298,7 +300,7 @@ export const Room = () => {
           return
         }
         // 2. Обновляем consumers: удаляем старые с этим userId и добавляем новый
-        setConsumers((prev) => {
+        setConsumers((prev: any) => {
           // Если уже есть consumer с этим producerId — ничего не делаем
           if (prev[data.producerId]) return prev
 
@@ -769,41 +771,67 @@ export const Room = () => {
         if (!consumerData.consumer || !consumerData.consumer.track) {
           return null
         }
-        let isVideo = null
+        let isHasVideo =
+          Object.values(consumers).filter(
+            (el) => el.userId === consumerData.userId && el.kind === 'video'
+          ).length > 0
+        let isVideo = consumerData.kind === 'video'
 
-        return (
-          <div key={producerId}>
-            <video
-              ref={(videoElement) => {
-                if (videoElement && consumerData.consumer.track) {
-                  isVideo = true
-                  videoElement.srcObject = new MediaStream([
-                    consumerData.consumer.track,
-                  ])
-                  videoElement.play().catch(console.error)
-                } else {
-                  isVideo = false
-                }
-              }}
-              autoPlay
-              playsInline
-              muted={consumerData.userId === currentUserId}
-              style={{
-                display: 'block',
-              }}
-            />
-            <img
-              src={consumerData.avatar || '/default-avatar.png'}
-              alt={consumerData.username || 'User'}
-              style={{
-                width: '10vh',
-                height: '10vh',
-                borderRadius: '100%',
-                objectFit: 'cover',
-              }}
-            />
-          </div>
-        )
+        if (!isHasVideo) {
+          return (
+            <div key={producerId}>
+              <video
+                ref={(videoElement) => {
+                  if (videoElement && consumerData.consumer.track) {
+                    videoElement.srcObject = new MediaStream([
+                      consumerData.consumer.track,
+                    ])
+                    videoElement.play().catch(console.error)
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted={consumerData.userId === currentUserId}
+                style={{
+                  display: 'none',
+                }}
+              />
+              <img
+                src={consumerData.avatar || '/default-avatar.png'}
+                alt={consumerData.username || 'User'}
+                style={{
+                  width: '10vh',
+                  height: '10vh',
+                  borderRadius: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          )
+        }
+        if (isVideo && isHasVideo) {
+          return (
+            <div key={producerId}>
+              <video
+                ref={(videoElement) => {
+                  if (videoElement && consumerData.consumer.track) {
+                    videoElement.srcObject = new MediaStream([
+                      consumerData.consumer.track,
+                    ])
+                    videoElement.play().catch(console.error)
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted={consumerData.userId === currentUserId}
+                style={{
+                  display: 'block',
+                  width: '200px',
+                }}
+              />
+            </div>
+          )
+        } else return null
       })
       .filter(Boolean)
   }
@@ -813,13 +841,33 @@ export const Room = () => {
     if (!localStream) return null // проверка на инициализацию локального стрима
     const currentUserAvatar = localStorage.getItem('avatar') // достаем из LS нашу аватарку
 
-    return (
-      <img
-        style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
-        src={currentUserAvatar || ''}
-        alt="user-avatar"
-      />
-    )
+    if (!isCameraOn) {
+      return (
+        <img
+          style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
+          src={currentUserAvatar || ''}
+          alt="user-avatar"
+        />
+      )
+    } else {
+      return (
+        <video
+          ref={(videoElement) => {
+            if (videoElement && localStream) {
+              videoElement.srcObject = localStream
+              videoElement.play().catch(console.error)
+            }
+          }}
+          autoPlay
+          playsInline
+          muted={true}
+          style={{
+            display: 'block',
+            width: '200px',
+          }}
+        />
+      )
+    }
   }
   // Отрисовка всего компонента
   return (
