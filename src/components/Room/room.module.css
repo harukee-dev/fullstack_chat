@@ -146,3 +146,28 @@
 .mutedMicrophoneIcon {
   width: 2vh;
 }
+
+.boxAvatarContainer {
+  overflow: hidden;
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid rgb(102, 102, 102);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boxAvatarBackground {
+  width: 40vh;
+  aspect-ratio: 16/9;
+  filter: blur(1.25vh) brightness(30%);
+}
+
+.boxAvatarImage {
+  position: absolute;
+  width: 13vh;
+  height: 13vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffffd1;
+}

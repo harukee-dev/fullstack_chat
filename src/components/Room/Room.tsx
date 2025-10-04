@@ -3,8 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
-import { P } from 'framer-motion/dist/types.d-Cjd591yU'
-
+import cl from './room.module.css'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -796,7 +795,7 @@ export const Room = () => {
                   display: 'none',
                 }}
               />
-              <img
+              {/* <img
                 src={consumerData.avatar || '/default-avatar.png'}
                 alt={consumerData.username || 'User'}
                 style={{
@@ -805,7 +804,19 @@ export const Room = () => {
                   borderRadius: '100%',
                   objectFit: 'cover',
                 }}
-              />
+              /> */}
+              <div className={cl.boxAvatarContainer}>
+                <img
+                  src={consumerData.avatar || '/default-avatar.png'}
+                  alt={consumerData.username || 'user'}
+                  className={cl.boxAvatarBackground}
+                />
+                <img
+                  src={consumerData.avatar || '/default-avatar.png'}
+                  alt={consumerData.username || 'user'}
+                  className={cl.boxAvatarImage}
+                />
+              </div>
             </div>
           )
         }
@@ -843,11 +854,23 @@ export const Room = () => {
 
     if (!isCameraOn) {
       return (
-        <img
-          style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
-          src={currentUserAvatar || ''}
-          alt="user-avatar"
-        />
+        // <img
+        //   style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
+        //   src={currentUserAvatar || ''}
+        //   alt="user-avatar"
+        // />
+        <div className={cl.boxAvatarContainer}>
+          <img
+            src={currentUserAvatar || '/default-avatar.png'}
+            alt={'you'}
+            className={cl.boxAvatarBackground}
+          />
+          <img
+            src={currentUserAvatar || '/default-avatar.png'}
+            alt="you"
+            className={cl.boxAvatarImage}
+          />
+        </div>
       )
     } else {
       return (
@@ -967,7 +990,14 @@ export const Room = () => {
 
       <div>
         <h3>Participants:</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', width: '90vw' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            width: '90vw',
+            gap: '1vh',
+          }}
+        >
           {renderLocalVideo()}
           {renderVideoElements()}
         </div>
