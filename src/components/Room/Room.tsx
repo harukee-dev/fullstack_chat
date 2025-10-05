@@ -6,6 +6,8 @@ import { useSocket } from '../../SocketContext'
 import cl from './room.module.css'
 import leaveSound from './sounds/leave-sound.mp3'
 import joinSound from './sounds/join-sound.mp3'
+import mutedIcon from './images/muted-microphone-icon.png'
+import { AnimatePresence, motion } from 'framer-motion'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -45,6 +47,8 @@ export const Room = () => {
   const joinSoundRef = useRef<HTMLAudioElement | null>(null)
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
 
+  const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set())
+
   useEffect(() => {
     joinSoundRef.current = new Audio(joinSound)
     leaveSoundRef.current = new Audio(leaveSound)
@@ -74,6 +78,28 @@ export const Room = () => {
 
   useEffect(() => {
     userIdRef.current = socket?.id || ''
+  }, [socket])
+
+  useEffect(() => {
+    socket?.emit('get-muted-users', roomId)
+  }, [socket])
+
+  useEffect(() => {
+    if (isMicroMuted)
+      socket?.emit('user-muted', { userId: currentUserId, roomId: roomId })
+    else socket?.emit('user-unmuted', { userId: currentUserId, roomId: roomId })
+  }, [isMicroMuted])
+
+  useEffect(() => {
+    socket?.on('user-muted', (mutedUsersArray: string[]) => {
+      setMutedUsers(new Set(mutedUsersArray))
+    })
+    socket?.on('user-unmuted', (mutedUsersArray: string[]) => {
+      setMutedUsers(new Set(mutedUsersArray))
+    })
+    socket?.on('get-muted-users', (mutedUsersArray: string[]) => {
+      setMutedUsers(new Set(mutedUsersArray))
+    })
   }, [socket])
 
   // Функция получения медиа потока
@@ -843,6 +869,7 @@ export const Room = () => {
             (el) => el.userId === consumerData.userId && el.kind === 'video'
           ).length > 0
         let isVideo = consumerData.kind === 'video'
+        const isMuted = mutedUsers.has(consumerData.userId)
 
         if (!isHasVideo) {
           return (
@@ -877,16 +904,30 @@ export const Room = () => {
                   />
                 </div>
               ) : (
-                <img
-                  src={consumerData.avatar || '/default-avatar.png'}
-                  alt={consumerData.username || 'User'}
-                  style={{
-                    width: '13vh',
-                    height: '13vh',
-                    borderRadius: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
+                <div>
+                  <img
+                    src={consumerData.avatar || '/default-avatar.png'}
+                    alt={consumerData.username || 'User'}
+                    className={cl.avatar}
+                  />
+                  <AnimatePresence>
+                    {isMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.mutedIconWrapper}
+                      >
+                        <img
+                          className={cl.mutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               )}
             </div>
           )
@@ -919,26 +960,9 @@ export const Room = () => {
   const renderLocalVideo = () => {
     if (!localStream) return null // проверка на инициализацию локального стрима
     const currentUserAvatar = localStorage.getItem('avatar') // достаем из LS нашу аватарку
-
+    const isMuted = mutedUsers.has(currentUserId || 'userid')
     if (!isCameraOn) {
       return (
-        // <img
-        //   style={{ width: '10vh', height: '10vh', borderRadius: '100%' }}
-        //   src={currentUserAvatar || ''}
-        //   alt="user-avatar"
-        // />
-        // <div className={cl.boxAvatarContainer}>
-        //   <img
-        //     src={currentUserAvatar || '/default-avatar.png'}
-        //     alt={'you'}
-        //     className={cl.boxAvatarBackground}
-        //   />
-        //   <img
-        //     src={currentUserAvatar || '/default-avatar.png'}
-        //     alt="you"
-        //     className={cl.boxAvatarImage}
-        //   />
-        // </div>
         <div>
           {isVideoCall ? (
             <div className={cl.boxAvatarContainer}>
@@ -954,16 +978,26 @@ export const Room = () => {
               />
             </div>
           ) : (
-            <img
-              src={currentUserAvatar || '/default-avatar.png'}
-              alt={'you'}
-              style={{
-                width: '13vh',
-                height: '13vh',
-                borderRadius: '100%',
-                objectFit: 'cover',
-              }}
-            />
+            <div>
+              <img
+                src={currentUserAvatar || '/default-avatar.png'}
+                alt={'you'}
+                className={cl.avatar}
+              />
+              <AnimatePresence>
+                {isMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.mutedIconWrapper}
+                  >
+                    <img className={cl.mutedIcon} src={mutedIcon} alt="muted" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
         </div>
       )

@@ -129,24 +129,6 @@
   height: 20;
 }
 
-.mutedMicrophoneContainer {
-  z-index: 11;
-  position: absolute;
-  margin-top: -4vh;
-  margin-left: 7.25vh;
-  background-color: #a40afd;
-  width: 4vh;
-  height: 4vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100%;
-}
-
-.mutedMicrophoneIcon {
-  width: 2vh;
-}
-
 .boxAvatarContainer {
   overflow: hidden;
   width: 38vh;
@@ -177,4 +159,21 @@
   aspect-ratio: 16/9;
   border-radius: 1vh;
   border: 1px solid rgb(102, 102, 102);
+}
+
+.mutedIconWrapper {
+  position: absolute;
+  z-index: 11;
+  background-color: #a40afd;
+  width: 4.65vh;
+  height: 4.65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  margin: -4.5vh 0 0 8.2vh;
+}
+
+.mutedIcon {
+  width: 2.35vh;
 }

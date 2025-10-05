@@ -11,6 +11,7 @@ const { config } = require('./config')
 // Глобальные переменные для медиасервера
 let workers = []
 let nextMediasoupWorkerIdx = 0
+let mutedUsersByRooms = {}
 const routers = new Map()
 const transports = new Map()
 const producers = new Map()
@@ -688,6 +689,7 @@ function setupSocketHandlers(io) {
             if (users.size === 0) {
               // если он был единственным в комнате
               roomUsers.delete(roomId) // удаляем и саму комнату
+              delete mutedUsersByRooms[roomId]
               const router = routers.get(roomId) // находим роутер этой комнаты
               if (router) {
                 // если нашли - закрываем его и удаляем из мапа роутеров
@@ -825,6 +827,37 @@ function setupSocketHandlers(io) {
           error: 'Failed to join room: ' + error.message,
         })
       }
+    })
+
+    socket.on('user-muted', (message) => {
+      const { roomId, userId } = message
+
+      if (!mutedUsersByRooms[roomId]) {
+        mutedUsersByRooms[roomId] = new Set()
+      }
+
+      mutedUsersByRooms[roomId].add(userId)
+
+      io.to(roomId).emit('user-muted', Array.from(mutedUsersByRooms[roomId]))
+    })
+
+    socket.on('user-unmuted', (message) => {
+      const { roomId, userId } = message
+
+      if (!mutedUsersByRooms[roomId]) {
+        return
+      }
+
+      mutedUsersByRooms[roomId].delete(userId)
+
+      io.to(roomId).emit('user-unmuted', Array.from(mutedUsersByRooms[roomId]))
+    })
+
+    socket.on('get-muted-users', (roomId) => {
+      const mutedUsers = mutedUsersByRooms[roomId]
+        ? Array.from(mutedUsersByRooms[roomId])
+        : []
+      socket.emit('get-muted-users', mutedUsers)
     })
 
     // Получение capabilities роутера(параметры передачи медиа данных) - какие кодеки, параметры и тп он поддерживает (для совместимости)
