@@ -174,6 +174,37 @@
   margin: -4.5vh 0 0 8.2vh;
 }
 
+.mutedIconWrapperBox {
+  position: absolute;
+  z-index: 11;
+  background-color: #a40afd;
+  width: 4.65vh;
+  height: 4.65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  margin: 9.5vh 0 0 7.8vh;
+}
+
+.mutedIconWrapperCam {
+  position: absolute;
+  z-index: 11;
+  background-color: #0000005b;
+  width: 4.2vh;
+  height: 4.2vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  margin: -5.75vh 0 0 32.5vh;
+}
+
 .mutedIcon {
   width: 2.35vh;
+}
+
+.mutedIconCam {
+  width: 1.7vh;
+  opacity: 70%;
 }

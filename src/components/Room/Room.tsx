@@ -902,6 +902,23 @@ export const Room = () => {
                     alt={consumerData.username || 'user'}
                     className={cl.boxAvatarImage}
                   />
+                  <AnimatePresence>
+                    {isMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.mutedIconWrapperBox}
+                      >
+                        <img
+                          className={cl.mutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ) : (
                 <div>
@@ -934,21 +951,36 @@ export const Room = () => {
         }
         if (isVideo && isHasVideo) {
           return (
-            <div key={producerId}>
+            <div>
               <video
                 ref={(videoElement) => {
-                  if (videoElement && consumerData.consumer.track) {
-                    videoElement.srcObject = new MediaStream([
-                      consumerData.consumer.track,
-                    ])
+                  if (videoElement && localStream) {
+                    videoElement.srcObject = localStream
                     videoElement.play().catch(console.error)
                   }
                 }}
                 autoPlay
                 playsInline
-                muted={consumerData.userId === currentUserId}
+                muted={true}
                 className={cl.camera}
               />
+              <AnimatePresence>
+                {isMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.mutedIconWrapperCam}
+                  >
+                    <img
+                      className={cl.mutedIconCam}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )
         } else return null
@@ -976,6 +1008,19 @@ export const Room = () => {
                 alt={'you'}
                 className={cl.boxAvatarImage}
               />
+              <AnimatePresence>
+                {isMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.mutedIconWrapperBox}
+                  >
+                    <img className={cl.mutedIcon} src={mutedIcon} alt="muted" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <div>
@@ -1003,18 +1048,33 @@ export const Room = () => {
       )
     } else {
       return (
-        <video
-          ref={(videoElement) => {
-            if (videoElement && localStream) {
-              videoElement.srcObject = localStream
-              videoElement.play().catch(console.error)
-            }
-          }}
-          autoPlay
-          playsInline
-          muted={true}
-          className={cl.camera}
-        />
+        <div>
+          <video
+            ref={(videoElement) => {
+              if (videoElement && localStream) {
+                videoElement.srcObject = localStream
+                videoElement.play().catch(console.error)
+              }
+            }}
+            autoPlay
+            playsInline
+            muted={true}
+            className={cl.camera}
+          />
+          <AnimatePresence>
+            {isMuted && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0.5 }}
+                transition={{ duration: 0.25 }}
+                className={cl.mutedIconWrapperCam}
+              >
+                <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       )
     }
   }
