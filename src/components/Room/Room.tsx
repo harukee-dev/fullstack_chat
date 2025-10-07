@@ -749,7 +749,6 @@ export const Room = () => {
             producersRef.current.audio = null
             setProducers((prev) => ({ ...prev, audio: undefined }))
           }
-
           // Логика для видео
           if (isCameraOn && !producersRef.current.video) {
             const videoTracks = localStream.getVideoTracks()
