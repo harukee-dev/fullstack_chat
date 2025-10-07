@@ -8,6 +8,7 @@ import leaveSound from './sounds/leave-sound.mp3'
 import joinSound from './sounds/join-sound.mp3'
 import mutedIcon from './images/muted-microphone-icon.png'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useAudioVolume } from './roomUtils'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -48,6 +49,8 @@ export const Room = () => {
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
 
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set())
+
+  const { volumeDb, isSpeaking } = useAudioVolume(localStream, 100)
 
   useEffect(() => {
     joinSoundRef.current = new Audio(joinSound)
@@ -1026,7 +1029,7 @@ export const Room = () => {
               <img
                 src={currentUserAvatar || '/default-avatar.png'}
                 alt={'you'}
-                className={cl.avatar}
+                className={isSpeaking ? cl.avatarActive : cl.avatar}
               />
               <AnimatePresence>
                 {isMuted && (
