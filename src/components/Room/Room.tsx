@@ -50,7 +50,7 @@ export const Room = () => {
 
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set())
 
-  const { volumeDb, isSpeaking } = useAudioVolume(localStream, 100)
+  const { isSpeaking } = useAudioVolume(localStream, -20)
 
   useEffect(() => {
     joinSoundRef.current = new Audio(joinSound)
