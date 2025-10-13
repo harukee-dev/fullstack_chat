@@ -2,78 +2,109 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 // кастомный хук для определения громкости и возвращения, говорит ли человек, или нет
 export const useAudioVolume = (
-  stream: MediaStream | null, // получаем локальный стрим, из которого будем доставать аудио дорожку
-  threshold: number // и получаем чувствительность
+  stream: MediaStream | null,
+  threshold: number
 ) => {
-  const [isSpeaking, setIsSpeaking] = useState<boolean>(false) // состояние, говорит ли сейчас человек (которое мы после будем возвращать)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null) // реф интервала для проверки (каждые 30мс проверяем на то, говорит или нет)
-  const audioContextRef = useRef<AudioContext | null>(null) // реф аудио контекста - движок для работы с аудио в браузере
-  const analyserRef = useRef<AnalyserNode | null>(null) // реф анализатора - инструмент для анализа аудио данных
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const currentStreamIdRef = useRef<string>('')
 
-  useEffect(() => {
-    console.log(isSpeaking)
-  }, [isSpeaking])
-
-  // эффект - запускается, когда меняется локальный стрим или чувствительность
+  // Сброс анализатора при смене стрима
   useEffect(() => {
     if (!stream) {
-      // если локального стрима нет
-      setIsSpeaking(false) // то сохраняем, что юзер не говорит
-      return // пустой returnы
+      setIsSpeaking(false)
+      return
     }
 
-    const audioTracks = stream.getAudioTracks() // получаем аудио трек из нашего локального стрима
+    const streamId = stream.id
+    if (streamId !== currentStreamIdRef.current) {
+      console.log('🔄 Stream changed in useAudioVolume, resetting analysis')
+
+      // Очищаем старый анализатор
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {})
+        audioContextRef.current = null
+      }
+      analyserRef.current = null
+
+      currentStreamIdRef.current = streamId
+      setIsSpeaking(false)
+    }
+  }, [stream])
+
+  useEffect(() => {
+    if (!stream) {
+      setIsSpeaking(false)
+      return
+    }
+
+    const audioTracks = stream.getAudioTracks()
     if (audioTracks.length === 0) {
-      // если локального аудио трека нет
-      setIsSpeaking(false) // сохраняем, что юзер не говорит
-      return // пустой return
+      setIsSpeaking(false)
+      return
+    }
+
+    const audioTrack = audioTracks[0]
+    if (audioTrack.readyState === 'ended') {
+      setIsSpeaking(false)
+      return
+    }
+
+    if (intervalRef.current && audioContextRef.current) {
+      return
     }
 
     try {
-      const audioContext = new AudioContext() // создаем аудио контект
-      audioContextRef.current = audioContext // сохраняем его в рефке
+      const audioContext = new AudioContext()
+      audioContextRef.current = audioContext
 
-      const analyser = audioContext.createAnalyser() // создаем анализатор
-      analyser.fftSize = 256 // задаем ему точность анализа (чем больше, тем точнее, но медленнее)
-      analyserRef.current = analyser // сохраняем анализатор в рефке
+      const analyser = audioContext.createAnalyser()
+      analyser.fftSize = 256
+      analyserRef.current = analyser
 
-      const source = audioContext.createMediaStreamSource(stream) // берем аудио поток из локального стрима
-      source.connect(analyser) // подключаем его к анализатору
+      const source = audioContext.createMediaStreamSource(stream)
+      source.connect(analyser)
 
-      const dataArray = new Uint8Array(analyser.frequencyBinCount) // создаем массив для данных - в него анализатор будет записывать громкость (0-255)
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
 
-      // запускаем периодическую проверку
       intervalRef.current = setInterval(() => {
-        if (!analyserRef.current) return // если анализатора нет - пустой returnы
+        if (!analyserRef.current) return
 
-        analyserRef.current.getByteFrequencyData(dataArray) // получаем данные о громкости
+        analyserRef.current.getByteFrequencyData(dataArray)
 
-        // анализируем средние частоты - в них речь
         let sum = 0
         for (let i = 1; i < 48; i++) {
-          sum += dataArray[i] // суммируем громкость на всех частотах
+          sum += dataArray[i]
         }
 
-        const average = sum / 48 // вычисляем среднюю громкость на средних частотах
-        const db = average > 0 ? 20 * Math.log10(average / 255) : -100 // преобразуем в децибелы
+        const average = sum / 48
+        const db = average > 0 ? 20 * Math.log10(average / 255) : -100
 
-        // определяем речь
-        setIsSpeaking(db > threshold) // если громкость больше чем чувствительность - юзер говорит, иначе - молчит
+        setIsSpeaking(db > threshold)
       }, 30)
     } catch (error) {
-      console.error('Audio analysis error:', error) // обработка ошибок
+      console.error('Audio analysis error:', error)
     }
 
-    // cleanup при уничтожении компонента, изменении чувствительности или локального стрима
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current) // если работает интервал - очищаем его
-      if (audioContextRef.current)
-        // если есть аудио контекст (движок для работы со звуком) - закрываем его
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      if (audioContextRef.current) {
         audioContextRef.current.close().catch(() => {})
+        audioContextRef.current = null
+      }
     }
   }, [stream, threshold])
 
-  return { isSpeaking } // возвращаем, говорит ли юзер, или нет
+  return { isSpeaking }
 }
 
 interface AudioControlProps {
@@ -88,8 +119,11 @@ interface AudioControlProps {
     stream: MediaStream,
     kind: string
   ) => Promise<any>
+  socket: any
+  roomId: any
 }
 
+// roomUtils.ts - полностью переработанный хук
 export const useAudioControl = ({
   isSpeaking,
   isMicroMuted,
@@ -98,109 +132,148 @@ export const useAudioControl = ({
   isConnected,
   localStream,
   createProducer,
+  socket, // Добавьте
+  roomId, // Добавьте
 }: AudioControlProps) => {
   const [isTransmitting, setIsTransmitting] = useState(false)
   const audioContextRef = useRef<AudioContext | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const processedStreamRef = useRef<MediaStream | null>(null)
-  const isInitializedRef = useRef(false)
-
-  // Создаем обработанный стрим с GainNode
-  const createProcessedStream = useCallback(
-    async (originalStream: MediaStream): Promise<MediaStream> => {
-      if (!originalStream) throw new Error('No original stream provided')
-
-      // Создаем AudioContext
-      const audioContext = new AudioContext()
-      audioContextRef.current = audioContext
-
-      // Создаем GainNode для управления громкостью
-      const gainNode = audioContext.createGain()
-      gainNodeRef.current = gainNode
-
-      // Начальная громкость - 0 (молчим)
-      gainNode.gain.value = 0
-
-      // Создаем источник из оригинального стрима
-      const source = audioContext.createMediaStreamSource(originalStream)
-
-      // Создаем destination для вывода
-      const destination = audioContext.createMediaStreamDestination()
-
-      // Подключаем цепочку: source -> gainNode -> destination
-      source.connect(gainNode)
-      gainNode.connect(destination)
-
-      return destination.stream
-    },
-    []
-  )
 
   // Управление громкостью
   const setAudioVolume = useCallback((volume: number) => {
     if (gainNodeRef.current) {
       gainNodeRef.current.gain.value = volume
       console.log(`🔊 Audio volume set to: ${Math.round(volume * 100)}%`)
+      setIsTransmitting(volume > 0)
     }
   }, [])
 
-  // Основная логика
-  useEffect(() => {
-    const shouldTransmit = !isMicroMuted && isSpeaking
-    const targetVolume = shouldTransmit ? 1.0 : 0.0
-
-    // Меняем громкость, если GainNode уже инициализирован
-    if (isInitializedRef.current && gainNodeRef.current) {
-      setAudioVolume(targetVolume)
-      setIsTransmitting(shouldTransmit)
-      return
-    }
-
-    // Инициализация: создаем продюсер с обработанным стримом
-    const initializeAudioProducer = async () => {
-      if (
-        !sendTransport ||
-        !localStream ||
-        !isConnected ||
-        isInitializedRef.current
-      )
-        return
-
+  // Создание обработанного стрима с GainNode
+  const createProcessedStream = useCallback(
+    async (originalStream: MediaStream) => {
       try {
-        console.log('🎤 Initializing audio producer with GainNode...')
+        // Закрываем старый AudioContext
+        if (audioContextRef.current) {
+          audioContextRef.current.close().catch(console.error)
+          audioContextRef.current = null
+        }
+        gainNodeRef.current = null
 
-        // Создаем обработанный стрим с GainNode
-        const processedStream = await createProcessedStream(localStream)
-        processedStreamRef.current = processedStream
+        // Создаем новый AudioContext
+        const audioContext = new AudioContext()
+        audioContextRef.current = audioContext
 
-        // Создаем продюсер с обработанным стримом
-        await createProducer(sendTransport, processedStream, 'audio')
+        const gainNode = audioContext.createGain()
+        gainNodeRef.current = gainNode
+        gainNode.gain.value = 0 // Начальная громкость - 0
 
-        // Устанавливаем начальную громкость
-        setAudioVolume(targetVolume)
-        setIsTransmitting(shouldTransmit)
-        isInitializedRef.current = true
+        const source = audioContext.createMediaStreamSource(originalStream)
+        const destination = audioContext.createMediaStreamDestination()
 
-        console.log('✅ Audio producer with GainNode initialized successfully')
+        source.connect(gainNode)
+        gainNode.connect(destination)
+
+        console.log('✅ Processed stream created with GainNode')
+        return destination.stream
       } catch (error) {
-        console.error(
-          '❌ Failed to initialize audio producer with GainNode:',
-          error
-        )
+        console.error('Error creating processed stream:', error)
+        return originalStream
       }
+    },
+    []
+  )
+
+  // Создание аудиопродюсера
+  const createAudioProducer = useCallback(async () => {
+    if (!sendTransport || !localStream || !isConnected) {
+      console.log('❌ Cannot create audio producer: missing dependencies')
+      return false
     }
 
-    initializeAudioProducer()
+    try {
+      console.log('🎤 Creating audio producer with GainNode...')
+
+      // Создаем обработанный стрим
+      const processedStream = await createProcessedStream(localStream)
+      processedStreamRef.current = processedStream
+
+      // Закрываем старый аудио продюсер
+      if (producersRef.current.audio) {
+        console.log('🔄 Closing old audio producer')
+        // Отправляем событие о закрытии старого продюсера
+        if (socket && roomId && producersRef.current.audio.id) {
+          socket.emit('producer-close', {
+            producerId: producersRef.current.audio.id,
+            roomId: roomId,
+          })
+        }
+        producersRef.current.audio.close()
+        producersRef.current.audio = null
+      }
+
+      // Создаем новый продюсер
+      const audioProducer = await createProducer(
+        sendTransport,
+        processedStream,
+        'audio'
+      )
+      if (!audioProducer) {
+        throw new Error('Failed to create audio producer')
+      }
+
+      console.log('✅ Audio producer with GainNode created successfully')
+      return true
+    } catch (error) {
+      console.error('❌ Failed to create audio producer with GainNode:', error)
+      return false
+    }
   }, [
-    isSpeaking,
-    isMicroMuted,
     sendTransport,
     localStream,
     isConnected,
     createProcessedStream,
-    setAudioVolume,
     createProducer,
+    producersRef,
+    socket,
+    roomId,
   ])
+
+  // Основной эффект - пересоздаем аудиопродюсер при изменении стрима
+  useEffect(() => {
+    let isMounted = true
+
+    const initializeAudio = async () => {
+      if (!localStream || !sendTransport || !isConnected) {
+        return
+      }
+
+      console.log('🔄 Initializing/reinitializing audio producer...')
+      const success = await createAudioProducer()
+
+      if (isMounted && success) {
+        // Устанавливаем начальную громкость
+        const shouldTransmit = !isMicroMuted && isSpeaking
+        const targetVolume = shouldTransmit ? 1.0 : 0.0
+        setAudioVolume(targetVolume)
+      }
+    }
+
+    initializeAudio()
+
+    return () => {
+      isMounted = false
+    }
+  }, [localStream?.id, sendTransport, isConnected])
+
+  // Эффект для управления громкостью
+  useEffect(() => {
+    if (gainNodeRef.current) {
+      const shouldTransmit = !isMicroMuted && isSpeaking
+      const targetVolume = shouldTransmit ? 1.0 : 0.0
+      setAudioVolume(targetVolume)
+    }
+  }, [isSpeaking, isMicroMuted, setAudioVolume])
 
   // Cleanup
   useEffect(() => {
@@ -211,5 +284,5 @@ export const useAudioControl = ({
     }
   }, [])
 
-  return { isTransmitting, setAudioVolume }
+  return { isTransmitting }
 }
