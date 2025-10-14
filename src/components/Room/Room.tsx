@@ -227,6 +227,33 @@ export const Room = () => {
     socket,
     roomId,
   })
+  const [speakingUsers, setSpeakingUsers] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (isTransmitting)
+      socket?.emit('user-speaking', { userId: currentUserId, roomId })
+    else socket?.emit('user-silent', { userId: currentUserId, roomId })
+  }, [socket, isTransmitting, currentUserId, roomId])
+
+  useEffect(() => {
+    socket?.on('user-speaking', (userId) => {
+      // @ts-ignore
+      setSpeakingUsers((prev) => new Set([...prev, userId]))
+    })
+
+    socket?.on('user-silent', (userId) => {
+      setSpeakingUsers((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(userId)
+        return newSet
+      })
+    })
+
+    return () => {
+      socket?.off('user-speaking')
+      socket?.off('user-silent')
+    }
+  }, [socket])
 
   // Создание Consumer - объекта, который получает медиа данные от других пользователей
   // Room.tsx - в функции handleCreateConsumer
@@ -934,6 +961,7 @@ export const Room = () => {
         const isVideo = consumerData.kind === 'video'
         const isAudio = consumerData.kind === 'audio'
         const isMuted = mutedUsers.has(consumerData.userId)
+        const isSpeaking = speakingUsers.has(consumerData.userId)
 
         // Для аудио - создаем скрытый элемент
         if (isAudio && !userHasVideo) {
@@ -960,41 +988,85 @@ export const Room = () => {
                 }}
               />
               {isVideoCall ? (
-                <div className={cl.boxAvatarContainer}>
-                  <img
-                    src={consumerData.avatar || '/default-avatar.png'}
-                    alt={consumerData.username || 'user'}
-                    className={cl.boxAvatarBackground}
-                  />
-                  <img
-                    src={consumerData.avatar || '/default-avatar.png'}
-                    alt={consumerData.username || 'user'}
-                    className={cl.boxAvatarImage}
-                  />
+                <div className={cl.avatarContainer}>
                   <AnimatePresence>
-                    {isMuted && (
+                    {isSpeaking && (
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0.5 }}
-                        transition={{ duration: 0.25 }}
-                        className={cl.mutedIconWrapperBox}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        <img
-                          className={cl.mutedIcon}
-                          src={mutedIcon}
-                          alt="muted"
-                        />
+                        <div className={cl.boxWave1} />
+                        <div className={cl.boxWave2} />
+                        <div className={cl.boxWave3} />
+                        <div className={cl.boxWave4} />
                       </motion.div>
                     )}
                   </AnimatePresence>
+                  <div
+                    className={
+                      isSpeaking
+                        ? cl.boxAvatarContainerActive
+                        : cl.boxAvatarContainer
+                    }
+                  >
+                    <img
+                      src={consumerData.avatar || '/default-avatar.png'}
+                      alt={consumerData.username || 'user'}
+                      className={cl.boxAvatarBackground}
+                    />
+                    <img
+                      src={consumerData.avatar || '/default-avatar.png'}
+                      alt={consumerData.username || 'user'}
+                      className={
+                        isSpeaking
+                          ? cl.boxAvatarImageActive
+                          : isMicroMuted
+                          ? cl.boxAvatarImageMuted
+                          : cl.boxAvatarImage
+                      }
+                    />
+                    <AnimatePresence>
+                      {isMuted && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0.5 }}
+                          transition={{ duration: 0.25 }}
+                          className={cl.mutedIconWrapperBox}
+                        >
+                          <img
+                            className={cl.mutedIcon}
+                            src={mutedIcon}
+                            alt="muted"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               ) : (
-                <div>
+                <div className={cl.avatarContainer}>
+                  <AnimatePresence>
+                    {isSpeaking && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className={cl.wave1} />
+                        <div className={cl.wave2} />
+                        <div className={cl.wave3} />
+                        <div className={cl.wave4} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <img
                     src={consumerData.avatar || '/default-avatar.png'}
                     alt={consumerData.username || 'User'}
-                    className={cl.avatar}
+                    className={isSpeaking ? cl.avatarActive : cl.avatar}
                   />
                   <AnimatePresence>
                     {isMuted && (
@@ -1022,7 +1094,22 @@ export const Room = () => {
         // Для видео - отображаем видео элемент
         if (isVideo) {
           return (
-            <div key={producerId}>
+            <div className={cl.avatarContainer} key={producerId}>
+              <AnimatePresence>
+                {isSpeaking && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className={cl.boxWave1} />
+                    <div className={cl.boxWave2} />
+                    <div className={cl.boxWave3} />
+                    <div className={cl.boxWave4} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <video
                 ref={(videoElement) => {
                   if (videoElement && consumerData.consumer.track) {
@@ -1039,7 +1126,7 @@ export const Room = () => {
                 autoPlay
                 playsInline
                 muted={consumerData.userId === currentUserId}
-                className={cl.camera}
+                className={isSpeaking ? cl.cameraActive : cl.camera}
               />
               <AnimatePresence>
                 {isMuted && (

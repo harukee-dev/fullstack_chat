@@ -542,6 +542,14 @@ function setupSocketHandlers(io) {
         }
       )
 
+      socket.on('user-speaking', ({ userId, roomId }) => {
+        socket.to(roomId).emit('user-speaking', userId)
+      })
+
+      socket.on('user-silent', ({ userId, roomId }) => {
+        socket.to(roomId).emit('user-silent', userId)
+      })
+
       // Создание consumer
       socket.on(
         'consume', // событие - клиент просит создать consumer

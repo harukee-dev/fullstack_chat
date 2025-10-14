@@ -201,9 +201,11 @@
   width: 40vh;
   aspect-ratio: 16/9;
   filter: blur(1.25vh) brightness(30%);
+  z-index: 10;
 }
 
 .boxAvatarImage {
+  z-index: 11;
   position: absolute;
   width: 13vh;
   height: 13vh;
@@ -213,6 +215,7 @@
 }
 
 .boxAvatarImageActive {
+  z-index: 11;
   position: absolute;
   width: 13.5vh;
   height: 13.5vh;
@@ -222,6 +225,7 @@
 }
 
 .boxAvatarImageMuted {
+  z-index: 11;
   position: absolute;
   width: 12.75vh;
   height: 12.75vh;
