@@ -1105,11 +1105,28 @@ export const Room = () => {
             </div>
           ) : (
             <div>
-              <img
-                src={currentUserAvatar || '/default-avatar.png'}
-                alt={'you'}
-                className={isTransmitting ? cl.avatarActive : cl.avatar}
-              />
+              <div className={cl.avatarContainer}>
+                <AnimatePresence>
+                  {isTransmitting && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className={cl.wave1} />
+                      <div className={cl.wave2} />
+                      <div className={cl.wave3} />
+                      <div className={cl.wave4} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <img
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={'you'}
+                  className={isTransmitting ? cl.avatarActive : cl.avatar}
+                />
+              </div>
               <AnimatePresence>
                 {isMuted && (
                   <motion.div
@@ -1130,23 +1147,40 @@ export const Room = () => {
     } else {
       return (
         <div>
-          <video
-            ref={(videoElement) => {
-              if (videoElement && localStream) {
-                videoElement.srcObject = localStream
-                videoElement.play().catch((error) => {
-                  if (error.name !== 'AbortError') {
-                    console.error('Error playing local video:', error)
-                  }
-                })
-              }
-            }}
-            autoPlay
-            playsInline
-            muted={true}
-            className={cl.camera}
-            onError={(e) => console.error('Local video error:', e)}
-          />
+          <div className={cl.avatarContainer}>
+            <AnimatePresence>
+              {isTransmitting && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className={cl.boxWave1} />
+                  <div className={cl.boxWave2} />
+                  <div className={cl.boxWave3} />
+                  <div className={cl.boxWave4} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <video
+              ref={(videoElement) => {
+                if (videoElement && localStream) {
+                  videoElement.srcObject = localStream
+                  videoElement.play().catch((error) => {
+                    if (error.name !== 'AbortError') {
+                      console.error('Error playing local video:', error)
+                    }
+                  })
+                }
+              }}
+              autoPlay
+              playsInline
+              muted={true}
+              className={isTransmitting ? cl.cameraActive : cl.camera}
+              onError={(e) => console.error('Local video error:', e)}
+            />
+          </div>
           <AnimatePresence>
             {isMuted && (
               <motion.div

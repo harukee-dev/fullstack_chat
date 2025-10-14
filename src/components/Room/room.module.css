@@ -1,7 +1,6 @@
 .avatarContainer {
   position: relative;
   display: inline-block;
-  /* filter: drop-shadow(0 0 5vh rgba(100, 100, 255, 0.571)); */
 }
 
 .avatar {
@@ -11,7 +10,7 @@
   object-fit: cover;
   position: relative;
   z-index: 10;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
 }
 
 .avatarActive {
@@ -21,7 +20,7 @@
   object-fit: cover;
   position: relative;
   z-index: 10;
-  border: 3px solid rgba(174, 0, 255, 0.589);
+  border: 2px solid #ae00ff96;
 }
 
 .wave1 {
@@ -65,6 +64,53 @@
   height: 8vh;
   background-color: rgba(140, 0, 255, 0.559);
   filter: blur(3vh);
+  border-radius: 100%;
+  animation: wave 3s infinite ease-in-out;
+}
+
+.boxWave1 {
+  position: absolute;
+  top: -10vh;
+  width: 20vh;
+  height: 20vh;
+  background-color: rgba(0, 145, 255, 0.384);
+  filter: blur(10vh);
+  border-radius: 100%;
+  animation: wave 4s infinite ease-in-out;
+}
+
+.boxWave2 {
+  position: absolute;
+  left: 18vh;
+  top: -10vh;
+  width: 20vh;
+  height: 20vh;
+  background-color: rgba(4, 0, 255, 0.36);
+  filter: blur(10vh);
+  border-radius: 100%;
+  animation: wave 6s infinite ease-in-out;
+}
+
+.boxWave3 {
+  position: absolute;
+  left: -2vh;
+  top: 5vh;
+  width: 20vh;
+  height: 20vh;
+  background-color: rgba(255, 0, 204, 0.435);
+  filter: blur(10vh);
+  border-radius: 100%;
+  animation: wave 6 5s infinite ease-in-out;
+}
+
+.boxWave4 {
+  position: absolute;
+  top: 6vh;
+  left: 22vh;
+  width: 20vh;
+  height: 20vh;
+  background-color: rgba(140, 0, 255, 0.375);
+  filter: blur(10vh);
   border-radius: 100%;
   animation: wave 3s infinite ease-in-out;
 }
@@ -158,7 +204,18 @@
   width: 38vh;
   aspect-ratio: 16/9;
   border-radius: 1vh;
-  border: 1px solid rgb(102, 102, 102);
+  border: 2px solid transparent;
+  z-index: 10;
+  position: relative;
+}
+
+.cameraActive {
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 2px solid #ae00ff96;
+  z-index: 10;
+  position: relative;
 }
 
 .mutedIconWrapper {
