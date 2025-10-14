@@ -1078,30 +1078,63 @@ export const Room = () => {
       return (
         <div>
           {isVideoCall ? (
-            <div className={cl.boxAvatarContainer}>
-              <img
-                src={currentUserAvatar || '/default-avatar.png'}
-                alt={'you'}
-                className={cl.boxAvatarBackground}
-              />
-              <img
-                src={currentUserAvatar || '/default-avatar.png'}
-                alt={'you'}
-                className={cl.boxAvatarImage}
-              />
+            <div className={cl.avatarContainer}>
               <AnimatePresence>
-                {isMuted && (
+                {isTransmitting && (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.mutedIconWrapperBox}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <img className={cl.mutedIcon} src={mutedIcon} alt="muted" />
+                    <div className={cl.boxWave1} />
+                    <div className={cl.boxWave2} />
+                    <div className={cl.boxWave3} />
+                    <div className={cl.boxWave4} />
                   </motion.div>
                 )}
               </AnimatePresence>
+              <div
+                className={
+                  isTransmitting
+                    ? cl.boxAvatarContainerActive
+                    : cl.boxAvatarContainer
+                }
+              >
+                <img
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={'you'}
+                  className={cl.boxAvatarBackground}
+                />
+                <img
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={'you'}
+                  className={
+                    isTransmitting
+                      ? cl.boxAvatarImageActive
+                      : isMicroMuted
+                      ? cl.boxAvatarImageMuted
+                      : cl.boxAvatarImage
+                  }
+                />
+                <AnimatePresence>
+                  {isMuted && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0.5 }}
+                      transition={{ duration: 0.25 }}
+                      className={cl.mutedIconWrapperBox}
+                    >
+                      <img
+                        className={cl.mutedIcon}
+                        src={mutedIcon}
+                        alt="muted"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           ) : (
             <div>

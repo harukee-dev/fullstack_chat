@@ -186,6 +186,17 @@
   justify-content: center;
 }
 
+.boxAvatarContainerActive {
+  overflow: hidden;
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ae00ff96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .boxAvatarBackground {
   width: 40vh;
   aspect-ratio: 16/9;
@@ -197,14 +208,33 @@
   width: 13vh;
   height: 13vh;
   border-radius: 100%;
-  box-shadow: 0 0 10vh #ffffffd1;
+  box-shadow: 0 0 10vh #ffffffd5;
+  transition: 0.2s;
+}
+
+.boxAvatarImageActive {
+  position: absolute;
+  width: 13.5vh;
+  height: 13.5vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffffd5;
+  transition: 0.2s;
+}
+
+.boxAvatarImageMuted {
+  position: absolute;
+  width: 12.75vh;
+  height: 12.75vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffff6b;
+  transition: 0.2s;
 }
 
 .camera {
   width: 38vh;
   aspect-ratio: 16/9;
   border-radius: 1vh;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   z-index: 10;
   position: relative;
 }
@@ -213,7 +243,7 @@
   width: 38vh;
   aspect-ratio: 16/9;
   border-radius: 1vh;
-  border: 2px solid #ae00ff96;
+  border: 1px solid #ae00ff96;
   z-index: 10;
   position: relative;
 }
