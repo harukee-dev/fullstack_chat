@@ -50,6 +50,7 @@ export const Room = () => {
 
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set())
 
+  // инициализация звуков входа и выхода (и предварительная загрузка сразу, чтобы они срабатывали без задержки)
   useEffect(() => {
     joinSoundRef.current = new Audio(joinSound)
     leaveSoundRef.current = new Audio(leaveSound)
@@ -77,14 +78,17 @@ export const Room = () => {
   const userIdRef = useRef<string>(socket?.id || '') // ID юзера (socket.id)
   const recvTransportRef = useRef<any>(null) // транспорт для получения медиа (receive transport)
 
+  // сохранение ссылки на айди текущего сокета
   useEffect(() => {
     userIdRef.current = socket?.id || ''
   }, [socket])
 
+  // при входе или изменении сокета запрашиваем список замученных пользователей, чтобы при входе в звонок сразу вывести, кто замучен
   useEffect(() => {
     socket?.emit('get-muted-users', roomId)
   }, [socket])
 
+  // отправление сокета о том, что мы замутились или размутились
   useEffect(() => {
     if (isMicroMuted) {
       socket?.emit('user-muted', { userId: currentUserId, roomId: roomId })
@@ -93,6 +97,7 @@ export const Room = () => {
     }
   }, [isMicroMuted, socket, currentUserId, roomId])
 
+  // обработка сигналов о том, что кто-то замутился или размутился, и обработка сигнала со списком замученных пользователей
   useEffect(() => {
     socket?.on('user-muted', (mutedUsersArray: string[]) => {
       setMutedUsers(new Set(mutedUsersArray))
@@ -112,13 +117,12 @@ export const Room = () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           // получаем локальный стрим из нашего девайса
-          // если микрофон не замучен
+          // всегда получаем аудио
           audio: {
-            // то будет аудио с такими настройками
             echoCancellation: true, // эхоподавление
             noiseSuppression: true, // шумоподавление
             autoGainControl: true, // автоусиление громкости
-          }, // если микрофон замучен, то не отправляем звук
+          },
           video: isCameraOn // если камера включена
             ? {
                 // отправляем наше видео с такими настройками
@@ -141,44 +145,47 @@ export const Room = () => {
 
   // Создание Producer - объекта, который отправляет медиа данные на сервер
   const createProducer = useCallback(
+    // принимаем транспорт, стрим и тип
     async (transport: any, stream: MediaStream, kind: string) => {
+      // проверка, что транспорт и стрим инициализированы
       if (!transport || !stream) {
         console.error('ERR: !transport || !stream')
         return null
       }
 
       try {
+        // получаем видео или аудио треки в зависимости от типа
         const tracks =
           kind === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks()
         if (tracks.length === 0) {
           console.error('ERR: no tracks for', kind)
           return null
         }
-
+        // берем первый и единственный трек
         const track = tracks[0]
+        // проверяем, что он готов к трансляции
         if (track.readyState !== 'live') {
           console.error('Track is not live:', kind)
           return null
         }
-
+        // если такой продюсер уже существует, то закрываем старый
         if (producersRef.current[kind]) {
-          console.log('Closing existing', kind, 'producer')
           producersRef.current[kind].close()
           producersRef.current[kind] = null
         }
 
-        console.log('Creating', kind, 'producer...')
+        // создаем новый продюсер
         const producer = await transport.produce({
           track,
           appData: { mediaTag: kind },
         })
 
-        producersRef.current[kind] = producer
-        setProducers((prev) => ({ ...prev, [kind]: producer }))
-        console.log(`${kind} Producer создан:`, producer.id)
+        producersRef.current[kind] = producer // сохраняем его в рефке
+        setProducers((prev) => ({ ...prev, [kind]: producer })) // сохраняем в состоянии
 
-        // ВАЖНО: Отправляем событие о новом продюсере для ВСЕХ видов
+        // проверка, что сокет и id комнаты инициализированы
         if (socket && roomId) {
+          // отправляем сокет о том, что создали новый продюсер
           socket.emit('new-producer', {
             producerId: producer.id,
             kind: kind,
@@ -187,35 +194,33 @@ export const Room = () => {
             username: localStorage.getItem('username'),
             avatar: localStorage.getItem('avatar'),
           })
-          console.log(
-            `📤 Sent new-producer event for ${kind} producer:`,
-            producer.id
-          )
         }
 
         // Обработчики событий продюсера
+
+        // закрытие транспорта
         producer.on('transportclose', () => {
-          console.log('Producer transport closed:', kind)
-          producersRef.current[kind] = null
-          setProducers((prev) => ({ ...prev, [kind]: undefined }))
+          producersRef.current[kind] = null // очищаем рефку продюсера
+          setProducers((prev) => ({ ...prev, [kind]: undefined })) // убираем его из стейта
         })
 
+        // закрытие трека
         producer.on('trackended', () => {
-          console.log('Producer track ended:', kind)
-          producersRef.current[kind] = null
-          setProducers((prev) => ({ ...prev, [kind]: undefined }))
+          producersRef.current[kind] = null // удаляем его из рефки
+          setProducers((prev) => ({ ...prev, [kind]: undefined })) // удаляем его из транспорта
         })
 
-        return producer
+        return producer // возвращаем продюсер
       } catch (error) {
+        // отладка ошибок
         console.error('Ошибка при создании Producer:', error)
         return null
       }
     },
-    [socket, roomId]
+    [socket, roomId] // зависимости
   )
 
-  const { isSpeaking } = useAudioVolume(localStream, -30)
+  const { isSpeaking } = useAudioVolume(localStream, -30) // получаем динамическую переменную, говорит ли человек (в независимости от того, в муте он или нет)
   const { isTransmitting } = useAudioControl({
     isSpeaking,
     isMicroMuted,
@@ -226,19 +231,26 @@ export const Room = () => {
     createProducer,
     socket,
     roomId,
-  })
-  const [speakingUsers, setSpeakingUsers] = useState<Set<string>>(new Set())
+  }) // получаем динамическую переменную, нужно ли отправлять звук (не замучен && говорит)
+  const [speakingUsers, setSpeakingUsers] = useState<Set<string>>(new Set()) // Set юзеров, которые говорят на данный момент
 
+  // useEffect-обработчик изменения isTransmitting
   useEffect(() => {
     if (isTransmitting)
-      socket?.emit('user-speaking', { userId: currentUserId, roomId })
-    else socket?.emit('user-silent', { userId: currentUserId, roomId })
+      // если он true (то есть нужно отправлять звук)
+      socket?.emit('user-speaking', {
+        userId: currentUserId,
+        roomId,
+      })
+    // сигнализируем сокет о том, что юзер заговорил
+    else socket?.emit('user-silent', { userId: currentUserId, roomId }) // иначе если false (не нужно отправлять звук) - сигнализируем сокет о том, что юзер замолчал
   }, [socket, isTransmitting, currentUserId, roomId])
 
+  // обработчик сигналов сокета о том, что кто-то заговорил или замолчал
   useEffect(() => {
     socket?.on('user-speaking', (userId) => {
       // @ts-ignore
-      setSpeakingUsers((prev) => new Set([...prev, userId]))
+      setSpeakingUsers((prev) => new Set([...prev, userId])) // когда юзер заговорил - добавляем его в Set говорящих на данный момент юзеров
     })
 
     socket?.on('user-silent', (userId) => {
@@ -246,68 +258,51 @@ export const Room = () => {
         const newSet = new Set(prev)
         newSet.delete(userId)
         return newSet
-      })
+      }) // когда юзер замолчал - удаляем его из Set говорящих на данный момент юзеров
     })
 
+    // cleanup обработчика
     return () => {
       socket?.off('user-speaking')
       socket?.off('user-silent')
     }
-  }, [socket])
+  }, [socket]) // в зависимостях только socket
 
   // Создание Consumer - объекта, который получает медиа данные от других пользователей
-  // Room.tsx - в функции handleCreateConsumer
   const handleCreateConsumer = useCallback(
     async (producerData: {
-      producerId: string
-      kind: string
-      userId: string
+      producerId: string // принимаем id продюсера, из которого нам нужно сделать consumer
+      kind: string // тип этого продюсера
+      userId: string // и id юзера, который передает этот продюсер
     }) => {
+      // проверка, что девайс и транспорт получения инициализированы
       if (!recvTransportRef.current || !device) {
-        console.error('Receive transport or device not available')
         return null
       }
 
       try {
-        console.log(
-          'Creating consumer for producer:',
-          producerData.producerId,
-          'kind:',
-          producerData.kind
-        )
-
         const consumer = await createConsumer(
           producerData.producerId,
           //@ts-ignore
           device.rtpCapabilities
-        )
+        ) // создаем consumer из продюсера, передавая его айди и параметры кодирования
 
+        // проверка, что консюмер правильно создался
         if (!consumer) {
-          console.error(
-            'Failed to create consumer for producer:',
-            producerData.producerId
-          )
           return null
         }
 
-        console.log(
-          'Consumer created successfully:',
-          consumer.id,
-          'kind:',
-          consumer.kind
-        )
-
+        // если консюмер с типом аудио и у него есть трек
         if (consumer.kind === 'audio' && consumer.track) {
-          // Улучшенная обработка аудио элемента
-          const audioElement = document.createElement('audio')
-          audioElement.srcObject = new MediaStream([consumer.track])
-          audioElement.autoplay = true
+          const audioElement = document.createElement('audio') // создаем аудио элемент
+          audioElement.srcObject = new MediaStream([consumer.track]) // передаем в него наш трек (чтобы воспроизводить его звук, как только мы создали консюмер)
+          audioElement.autoplay = true // включаем авто запуск
           // @ts-ignore
           audioElement.playsInline = true
           audioElement.muted = false
           audioElement.style.display = 'none'
 
-          // Добавляем обработчики для управления воспроизведением
+          // Добавляем обработчики для управления воспроизведением - просто логи событий
           audioElement.oncanplaythrough = () => {
             console.log(
               'Audio element ready to play for consumer:',
@@ -323,36 +318,21 @@ export const Room = () => {
             )
           }
 
-          document.body.appendChild(audioElement)
-          consumer.audioElement = audioElement
+          document.body.appendChild(audioElement) // добавляем в DOM наш аудио элемент, чтобы аудиотрек консюмера воспроизводился
+          consumer.audioElement = audioElement // сохраняем внутри этого консюмера аудио элемент, чтобы мы могли получить к нему доступ в будущем, если пригодится (например чтобы удалить его при удалении консюмера)
 
-          // Улучшенная функция воспроизведения с обработкой прерываний
+          // Функция воспроизведения с обработкой прерываний
           const playAudioWithRetry = async (retryCount = 0) => {
             try {
               await audioElement.play()
-              console.log(
-                'Audio playing successfully for consumer:',
-                consumer.id
-              )
             } catch (error: any) {
+              // отладка ошибок
               if (error.name === 'AbortError') {
-                console.log(
-                  'Audio play was aborted, this is normal during stream changes'
-                )
-                // Не повторяем попытку для AbortError - это нормально при смене стримов
-                return
+                return // если AbortError - не повторяем попытку
               } else if (error.name === 'NotAllowedError') {
-                console.log('Audio play not allowed, user interaction required')
-                return
+                return // здесь тоже не повторяем попытку
               } else {
-                console.error(
-                  'Ошибка при воспроизведении звука от consumer:',
-                  error,
-                  'retry count:',
-                  retryCount
-                )
-
-                // Повторяем попытку только для определенных ошибок
+                // в остальных случаях повторяем попытку (максимум 3 раза)
                 if (retryCount < 3 && error.name !== 'AbortError') {
                   setTimeout(
                     () => playAudioWithRetry(retryCount + 1),
@@ -366,9 +346,9 @@ export const Room = () => {
           playAudioWithRetry()
         }
 
-        return consumer
+        return consumer // возвращаем консюмер
       } catch (error) {
-        console.error('Ошибка при создании consumer:', error)
+        // отладка ошибок при создании consumer
         return null
       }
     },
@@ -424,13 +404,13 @@ export const Room = () => {
           return
         }
 
-        // 1. Сначала создаём consumer для нового продюсера
+        // Сначала создаём consumer для нового продюсера
         const consumer = await handleCreateConsumer(data)
         if (!consumer) {
           // Если не удалось создать consumer — выходим
           return
         }
-        // 2. Обновляем consumers: удаляем старые с этим userId и добавляем новый
+        // Обновляем consumers: удаляем старые с этим userId и добавляем новый
         setConsumers((prev: any) => {
           // Если уже есть consumer с этим producerId — ничего не делаем
           if (prev[data.producerId]) return prev
@@ -448,7 +428,6 @@ export const Room = () => {
           }
         })
 
-        // Room.tsx - в обработчиках событий консюмера
         consumer.on('transportclose', () => {
           // Безопасное удаление аудио элемента
           if (consumer.audioElement) {
@@ -460,10 +439,6 @@ export const Room = () => {
               console.error('Error cleaning up audio element:', error)
             }
           }
-          console.log(
-            'Consumer transport closed for producer:',
-            data.producerId
-          )
           setConsumers((prev) => {
             const newConsumers = { ...prev }
             delete newConsumers[data.producerId]
@@ -472,7 +447,6 @@ export const Room = () => {
         })
 
         consumer.on('producerclose', () => {
-          console.log('Producer closed, removing consumer:', data.producerId)
           // Безопасное удаление аудио элемента
           if (consumer.audioElement) {
             try {
@@ -490,10 +464,12 @@ export const Room = () => {
           })
         })
       } catch (error) {
+        // отладка ошибок при создании consumer
         console.error('Ошибка при создании consumer:', error) // логирование ошибок
       }
     }
 
+    // функция обработчик закрытия продюсера (чужого)
     const handleProducerClose = (data: { producerId: string }) => {
       // обработчик закрытия продюсеров
       console.log('Producer closed:', data.producerId) // логирование того, что закрылся определнный продюсер
@@ -609,6 +585,7 @@ export const Room = () => {
 
     setIsConnected(false) // меняем статус подключения на false
     isInitializedRef.current = false // сбрасываем флаг инициализации
+    // воспроизведение звука выхода
     if (leaveSoundRef.current) {
       if (!leaveSoundRef.current.paused) {
         leaveSoundRef.current.pause()
@@ -619,35 +596,35 @@ export const Room = () => {
     }
   }, [socket, roomId, localStream, consumers, closeTransports]) // прописываем зависимости
 
-  // Логирование Socket событий
-  useEffect(() => {
-    if (!socket) return // проверка на инициализацию сокета
+  // // Логирование Socket событий
+  // useEffect(() => {
+  //   if (!socket) return // проверка на инициализацию сокета
 
-    const originalEmit = socket.emit // перехватываем socket.emit для логирования исходящих событий
-    socket.emit = function (...args) {
-      // логируем входящие события
-      console.log('📤 SOCKET EMIT:', args[0], args[1])
-      return originalEmit.apply(this, args)
-    }
+  //   const originalEmit = socket.emit // перехватываем socket.emit для логирования исходящих событий
+  //   socket.emit = function (...args) {
+  //     // логируем входящие события
+  //     console.log('📤 SOCKET EMIT:', args[0], args[1])
+  //     return originalEmit.apply(this, args)
+  //   }
 
-    const logEvent = (eventName: string, data: any) => {
-      console.log('📥 SOCKET EVENT:', eventName, data)
-    }
+  //   const logEvent = (eventName: string, data: any) => {
+  //     console.log('📥 SOCKET EVENT:', eventName, data)
+  //   }
 
-    socket.on('new-producer', (data) => logEvent('new-producer', data))
-    socket.on('existing-producers', (data) =>
-      logEvent('existing-producers', data)
-    )
-    socket.on('producer-close', (data) => logEvent('producer-close', data))
+  //   socket.on('new-producer', (data) => logEvent('new-producer', data))
+  //   socket.on('existing-producers', (data) =>
+  //     logEvent('existing-producers', data)
+  //   )
+  //   socket.on('producer-close', (data) => logEvent('producer-close', data))
 
-    return () => {
-      // восстанавливаем оригинальный emit при cleanup
-      socket.emit = originalEmit
-      socket.off('new-producer')
-      socket.off('existing-producers')
-      socket.off('producer-close')
-    }
-  }, [socket]) // настраиваем зависимости
+  //   return () => {
+  //     // восстанавливаем оригинальный emit при cleanup
+  //     socket.emit = originalEmit
+  //     socket.off('new-producer')
+  //     socket.off('existing-producers')
+  //     socket.off('producer-close')
+  //   }
+  // }, [socket]) // настраиваем зависимости
 
   // Основная логика подключения (инициализации)
   useEffect(() => {
@@ -738,6 +715,7 @@ export const Room = () => {
   const isUpdatingMediaRef = useRef(false)
 
   useEffect(() => {
+    // воспроизведение звука входа, когда кто-то вошел в комнату (в том числе мы)
     socket?.on('joined-to-room', () => {
       if (joinSoundRef.current) {
         if (!joinSoundRef.current.paused) {
@@ -754,6 +732,7 @@ export const Room = () => {
     }
   }, [])
   useEffect(() => {
+    // воспроизведение звука выхода, когда кто-то вышел из комнаты
     socket?.on('leave-from-room', () => {
       if (leaveSoundRef.current) {
         if (!leaveSoundRef.current.paused) {
@@ -770,15 +749,13 @@ export const Room = () => {
     }
   }, [])
 
-  // Обработка изменений state микрофона и камеры
-
+  // обработка изменения состояния камеры
   const updateMediaStream = useCallback(
     async (cameraOn: boolean) => {
       try {
-        console.log('🔄 Updating media stream, camera:', cameraOn)
-
         // Создаем новый стрим
         const newStream = await getMediaStream(cameraOn)
+        // проверяем что стрим создался корректно
         if (!newStream) {
           throw new Error('Failed to get media stream')
         }
@@ -792,15 +769,9 @@ export const Room = () => {
           })
         }
 
-        setLocalStream(newStream)
+        setLocalStream(newStream) // сохраняем новый стрим в состоянии текущего стрима
 
-        console.log('✅ Media stream updated:', {
-          videoTracks: newStream.getVideoTracks().length,
-          audioTracks: newStream.getAudioTracks().length,
-          streamId: newStream.id,
-        })
-
-        return newStream
+        return newStream // возвращаем новый стрим
       } catch (error) {
         console.error('❌ Error updating media stream:', error)
         return null
@@ -809,26 +780,26 @@ export const Room = () => {
     [localStream, getMediaStream]
   )
 
-  // Обработка изменений state микрофона и камеры
-
+  // обработка изменения состояния камеры
   useEffect(() => {
+    // функция обновления стрима
     const updateMedia = async () => {
+      // проверяем что есть транспорт отправки, что юзер подключен к комнате, и что нужно обновлять стрим
       if (!sendTransport || !isConnected || isUpdatingMediaRef.current) {
         return
       }
 
-      isUpdatingMediaRef.current = true
+      isUpdatingMediaRef.current = true // ставим, что нужно обновлять стрим
 
       try {
-        console.log('🔄 Updating media stream, camera:', isCameraOn)
-
-        // Всегда создаем новый стрим при изменении состояния камеры
+        // создаем новый стрим при изменении состояния камеры
         const newStream = await getMediaStream(isCameraOn)
+        // проверка, что он создался корректно
         if (!newStream) {
           throw new Error('Failed to get media stream')
         }
 
-        // Останавливаем старый стрим
+        // останавливаем старый стрим, если он есть
         if (localStream) {
           localStream.getTracks().forEach((track) => {
             if (track.readyState === 'live') {
@@ -837,19 +808,21 @@ export const Room = () => {
           })
         }
 
-        // Устанавливаем новый стрим - это вызовет пересоздание аудиопродюсера в хуке
+        // сохраняем новый стрим - это вызовет пересоздание аудиопродюсера в хуке
         setLocalStream(newStream)
 
         // Логика для видео
+        // если камера теперь включена и при этом нет старого продюсера камеры
         if (isCameraOn && !producersRef.current.video) {
-          console.log('📹 Creating video producer...')
+          // получаем из нового стрима видео треки
           const videoTracks = newStream.getVideoTracks()
+          // если мы их получили, то создаем продюсер для этого видео
           if (videoTracks.length > 0) {
             await createProducer(sendTransport, newStream, 'video')
-            console.log('✅ Video producer created')
           }
+          // если камера выключена но она была включена
         } else if (!isCameraOn && producersRef.current.video) {
-          console.log('📹 Closing video producer...')
+          // то закрываем продюсер и уведомляем остальных через сокет об этом
           if (socket) {
             socket.emit('producer-close', {
               producerId: producersRef.current.video.id,
@@ -860,11 +833,11 @@ export const Room = () => {
           producersRef.current.video = null
           setProducers((prev) => ({ ...prev, video: undefined }))
         }
-
-        console.log('✅ Media update completed')
       } catch (error) {
+        // отладка ошибок
         console.error('❌ Error in updateMedia:', error)
       } finally {
+        // всегда ставим что теперь стрим не нужно обновлять, так как только что его обновили
         isUpdatingMediaRef.current = false
       }
     }
@@ -886,8 +859,6 @@ export const Room = () => {
   ])
   // Фукнция полного переподключения
   const handleFullRetry = useCallback(async () => {
-    // объявляем функцию
-    console.log('Initiating full retry...')
     isInitializedRef.current = false // выставляем, что комната не инициализирована
 
     // очищаем таймер переподключения, если он сейчас активен
