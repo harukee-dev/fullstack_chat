@@ -243,7 +243,7 @@
   aspect-ratio: 16/9;
   border-radius: 1vh;
   border: 1px solid transparent;
-  z-index: 11;
+  z-index: 10;
   position: relative;
 }
 
@@ -252,16 +252,8 @@
   aspect-ratio: 16/9;
   border-radius: 1vh;
   border: 1px solid #ae00ff96;
-  z-index: 11;
+  z-index: 10;
   position: relative;
-}
-
-.camera:not([src]),
-.camera[src=''] {
-  position: relative;
-  background-image: url('./images/clear-camera.png');
-  background-size: cover;
-  z-index: 15;
 }
 
 .mutedIconWrapper {

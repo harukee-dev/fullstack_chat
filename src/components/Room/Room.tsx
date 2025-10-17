@@ -920,9 +920,7 @@ export const Room = () => {
     setIsVideoCall(isCameraOn || hasOtherUsersVideo)
   }, [isCameraOn, hasOtherUsersVideo])
 
-  // Отрисовка других пользователей
-  // Room.tsx - добавьте эти useMemo хуки
-
+  // Мемоизированная отрисовка
   const videoElements = useMemo(() => {
     return Object.entries(consumers)
       .map(([producerId, consumerData]) => {
@@ -998,7 +996,7 @@ export const Room = () => {
                       className={
                         isSpeaking
                           ? cl.boxAvatarImageActive
-                          : isMicroMuted
+                          : isMuted
                           ? cl.boxAvatarImageMuted
                           : cl.boxAvatarImage
                       }
