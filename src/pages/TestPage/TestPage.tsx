@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../../SocketContext'
 import cl from './testPage.module.css'
+import { AnimatePresence, motion } from 'framer-motion'
 
 // Компонент страницы теста
 export const TestPage = () => {
@@ -33,27 +34,38 @@ export const TestPage = () => {
   // Верстка компонента
   return (
     <div className={cl.testPage}>
-      <h1 className={cl.mainTitle}>Test omnio calls</h1>
+      <div className={cl.titleAndButtonContainer}>
+        <h1 className={cl.mainTitle}>ROOMS</h1>
+        <button className={cl.buttonCreateRoom} onClick={handleCreateRoom}>
+          +
+        </button>
+      </div>
+      <p className={cl.subtitle}>Talk with your friends</p>
 
       <div className={cl.roomsList}>
-        {rooms.map((roomID) => (
-          <div className={cl.roomContainer} key={roomID}>
-            <p className={cl.roomId}>{roomID}</p>
-            <button
-              className={cl.buttonJoin}
-              onClick={() => {
-                navigate(`/test/room/${roomID}`)
-              }}
+        <AnimatePresence>
+          {rooms.map((roomID) => (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              exit={{ opacity: 0 }}
+              className={cl.roomContainer}
+              key={roomID}
             >
-              join
-            </button>
-          </div>
-        ))}
+              <p className={cl.roomId}>{roomID}</p>
+              <button
+                className={cl.buttonJoin}
+                onClick={() => {
+                  navigate(`/test/room/${roomID}`)
+                }}
+              >
+                join
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
-
-      <button className={cl.buttonCreateRoom} onClick={handleCreateRoom}>
-        Create Room
-      </button>
     </div>
   )
 }
