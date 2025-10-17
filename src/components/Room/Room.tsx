@@ -1,5 +1,5 @@
 // Импорты
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
@@ -9,6 +9,7 @@ import joinSound from './sounds/join-sound.mp3'
 import mutedIcon from './images/muted-microphone-icon.png'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAudioVolume, useAudioControl } from './roomUtils'
+import React from 'react'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -907,18 +908,22 @@ export const Room = () => {
     fullRetry() // вызываем функцию полной повторной попытки подключения (50 строка)
   }, [sendTransport, localStream, closeTransports, fullRetry, consumers]) // зависимости
 
-  useEffect(() => {
-    // проверяем, есть ли видео у других пользователей
-    const hasOtherUsersVideo = Object.values(consumers).some(
-      (consumerData) => consumerData.kind === 'video'
-    )
+  const hasOtherUsersVideo = useMemo(
+    () =>
+      Object.values(consumers).some(
+        (consumerData) => consumerData.kind === 'video'
+      ),
+    [consumers]
+  )
 
-    // устанавливаем isVideoCall если есть наша камера или видео у других
+  useEffect(() => {
     setIsVideoCall(isCameraOn || hasOtherUsersVideo)
-  }, [isCameraOn, consumers])
+  }, [isCameraOn, hasOtherUsersVideo])
 
   // Отрисовка других пользователей
-  const renderVideoElements = () => {
+  // Room.tsx - добавьте эти useMemo хуки
+
+  const videoElements = useMemo(() => {
     return Object.entries(consumers)
       .map(([producerId, consumerData]) => {
         if (!consumerData.consumer || !consumerData.consumer.track) {
@@ -1062,73 +1067,27 @@ export const Room = () => {
           )
         }
 
-        // Для видео - отображаем видео элемент
+        // Для видео - используем мемоизированный компонент
         if (isVideo) {
           return (
-            <div className={cl.avatarContainer} key={producerId}>
-              <AnimatePresence>
-                {isSpeaking && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className={cl.boxWave1} />
-                    <div className={cl.boxWave2} />
-                    <div className={cl.boxWave3} />
-                    <div className={cl.boxWave4} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <video
-                ref={(videoElement) => {
-                  if (videoElement && consumerData.consumer.track) {
-                    videoElement.srcObject = new MediaStream([
-                      consumerData.consumer.track,
-                    ])
-                    videoElement.play().catch((error) => {
-                      if (error.name !== 'AbortError') {
-                        console.error('Error playing video:', error)
-                      }
-                    })
-                  }
-                }}
-                autoPlay
-                playsInline
-                muted={consumerData.userId === currentUserId}
-                className={isSpeaking ? cl.cameraActive : cl.camera}
-              />
-              <AnimatePresence>
-                {isMuted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.mutedIconWrapperCam}
-                  >
-                    <img
-                      className={cl.mutedIconCam}
-                      src={mutedIcon}
-                      alt="muted"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <UserVideoElement
+              key={producerId}
+              consumerData={consumerData}
+              isMuted={isMuted}
+              isSpeaking={isSpeaking}
+              isVideoCall={isVideoCall}
+            />
           )
         }
 
         return null
       })
       .filter(Boolean)
-  }
+  }, [consumers, mutedUsers, speakingUsers, isVideoCall, isMicroMuted])
 
-  // Отрисовка локального видео
-  // Room.tsx - в renderLocalVideo и renderVideoElements
-  const renderLocalVideo = () => {
+  const localVideoElement = useMemo(() => {
     if (!localStream) return null
+
     const currentUserAvatar = localStorage.getItem('avatar')
     const isMuted = mutedUsers.has(currentUserId || 'userid')
 
@@ -1237,58 +1196,21 @@ export const Room = () => {
       )
     } else {
       return (
-        <div>
-          <div className={cl.avatarContainer}>
-            <AnimatePresence>
-              {isTransmitting && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className={cl.boxWave1} />
-                  <div className={cl.boxWave2} />
-                  <div className={cl.boxWave3} />
-                  <div className={cl.boxWave4} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <video
-              ref={(videoElement) => {
-                if (videoElement && localStream) {
-                  videoElement.srcObject = localStream
-                  videoElement.play().catch((error) => {
-                    if (error.name !== 'AbortError') {
-                      console.error('Error playing local video:', error)
-                    }
-                  })
-                }
-              }}
-              autoPlay
-              playsInline
-              muted={true}
-              className={isTransmitting ? cl.cameraActive : cl.camera}
-              onError={(e) => console.error('Local video error:', e)}
-            />
-          </div>
-          <AnimatePresence>
-            {isMuted && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0.5 }}
-                transition={{ duration: 0.25 }}
-                className={cl.mutedIconWrapperCam}
-              >
-                <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <LocalVideoElement
+          localStream={localStream}
+          isTransmitting={isTransmitting}
+          isMuted={isMuted}
+        />
       )
     }
-  }
+  }, [
+    localStream,
+    isCameraOn,
+    isTransmitting,
+    mutedUsers,
+    isVideoCall,
+    isMicroMuted,
+  ])
   // Отрисовка всего компонента
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -1395,8 +1317,8 @@ export const Room = () => {
             gap: '1vh',
           }}
         >
-          {renderLocalVideo()}
-          {renderVideoElements()}
+          {localVideoElement}
+          {videoElements}
         </div>
       </div>
 
@@ -1424,3 +1346,167 @@ export const Room = () => {
     </div>
   )
 }
+
+const UserVideoElement = React.memo(
+  ({
+    consumerData,
+    isMuted,
+    isSpeaking,
+    isVideoCall,
+  }: {
+    consumerData: ConsumerData
+    isMuted: boolean
+    isSpeaking: boolean
+    isVideoCall: boolean
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const trackRef = useRef<MediaStreamTrack | null>(null)
+
+    useEffect(() => {
+      const videoElement = videoRef.current
+      const track = consumerData.consumer?.track
+
+      if (!videoElement || !track) return
+
+      // Если трек не изменился, не делаем ничего
+      if (trackRef.current === track) return
+
+      trackRef.current = track
+
+      // Не пересоздаем MediaStream, если videoElement.srcObject уже содержит этот трек
+      if (videoElement.srcObject) {
+        const currentStream = videoElement.srcObject as MediaStream
+        const currentTracks = currentStream.getTracks()
+
+        if (currentTracks.length === 1 && currentTracks[0].id === track.id) {
+          return
+        }
+
+        // Останавливаем старые треки
+        currentTracks.forEach((t) => t.stop())
+      }
+
+      // Создаем новый стрим только если нужно
+      const newStream = new MediaStream([track])
+      videoElement.srcObject = newStream
+
+      videoElement.play().catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Error playing video:', error)
+        }
+      })
+    }, [consumerData.consumer?.track]) // Только при реальном изменении трека
+    return (
+      <div className={cl.avatarContainer}>
+        <AnimatePresence>
+          {isSpeaking && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={cl.boxWave1} />
+              <div className={cl.boxWave2} />
+              <div className={cl.boxWave3} />
+              <div className={cl.boxWave4} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={false}
+          className={isSpeaking ? cl.cameraActive : cl.camera}
+        />
+        <AnimatePresence>
+          {isMuted && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0.5 }}
+              transition={{ duration: 0.25 }}
+              className={cl.mutedIconWrapperCam}
+            >
+              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+)
+
+// Мемоизированный компонент для локального видео
+const LocalVideoElement = React.memo(
+  ({
+    localStream,
+    isTransmitting,
+    isMuted,
+  }: {
+    localStream: MediaStream | null
+    isTransmitting: boolean
+    isMuted: boolean
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null)
+
+    useEffect(() => {
+      const videoElement = videoRef.current
+      if (videoElement && localStream) {
+        videoElement.srcObject = localStream
+        videoElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Error playing local video:', error)
+          }
+        })
+      }
+    }, [localStream]) // Только при изменении локального стрима
+
+    if (!localStream) return null
+
+    return (
+      <div>
+        <div className={cl.avatarContainer}>
+          <AnimatePresence>
+            {isTransmitting && (
+              <motion.div
+                style={{ zIndex: 5 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className={cl.boxWave1} />
+                <div className={cl.boxWave2} />
+                <div className={cl.boxWave3} />
+                <div className={cl.boxWave4} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={true}
+            className={isTransmitting ? cl.cameraActive : cl.camera}
+            onError={(e) => console.error('Local video error:', e)}
+          />
+        </div>
+        <AnimatePresence>
+          {isMuted && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0.5 }}
+              transition={{ duration: 0.25 }}
+              className={cl.mutedIconWrapperCam}
+            >
+              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+)
