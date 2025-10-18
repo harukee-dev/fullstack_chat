@@ -14,8 +14,8 @@ const mediasoup = require('mediasoup')
 const config = require('./config')
 
 // Конфигурация CORS
-const CLIENT_URL = 'http://localhost:3000' // клиент приложения, от которого мы принимаем запросы
-// const CLIENT_URL = 'http://omnio-space.fun'
+// const CLIENT_URL = 'http://localhost:3000' // клиент приложения, от которого мы принимаем запросы
+const CLIENT_URL = 'https://cc49489.tw1.ru/'
 
 app.use(
   cors({
