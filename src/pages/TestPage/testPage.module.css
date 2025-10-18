@@ -1,68 +1,101 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
 .testPage {
   width: 100vw;
-  height: 90vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  align-items: start;
+  justify-content: start;
+  gap: 0;
+  background-color: #111111;
+  overflow: hidden;
+}
+
+.titleAndButtonContainer {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
+  gap: 12vh;
+  margin: 5vh 0 0 20vh;
+  width: 100%;
 }
 
 .mainTitle {
-  color: #e9e9e9;
-  font-family: 'Jost Bold', sans-serif;
+  font-family: 'Poppins Black', sans-serif;
+  font-size: 17vh;
+  color: transparent;
+  -webkit-text-stroke: 1px #cdcdcd;
+  transform: scaleX(1.35);
 }
 
 .buttonCreateRoom {
-  margin-top: 1vh;
-  background-color: #e9e9e9;
-  color: #2e2e2e;
-  padding: 1vh 2vh;
-  font-family: 'Jost Regular';
-  font-size: 1.5vh;
-  border-radius: 1vh;
-  cursor: pointer;
-  outline: none;
+  width: 15vh;
+  height: 15vh;
+  font-size: 15vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111111;
+  font-family: 'Poppins ExtraLight', sans-serif;
+  border-radius: 100%;
   border: none;
-  transition: 0.2s ease;
+  cursor: pointer;
+  transition: 0.15s;
 }
 
 .buttonCreateRoom:hover {
-  transform: scale(1.07);
-  /* font-size: 1.7vh; */
+  transform: scale(1.05);
+}
+
+.subtitle {
+  font-family: 'Poppins Black', sans-serif;
+  font-size: 4vh;
+  margin: -5vh 0 0 10vh;
+  color: #ffffff;
 }
 
 .roomsList {
   display: flex;
   flex-direction: column;
-  gap: 2vh;
+  gap: 0.5vh;
+  margin: 3vh 0 0 10vh;
 }
 
 .roomContainer {
-  background-color: #e9e9e9;
   display: flex;
-  gap: 1vh;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5vh 1.5vh;
-  border-radius: 1vh;
+  gap: 0.5vh;
 }
 
 .roomId {
-  color: #2e2e2e;
-  font-family: 'Jost Regular';
+  font-family: 'Poppins Black', sans-serif;
+  background-color: #3f1b52;
+  padding: 0.25vh 1vh;
+  border-radius: 0.75vh;
+  color: #b344db;
+  font-size: 2vh;
 }
 
 .buttonJoin {
-  background-color: #2e2e2e;
-  color: #e9e9e9;
-  font-family: 'Jost Regular';
-  padding: 0.5vh 1vh;
+  font-family: 'Poppins Black', sans-serif;
+  color: #cecece;
+  background-color: #2f2f2f;
   border: none;
-  border-radius: 0.5vh;
+  padding: 0.25vh 1.25vh;
+  font-size: 2vh;
+  border-radius: 0.75vh;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.1s;
 }
 
 .buttonJoin:hover {
-  background-color: #414141;
+  color: #e2e2e2;
+  background-color: #383838;
 }

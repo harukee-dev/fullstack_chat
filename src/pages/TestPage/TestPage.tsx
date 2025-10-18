@@ -1,61 +1,71 @@
-import { useEffect, useRef, useState } from 'react'
-import { SystemNotification } from '../../components/SystemNotification/SystemNotification'
-import { useAppSelector } from '../../store'
-import { API_URL } from '../../constants'
-import { io } from 'socket.io-client'
-import ACTIONS from '../../backend/actions'
+// Импорты
+import { useEffect, useState } from 'react'
 import { v4 } from 'uuid'
 import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../../SocketContext'
+import cl from './testPage.module.css'
+import { AnimatePresence, motion } from 'framer-motion'
 
+// Компонент страницы теста
 export const TestPage = () => {
-  const { token } = useAppSelector((state) => state.auth)
-  const currentUserId = localStorage.getItem('user-id')
-  const { socket } = useSocket()
-  const navigate = useNavigate()
-  const [rooms, updateRooms] = useState([])
-  const rootNode = useRef<any>(null)
+  const { socket } = useSocket() // достаем сокет из контекста
+  const navigate = useNavigate() // создаем функцию навигации
+  const [rooms, updateRooms] = useState<any[]>([]) // state массив комнат
 
+  // Обработчик сокета
   useEffect(() => {
     if (!socket) {
-      console.log('!socket')
+      // проверка на валидность сокета
       return
-    } else {
-      console.log('socket')
     }
-    socket.on(ACTIONS.SHARE_ROOMS, ({ rooms = [] } = {}) => {
-      if (rootNode.current) {
-        updateRooms(rooms)
-      }
+    socket.on('new-room', (roomId) => {
+      // обработка сокет 'new-room'
+      updateRooms([...rooms, roomId]) // добавляем новую комнату в state
     })
-  }, [socket])
+  }, [socket]) // а зависимости - сокет
 
+  // Функция создания новой комнаты
+  const handleCreateRoom = () => {
+    const newRoomId = v4() // создаем рандомный айди для новой комнаты
+    navigate(`/test/room/${newRoomId}`) // переносим пользователя на страницу новой комнаты
+    socket?.emit('new-room', newRoomId) // уведомляем сервер о новой комнате
+  }
+
+  // Верстка компонента
   return (
-    <div ref={rootNode}>
-      <h1>Available Rooms</h1>
+    <div className={cl.testPage}>
+      <div className={cl.titleAndButtonContainer}>
+        <h1 className={cl.mainTitle}>ROOMS</h1>
+        <button className={cl.buttonCreateRoom} onClick={handleCreateRoom}>
+          +
+        </button>
+      </div>
+      <p className={cl.subtitle}>Talk with your friends</p>
 
-      <ul>
-        {rooms.map((roomID) => (
-          <li key={roomID}>
-            {roomID}
-            <button
-              onClick={() => {
-                navigate(`/test/room/${roomID}`)
-              }}
+      <div className={cl.roomsList}>
+        <AnimatePresence>
+          {rooms.map((roomID) => (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              exit={{ opacity: 0 }}
+              className={cl.roomContainer}
+              key={roomID}
             >
-              JOIN ROOM
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={() => {
-          navigate(`/test/room/${v4()}`)
-        }}
-      >
-        Create New Room
-      </button>
+              <p className={cl.roomId}>{roomID}</p>
+              <button
+                className={cl.buttonJoin}
+                onClick={() => {
+                  navigate(`/test/room/${roomID}`)
+                }}
+              >
+                join
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
