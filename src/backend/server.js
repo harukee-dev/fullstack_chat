@@ -15,11 +15,12 @@ const config = require('./config')
 
 // Конфигурация CORS
 // const CLIENT_URL = 'http://localhost:3000' // клиент приложения, от которого мы принимаем запросы
-const CLIENT_URL = 'https://cc49489.tw1.ru/'
+const CLIENT_URL = 'https://cc49489.tw1.ru'
 
 app.use(
   cors({
-    origin: CLIENT_URL, // разрешаем запросы только с указанного домена
+    origin: '185.185.142.241', // разрешаем запросы только с указанного домена
+    credentials: true,
   })
 )
 
