@@ -2,6 +2,7 @@
 const express = require('express')
 const app = express()
 const https = require('https')
+// const http = require('http')
 const fs = require('fs')
 const { Server } = require('socket.io')
 const cors = require('cors')
@@ -12,6 +13,7 @@ const options = {
   cert: fs.readFileSync('/etc/letsencrypt/live/lynk.su/fullchain.pem'),
 }
 const server = https.createServer(options, app)
+// const server = http.createServer(app)
 const Message = require('./models/Message')
 const friendsRouter = require('./routes/friends')
 const path = require('path')

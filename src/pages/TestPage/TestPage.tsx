@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSocket } from '../../SocketContext'
 import cl from './testPage.module.css'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ModalVoiceSettings } from '../../components/ModalVoiceSettings/ModalVoiceSettings'
 
 // Компонент страницы теста
 export const TestPage = () => {
@@ -65,6 +66,7 @@ export const TestPage = () => {
             </motion.div>
           ))}
         </AnimatePresence>
+        <ModalVoiceSettings />
       </div>
     </div>
   )

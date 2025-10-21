@@ -10,6 +10,7 @@ import notificationReducer from './slices/notificationSlice'
 import messagesReducer from './slices/chatMessages'
 import userProfileModalReducer from './slices/userProfileSlice'
 import systemNotificationReducer from './slices/systemNotificationSlice'
+import voiceSettingsReducer from './slices/voiceSettingsSlice'
 
 export const store = configureStore({
   reducer: {
@@ -23,6 +24,7 @@ export const store = configureStore({
     messagesByChatId: messagesReducer,
     userProfileModal: userProfileModalReducer,
     systemNotification: systemNotificationReducer,
+    voiceSettings: voiceSettingsReducer,
   },
 })
 

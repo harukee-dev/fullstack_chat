@@ -10,6 +10,7 @@ import mutedIcon from './images/muted-microphone-icon.png'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAudioVolume, useAudioControl } from './roomUtils'
 import React from 'react'
+import { useAppSelector } from '../../store'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -50,6 +51,10 @@ export const Room = () => {
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
 
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set())
+
+  const { noise, echo, autoGain, threshold } = useAppSelector(
+    (state) => state.voiceSettings
+  )
 
   // инициализация звуков входа и выхода (и предварительная загрузка сразу, чтобы они срабатывали без задержки)
   useEffect(() => {
@@ -120,9 +125,9 @@ export const Room = () => {
           // получаем локальный стрим из нашего девайса
           // всегда получаем аудио
           audio: {
-            echoCancellation: true, // эхоподавление
-            noiseSuppression: true, // шумоподавление
-            autoGainControl: true, // автоусиление громкости
+            echoCancellation: echo, // эхоподавление
+            noiseSuppression: noise, // шумоподавление
+            autoGainControl: autoGain, // автоусиление громкости
           },
           video: isCameraOn // если камера включена
             ? {
@@ -221,7 +226,7 @@ export const Room = () => {
     [socket, roomId] // зависимости
   )
 
-  const { isSpeaking } = useAudioVolume(localStream, -30) // получаем динамическую переменную, говорит ли человек (в независимости от того, в муте он или нет)
+  const { isSpeaking } = useAudioVolume(localStream, threshold) // получаем динамическую переменную, говорит ли человек (в независимости от того, в муте он или нет)
   const { isTransmitting } = useAudioControl({
     isSpeaking,
     isMicroMuted,
