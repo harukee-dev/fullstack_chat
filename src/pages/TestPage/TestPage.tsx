@@ -12,6 +12,8 @@ export const TestPage = () => {
   const { socket } = useSocket() // достаем сокет из контекста
   const navigate = useNavigate() // создаем функцию навигации
   const [rooms, updateRooms] = useState<any[]>([]) // state массив комнат
+  const currentUsername = localStorage.getItem('username')
+  const [hasRequested, setHasRequested] = useState(false)
 
   // Обработчик сокета
   useEffect(() => {
@@ -19,17 +21,35 @@ export const TestPage = () => {
       // проверка на валидность сокета
       return
     }
-    socket.on('new-room', (roomId) => {
+
+    socket.on('new-room', (room) => {
       // обработка сокет 'new-room'
-      updateRooms([...rooms, roomId]) // добавляем новую комнату в state
+      updateRooms((prev) => [...prev, room]) // добавляем новую комнату в state
     })
+
+    socket.on('room-deleted', (roomId) => {
+      updateRooms((prev) => prev.filter((el) => el.roomId !== roomId))
+    })
+
+    socket.on('receive-rooms', (receiveRooms) => {
+      console.log('receive-rooms')
+      updateRooms(receiveRooms)
+    })
+
+    return () => {
+      socket.off('new-room')
+      socket.off('receive-rooms')
+    }
   }, [socket]) // а зависимости - сокет
 
   // Функция создания новой комнаты
   const handleCreateRoom = () => {
     const newRoomId = v4() // создаем рандомный айди для новой комнаты
     navigate(`/test/room/${newRoomId}`) // переносим пользователя на страницу новой комнаты
-    socket?.emit('new-room', newRoomId) // уведомляем сервер о новой комнате
+    socket?.emit('new-room', {
+      roomId: newRoomId,
+      roomName: `${currentUsername}'s room`,
+    }) // уведомляем сервер о новой комнате
   }
 
   // Верстка компонента
@@ -42,23 +62,29 @@ export const TestPage = () => {
         </button>
       </div>
       <p className={cl.subtitle}>Talk with your friends</p>
+      <button
+        className={cl.updateButton}
+        onClick={() => socket?.emit('get-rooms')}
+      >
+        update
+      </button>
 
       <div className={cl.roomsList}>
         <AnimatePresence>
-          {rooms.map((roomID) => (
+          {rooms.map((room) => (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               exit={{ opacity: 0 }}
               className={cl.roomContainer}
-              key={roomID}
+              key={room.roomId}
             >
-              <p className={cl.roomId}>{roomID}</p>
+              <p className={cl.roomId}>{room.roomName}</p>
               <button
                 className={cl.buttonJoin}
                 onClick={() => {
-                  navigate(`/test/room/${roomID}`)
+                  navigate(`/test/room/${room.roomId}`)
                 }}
               >
                 join

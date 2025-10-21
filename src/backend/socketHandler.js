@@ -14,6 +14,7 @@ let nextMediasoupWorkerIdx = 0
 let mutedUsersByRooms = {}
 const routers = new Map()
 const transports = new Map()
+let rooms = []
 const producers = new Map()
 const roomUsers = new Map()
 
@@ -647,9 +648,14 @@ function setupSocketHandlers(io) {
       })
 
       // Создание новой комнаты - ОБРАБОТЧИК ДЛЯ ТЕСТОВОЙ ВЕРСИИ
-      socket.on('new-room', (roomId) => {
+      socket.on('new-room', (room) => {
         // событие - клиент создает новую комнату
-        io.emit('new-room', roomId) // говорим всем остальным о том, что создалась новая комната
+        rooms.push(room)
+        io.emit('new-room', room) // говорим всем остальным о том, что создалась новая комната
+      })
+
+      socket.on('get-rooms', () => {
+        socket.emit('receive-rooms', rooms)
       })
 
       // Выход из комнаты
@@ -697,6 +703,8 @@ function setupSocketHandlers(io) {
             if (users.size === 0) {
               // если он был единственным в комнате
               roomUsers.delete(roomId) // удаляем и саму комнату
+              rooms = rooms.filter((el) => el.roomId !== roomId)
+              io.emit('room-deleted', roomId)
               delete mutedUsersByRooms[roomId]
               const router = routers.get(roomId) // находим роутер этой комнаты
               if (router) {
@@ -925,6 +933,8 @@ function setupSocketHandlers(io) {
           users.delete(socket.user.id) // удаляем его из комнаты
           if (users.size === 0) {
             // если он был последним - удаляем комнату и роутер
+            rooms = rooms.filter((room) => room.roomId !== roomId)
+            io.emit('room-deleted', roomId)
             roomUsers.delete(roomId) // удаление комнаты
             const router = routers.get(roomId) // находим роутер комнаты
             if (router) {

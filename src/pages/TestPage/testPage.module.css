@@ -62,6 +62,23 @@ body {
   color: #ffffff;
 }
 
+.updateButton {
+  margin: 0 0 0 10vh;
+  color: #ffffff;
+  font-family: 'Poppins Black', sans-serif;
+  font-size: 2vh;
+  border: none;
+  border-radius: 1vh;
+  padding: 0.5vh 1vh;
+  background-color: #2f2f2f;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.updateButton:hover {
+  background-color: #383838;
+}
+
 .roomsList {
   display: flex;
   flex-direction: column;
