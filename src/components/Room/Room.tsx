@@ -600,6 +600,7 @@ export const Room = () => {
       leaveSoundRef.current.currentTime = 0
       leaveSoundRef.current.play()
     }
+    navigate('/test')
   }, [socket, roomId, localStream, consumers, closeTransports]) // прописываем зависимости
 
   // // Логирование Socket событий
