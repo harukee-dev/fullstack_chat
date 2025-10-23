@@ -1748,22 +1748,17 @@ const LocalVideoElement = React.memo(
     if (!hasVideo) {
       console.log('⚠️ No video tracks in local stream')
       return (
-        <div className={cl.avatarContainer}>
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              background: '#333',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              borderRadius: '8px',
-            }}
-          >
-            No Video Track
-          </div>
-        </div>
+        <div
+          style={{
+            width: '38vh',
+            aspectRatio: '16/9',
+            borderRadius: '1vh',
+            border: '1px solid transparent',
+            zIndex: '10',
+            position: 'relative',
+            background: '#0A0A0A',
+          }}
+        />
       )
     }
 
@@ -1791,11 +1786,6 @@ const LocalVideoElement = React.memo(
           playsInline
           muted={true}
           className={isTransmitting ? cl.cameraActive : cl.camera}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
           onLoadedData={() => console.log('✅ Local video loaded')}
           onCanPlay={() => console.log('✅ Local video can play')}
           onError={(e) => console.error('❌ Local video error:', e)}
