@@ -283,6 +283,9 @@ export const Room = () => {
           // @ts-ignore
           cursor: 'always',
           displaySurface: 'screen',
+          width: 1280,
+          height: 720,
+          frameRate: 60,
         },
         audio: false,
       })
@@ -1135,6 +1138,7 @@ export const Room = () => {
   }, [isCameraOn, hasOtherUsersVideo])
 
   // Мемоизированная отрисовка
+  // Мемоизированная отрисовка
   const videoElements = useMemo(() => {
     // Группируем consumers по userId
     const consumersByUser = Object.values(consumers).reduce(
@@ -1149,142 +1153,104 @@ export const Room = () => {
     )
 
     // Создаем элементы для каждого пользователя
-    return Object.entries(consumersByUser)
-      .map(([userId, userConsumers]) => {
-        const audioConsumer = userConsumers.find((c) => c.kind === 'audio')
-        const videoConsumer = userConsumers.find(
-          (c) => c.kind === 'video' && !c.isScreenShare
+    const elements = []
+
+    for (const [userId, userConsumers] of Object.entries(consumersByUser)) {
+      const audioConsumer = userConsumers.find((c) => c.kind === 'audio')
+      const videoConsumer = userConsumers.find(
+        (c) => c.kind === 'video' && !c.isScreenShare
+      )
+      const screenConsumer = userConsumers.find(
+        (c) => c.kind === 'video' && c.isScreenShare
+      )
+
+      const isMuted = mutedUsers.has(userId)
+      const isSpeaking = speakingUsers.has(userId)
+      const userData = userConsumers[0]
+
+      // 1. Сначала добавляем демонстрацию экрана (если есть) - ОТДЕЛЬНО
+      if (screenConsumer && screenConsumer.consumer?.track) {
+        elements.push(
+          <ScreenShareElement
+            key={`screen-${screenConsumer.consumer.id}`}
+            consumerData={screenConsumer}
+          />
         )
-        const screenConsumer = userConsumers.find(
-          (c) => c.kind === 'video' && c.isScreenShare
+      }
+
+      // 2. Затем добавляем веб-камеру или аватар (если нет вебки)
+      if (videoConsumer && videoConsumer.consumer?.track) {
+        // Если есть вебка - показываем ее
+        elements.push(
+          <UserVideoElement
+            key={`video-${videoConsumer.consumer.id}`}
+            consumerData={videoConsumer}
+            isMuted={isMuted}
+            isSpeaking={isSpeaking}
+            isVideoCall={isVideoCall}
+          />
         )
-
-        const isMuted = mutedUsers.has(userId)
-        const isSpeaking = speakingUsers.has(userId)
-        const userData = userConsumers[0] // берем данные из первого consumer
-
-        if (screenConsumer && screenConsumer.consumer?.track) {
-          return (
-            <ScreenShareElement
-              key={`screen-${screenConsumer.consumer.id}`}
-              consumerData={screenConsumer}
-            />
-          )
-        }
-
-        if (videoConsumer && videoConsumer.consumer?.track) {
-          return (
-            <UserVideoElement
-              key={`video-${videoConsumer.consumer.id}`}
-              consumerData={videoConsumer}
-              isMuted={isMuted}
-              isSpeaking={isSpeaking}
-              isVideoCall={isVideoCall}
-            />
-          )
-        }
-
-        if (audioConsumer && audioConsumer.consumer?.track) {
-          return (
-            <div key={`audio-${audioConsumer.consumer.id}`}>
-              <audio
-                ref={(audioElement) => {
-                  if (audioElement && audioConsumer.consumer.track) {
-                    audioElement.srcObject = new MediaStream([
-                      audioConsumer.consumer.track,
-                    ])
-                    audioElement.play().catch((error) => {
-                      if (error.name !== 'AbortError') {
-                        console.error('Error playing audio:', error)
-                      }
-                    })
-                  }
-                }}
-                autoPlay
-                playsInline
-                muted={false}
-                style={{ display: 'none' }}
-              />
-              {isVideoCall ? (
-                <div className={cl.avatarContainer}>
-                  <AnimatePresence>
-                    {isSpeaking && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className={cl.boxWave1} />
-                        <div className={cl.boxWave2} />
-                        <div className={cl.boxWave3} />
-                        <div className={cl.boxWave4} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div
-                    className={
-                      isSpeaking
-                        ? cl.boxAvatarContainerActive
-                        : cl.boxAvatarContainer
+      } else if (audioConsumer && audioConsumer.consumer?.track) {
+        // Если нет вебки, но есть аудио - показываем аватар
+        elements.push(
+          <div key={`audio-${audioConsumer.consumer.id}`}>
+            <audio
+              ref={(audioElement) => {
+                if (audioElement && audioConsumer.consumer.track) {
+                  audioElement.srcObject = new MediaStream([
+                    audioConsumer.consumer.track,
+                  ])
+                  audioElement.play().catch((error) => {
+                    if (error.name !== 'AbortError') {
+                      console.error('Error playing audio:', error)
                     }
-                  >
-                    <img
-                      src={userData.avatar || '/default-avatar.png'}
-                      alt={userData.username || 'user'}
-                      className={cl.boxAvatarBackground}
-                    />
-                    <img
-                      src={userData.avatar || '/default-avatar.png'}
-                      alt={userData.username || 'user'}
-                      className={
-                        isSpeaking
-                          ? cl.boxAvatarImageActive
-                          : isMuted
-                          ? cl.boxAvatarImageMuted
-                          : cl.boxAvatarImage
-                      }
-                    />
-                    <AnimatePresence>
-                      {isMuted && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0.5 }}
-                          transition={{ duration: 0.25 }}
-                          className={cl.mutedIconWrapperBox}
-                        >
-                          <img
-                            className={cl.mutedIcon}
-                            src={mutedIcon}
-                            alt="muted"
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              ) : (
-                <div className={cl.avatarContainer}>
-                  <AnimatePresence>
-                    {isSpeaking && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className={cl.wave1} />
-                        <div className={cl.wave2} />
-                        <div className={cl.wave3} />
-                        <div className={cl.wave4} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  })
+                }
+              }}
+              autoPlay
+              playsInline
+              muted={false}
+              style={{ display: 'none' }}
+            />
+            {isVideoCall ? (
+              <div className={cl.avatarContainer}>
+                <AnimatePresence>
+                  {isSpeaking && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className={cl.boxWave1} />
+                      <div className={cl.boxWave2} />
+                      <div className={cl.boxWave3} />
+                      <div className={cl.boxWave4} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <div
+                  className={
+                    isSpeaking
+                      ? cl.boxAvatarContainerActive
+                      : cl.boxAvatarContainer
+                  }
+                >
                   <img
                     src={userData.avatar || '/default-avatar.png'}
-                    alt={userData.username || 'User'}
-                    className={isSpeaking ? cl.avatarActive : cl.avatar}
+                    alt={userData.username || 'user'}
+                    className={cl.boxAvatarBackground}
+                  />
+                  <img
+                    src={userData.avatar || '/default-avatar.png'}
+                    alt={userData.username || 'user'}
+                    className={
+                      isSpeaking
+                        ? cl.boxAvatarImageActive
+                        : isMuted
+                        ? cl.boxAvatarImageMuted
+                        : cl.boxAvatarImage
+                    }
                   />
                   <AnimatePresence>
                     {isMuted && (
@@ -1293,7 +1259,7 @@ export const Room = () => {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0.5 }}
                         transition={{ duration: 0.25 }}
-                        className={cl.mutedIconWrapper}
+                        className={cl.mutedIconWrapperBox}
                       >
                         <img
                           className={cl.mutedIcon}
@@ -1304,14 +1270,54 @@ export const Room = () => {
                     )}
                   </AnimatePresence>
                 </div>
-              )}
-            </div>
-          )
-        }
+              </div>
+            ) : (
+              <div className={cl.avatarContainer}>
+                <AnimatePresence>
+                  {isSpeaking && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className={cl.wave1} />
+                      <div className={cl.wave2} />
+                      <div className={cl.wave3} />
+                      <div className={cl.wave4} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <img
+                  src={userData.avatar || '/default-avatar.png'}
+                  alt={userData.username || 'User'}
+                  className={isSpeaking ? cl.avatarActive : cl.avatar}
+                />
+                <AnimatePresence>
+                  {isMuted && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0.5 }}
+                      transition={{ duration: 0.25 }}
+                      className={cl.mutedIconWrapper}
+                    >
+                      <img
+                        className={cl.mutedIcon}
+                        src={mutedIcon}
+                        alt="muted"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        )
+      }
+    }
 
-        return null
-      })
-      .filter(Boolean)
+    return elements
   }, [consumers, mutedUsers, speakingUsers, isVideoCall])
 
   const localVideoElement = useMemo(() => {
