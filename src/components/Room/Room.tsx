@@ -27,7 +27,7 @@ interface ProducerData {
   userId: string
   username?: string
   avatar?: string
-  isScreenShare?: boolean // делаем опциональным
+  appData?: { isScreenShare: boolean }
 }
 
 // Интерфейс для производителей медиа - то есть для отправки медиа серверу
@@ -212,10 +212,13 @@ export const Room = () => {
           producersRef.current[producerKey] = null
         }
 
+        const isScreenShare = kind === 'screen'
+        const appData = { isScreenShare }
+
         // создаем новый продюсер
         const producer = await transport.produce({
           track,
-          appData: { mediaTag: kind },
+          appData,
         })
 
         producersRef.current[producerKey] = producer
@@ -238,7 +241,7 @@ export const Room = () => {
             roomId: roomId,
             username: localStorage.getItem('username'),
             avatar: localStorage.getItem('avatar'),
-            isScreenShare: isScreenShare,
+            appData: appData,
           })
         }
 
@@ -340,6 +343,7 @@ export const Room = () => {
         socket.emit('producer-close', {
           producerId: producersRef.current.screen.id,
           roomId,
+          appData: { isScreenShare: true },
         })
       }
       producersRef.current.screen.close()
@@ -445,11 +449,7 @@ export const Room = () => {
 
   // Создание Consumer - объекта, который получает медиа данные от других пользователей
   const handleCreateConsumer = useCallback(
-    async (producerData: {
-      producerId: string // принимаем id продюсера, из которого нам нужно сделать consumer
-      kind: string // тип этого продюсера
-      userId: string // и id юзера, который передает этот продюсер
-    }) => {
+    async (producerData: ProducerData) => {
       // проверка, что девайс и транспорт получения инициализированы
       if (!recvTransportRef.current || !device) {
         return null
@@ -578,11 +578,11 @@ export const Room = () => {
           'from user:',
           data.userId,
           'isScreenShare:',
-          data.isScreenShare
+          data.appData?.isScreenShare
         )
 
         // Определяем isScreenShare (по умолчанию false)
-        const isScreenShare = data.isScreenShare || false
+        const isScreenShare = data.appData?.isScreenShare || false
 
         // Создаём consumer
         const consumer = await handleCreateConsumer({
@@ -702,21 +702,14 @@ export const Room = () => {
 
         if (producer.userId !== userIdRef.current) {
           // Добавляем isScreenShare если его нет
-          const producerWithScreenShare: ProducerData = {
-            ...producer,
-            isScreenShare: producer.isScreenShare || false,
-          }
-          await handleNewProducer(producerWithScreenShare)
+
+          await handleNewProducer(producer)
         }
       }
     }
 
     socket.on('new-producer', (data: ProducerData) => {
-      const producerData: ProducerData = {
-        ...data,
-        isScreenShare: data.isScreenShare || false,
-      }
-      handleNewProducer(producerData)
+      handleNewProducer(data)
     }) // обработчик сокета о новом продюсере
     socket.on('producer-close', handleProducerClose) // обработчик сокета о закрытии продюсера
     socket.on('existing-producers', handleExistingProducers) // обработчик сокета о всех существующих продюсерах
@@ -1050,6 +1043,7 @@ export const Room = () => {
             socket.emit('producer-close', {
               producerId: producersRef.current.video.id,
               roomId,
+              appData: { isScreenShare: false },
             })
           }
           producersRef.current.video.close()
@@ -1169,7 +1163,6 @@ export const Room = () => {
         const isSpeaking = speakingUsers.has(userId)
         const userData = userConsumers[0] // берем данные из первого consumer
 
-        // 🔥 Демонстрация экрана (отдельный элемент)
         if (screenConsumer && screenConsumer.consumer?.track) {
           return (
             <ScreenShareElement
@@ -1179,7 +1172,6 @@ export const Room = () => {
           )
         }
 
-        // 🔥 Видео (камера) - заменяет аватар
         if (videoConsumer && videoConsumer.consumer?.track) {
           return (
             <UserVideoElement
@@ -1192,7 +1184,6 @@ export const Room = () => {
           )
         }
 
-        // 🔥 Только аудио (аватар)
         if (audioConsumer && audioConsumer.consumer?.track) {
           return (
             <div key={`audio-${audioConsumer.consumer.id}`}>
@@ -1622,14 +1613,16 @@ const UserVideoElement = React.memo(
     const trackRef = useRef<MediaStreamTrack | null>(null)
 
     useEffect(() => {
-      const videoElement = videoRef.current
-      const track = consumerData.consumer?.track
+      const videoElement = videoRef.current // элемент для вывода видео
+      const track = consumerData.consumer?.track // видео трек консюмера
 
+      // проверка, что видео элемент и трек инициализированы
       if (!videoElement || !track) return
 
       // Если трек не изменился, не делаем ничего
       if (trackRef.current === track) return
 
+      // сохраняем новый трек в ссылке на него
       trackRef.current = track
 
       // Не пересоздаем MediaStream, если videoElement.srcObject уже содержит этот трек

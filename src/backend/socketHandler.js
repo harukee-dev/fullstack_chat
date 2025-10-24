@@ -485,7 +485,10 @@ function setupSocketHandlers(io) {
       // Создание producer
       socket.on(
         'produce', // событие - клиент просит создать producer
-        async ({ transportId, kind, rtpParameters, roomId }, callback) => {
+        async (
+          { transportId, kind, rtpParameters, roomId, appData },
+          callback
+        ) => {
           // принимает id транспорта, тип, rtp(протокол передачи медиа) параметры, и id комнаты
           try {
             console.log(
@@ -504,6 +507,7 @@ function setupSocketHandlers(io) {
               // создаем producer на транспорте с заданными параметрами
               kind,
               rtpParameters,
+              appData: appData || {},
             })
 
             const user = await User.findById(userId) // находим пользователя в БД по его id
@@ -516,6 +520,7 @@ function setupSocketHandlers(io) {
               avatar: user.avatar,
               roomId,
               kind,
+              appData: appData || {},
             })
 
             console.log(
@@ -529,6 +534,7 @@ function setupSocketHandlers(io) {
               userId: socket.user.id,
               username: user.username,
               avatar: user.avatar,
+              appData: appData || {},
             })
 
             callback({
@@ -607,7 +613,7 @@ function setupSocketHandlers(io) {
       )
 
       // Закрытие producer
-      socket.on('producer-close', ({ producerId, roomId }) => {
+      socket.on('producer-close', ({ producerId, roomId, appData }) => {
         // событие - клиент закрывает свой producer (для отправки медиа данных)
         try {
           const producerData = producers.get(producerId) // находим producer в мапе по его id
@@ -616,7 +622,9 @@ function setupSocketHandlers(io) {
             producerData.producer.close() // закрываем producer
             producers.delete(producerId) // удаляем из мапа продюсеров
 
-            socket.to(roomId).emit('producer-close', { producerId }) // уведомляем всех пользователей комнаты о закрытии producer
+            socket
+              .to(roomId)
+              .emit('producer-close', { producerId, appData: appData || {} }) // уведомляем всех пользователей комнаты о закрытии producer
             console.log(`Producer ${producerId} closed`) // логируем успешное закрытие producer пользователя
           }
         } catch (error) {
@@ -638,6 +646,7 @@ function setupSocketHandlers(io) {
               userId: p.userId, // id юзера этого producer
               username: p.username, // ник юзера этого producer
               avatar: p.avatar, // аватар юзера этого producer
+              appData: p.appData || {}, // если у продюсера kind === 'video', то внутри appData будет isScreenShare: boolean
             }))
 
           socket.emit('existing-producers', roomProducers) // возвращаем новому учатнику все существующие producers комнаты, в которую он вошел
@@ -828,6 +837,7 @@ function setupSocketHandlers(io) {
               userId: p.userId, // id юзера данного продюсера
               username: p.username, // ник юзера данного продюсера
               avatar: p.avatar, // аватар юзера данного продюсера
+              appData: p.appData || {}, // appData продюсера - если kind === 'video' то внутри даты будет isScreenShare: boolean
             }))
           )
         }
