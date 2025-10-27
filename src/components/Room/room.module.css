@@ -242,7 +242,7 @@
   width: 38vh;
   aspect-ratio: 16/9;
   border-radius: 1vh;
-  border: 1px solid transparent;
+  border: 1px solid #ffffff3b;
   z-index: 10;
   position: relative;
 }
