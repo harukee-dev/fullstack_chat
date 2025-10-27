@@ -234,10 +234,14 @@ export const useMediaSoup = (roomId, isMicrophoneMuted, isCameraOn) => {
       )
 
       sendTransport.on('produce', async (parameters, callback, errback) => {
-        // параметры с типом и параметрами шифрования, callback вызываемый при успешном ответе, errback при неуспешном
         // обработчик 'produce' - MediaSoup пытается создать producer для отправки медиа трека
         try {
-          console.log('Producing track:', parameters.kind) // логируем в консоль создание producer
+          console.log(
+            'Producing track:',
+            parameters.kind,
+            'with appData:',
+            parameters.appData
+          ) // ← добавляем логирование appData
 
           socket.emit(
             // делаем запрос сокету на создание producer
@@ -247,6 +251,7 @@ export const useMediaSoup = (roomId, isMicrophoneMuted, isCameraOn) => {
               kind: parameters.kind, // тип (аудио или видео)
               rtpParameters: parameters.rtpParameters, // параметры шифрования
               roomId, // id комнаты
+              appData: parameters.appData || {}, // ⚠️ ДОБАВЛЯЕМ ПЕРЕДАЧУ appData НА СЕРВЕР
             },
             (response) => {
               // при получении ответа

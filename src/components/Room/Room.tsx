@@ -44,6 +44,8 @@ interface Consumers {
 
 export const Room = () => {
   const currentUserId = localStorage.getItem('user-id') // текущий айди локального пользователя
+  const currentUsername = localStorage.getItem('username')
+  const currentUserAvatar = localStorage.getItem('avatar')
   const { id: roomId } = useParams() // айди комнаты звонка
   const [isMicroMuted, setIsMicroMuted] = useState<boolean>(false) // замучен ли микрофон
   const [isCameraOn, setIsCameraOn] = useState<boolean>(false) // включена ли камера
@@ -213,7 +215,12 @@ export const Room = () => {
         }
 
         const isScreenShare = kind === 'screen'
-        const appData = { isScreenShare }
+        const appData = {
+          isScreenShare,
+          userId: currentUserId,
+          username: currentUsername,
+          avatar: currentUserAvatar,
+        }
 
         // создаем новый продюсер
         const producer = await transport.produce({
@@ -228,21 +235,6 @@ export const Room = () => {
           setScreenProducer(producer)
         } else {
           setProducers((prev) => ({ ...prev, [kind]: producer }))
-        }
-
-        // проверка, что сокет и id комнаты инициализированы
-        if (socket && roomId) {
-          const isScreenShare = kind === 'screen'
-          // отправляем сокет о том, что создали новый продюсер
-          socket.emit('new-producer', {
-            producerId: producer.id,
-            kind: kind === 'screen' ? 'video' : kind,
-            userId: userIdRef.current,
-            roomId: roomId,
-            username: localStorage.getItem('username'),
-            avatar: localStorage.getItem('avatar'),
-            appData: appData,
-          })
         }
 
         // Обработчики событий продюсера
@@ -1212,7 +1204,7 @@ export const Room = () => {
               muted={false}
               style={{ display: 'none' }}
             />
-            {isVideoCall ? (
+            {isVideoCall || isScreenSharing ? (
               <div className={cl.avatarContainer}>
                 <AnimatePresence>
                   {isSpeaking && (
@@ -1329,7 +1321,7 @@ export const Room = () => {
     if (!isCameraOn) {
       return (
         <div>
-          {isVideoCall ? (
+          {isVideoCall || isScreenSharing ? (
             <div className={cl.avatarContainer}>
               <AnimatePresence>
                 {isTransmitting && (

@@ -483,66 +483,65 @@ function setupSocketHandlers(io) {
       )
 
       // Создание producer
+
       socket.on(
-        'produce', // событие - клиент просит создать producer
+        'produce',
         async (
           { transportId, kind, rtpParameters, roomId, appData },
           callback
         ) => {
-          // принимает id транспорта, тип, rtp(протокол передачи медиа) параметры, и id комнаты
           try {
             console.log(
               'Creating producer:',
               kind,
               'for transport:',
-              transportId
-            ) // логируем начало создания producer
-            const transportData = transports.get(transportId) // находим траспорт по айди в мапе транспортов
+              transportId,
+              'appData:',
+              appData
+            )
+            const transportData = transports.get(transportId)
             if (!transportData || transportData.type !== 'send') {
-              // логирование ошибки если транспорт не найден или не является транспортом отправки
               throw new Error('Send transport not found')
             }
 
             const producer = await transportData.transport.produce({
-              // создаем producer на транспорте с заданными параметрами
               kind,
               rtpParameters,
               appData: appData || {},
             })
 
-            const user = await User.findById(userId) // находим пользователя в БД по его id
+            const userData = appData || {}
 
-            // сохраняем объект с самим продюсером, id комнаты, типом и данными и пользователе
             producers.set(producer.id, {
               producer,
-              userId: socket.user.id,
-              username: user.username,
-              avatar: user.avatar,
+              userId: userData.userId || socket.user.id,
+              username: userData.username || 'Unknown',
+              avatar: userData.avatar || '/default-avatar.png',
               roomId,
               kind,
               appData: appData || {},
             })
 
             console.log(
-              `Producer created: ${producer.id} for user ${socket.user.id}`
-            ) // логирование успешного создания продюсера
+              `Producer created: ${producer.id} for user ${
+                userData.userId || socket.user.id
+              }`
+            )
 
-            // уведомляем всем участником данной комнаты о новом продюсере
             socket.to(roomId).emit('new-producer', {
               producerId: producer.id,
               kind: producer.kind,
-              userId: socket.user.id,
-              username: user.username,
-              avatar: user.avatar,
+              userId: userData.userId || socket.user.id,
+              username: userData.username || 'Unknown',
+              avatar: userData.avatar || '/default-avatar.png',
               appData: appData || {},
             })
 
             callback({
               success: true,
               producerId: producer.id,
-            }) // возвращаем клиенту успешное создание продюсера и его id
+            })
           } catch (error) {
-            // логирование ошибок при создании продюсера
             console.error('Produce error:', error)
             callback({ success: false, error: error.message })
           }
