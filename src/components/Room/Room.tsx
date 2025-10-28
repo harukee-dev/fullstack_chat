@@ -279,7 +279,7 @@ export const Room = () => {
           height: 720,
           frameRate: 60,
         },
-        audio: false,
+        audio: true,
       })
 
       console.log('🖥️ Screen stream obtained')
