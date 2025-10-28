@@ -191,7 +191,9 @@ export const Room = () => {
       try {
         // получаем соответствующие треки
         const tracks =
-          kind === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks()
+          kind === 'audio' || kind === 'screenAudio'
+            ? stream.getAudioTracks()
+            : stream.getVideoTracks()
 
         if (tracks.length === 0) {
           console.error('ERR: no tracks for', kind)
@@ -214,7 +216,9 @@ export const Room = () => {
           producersRef.current[producerKey] = null
         }
 
-        const isScreenShare = kind === 'screen'
+        // Определяем isScreenShare для разных типов продюсеров
+        const isScreenShare = kind === 'screen' || kind === 'screenAudio'
+
         const appData = {
           isScreenShare,
           userId: currentUserId,
@@ -231,7 +235,7 @@ export const Room = () => {
         producersRef.current[producerKey] = producer
 
         // Сохраняем в соответствующем state
-        if (kind === 'screen') {
+        if (kind === 'screen' || kind === 'screenAudio') {
           setScreenProducer(producer)
         } else {
           setProducers((prev) => ({ ...prev, [kind]: producer }))
@@ -240,7 +244,7 @@ export const Room = () => {
         // Обработчики событий продюсера
         producer.on('transportclose', () => {
           producersRef.current[producerKey] = null
-          if (kind === 'screen') {
+          if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
           } else {
             setProducers((prev) => ({ ...prev, [kind]: undefined }))
@@ -249,7 +253,7 @@ export const Room = () => {
 
         producer.on('trackended', () => {
           producersRef.current[producerKey] = null
-          if (kind === 'screen') {
+          if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
           } else {
             setProducers((prev) => ({ ...prev, [kind]: undefined }))
@@ -262,7 +266,7 @@ export const Room = () => {
         return null
       }
     },
-    [socket, roomId]
+    [socket, roomId, currentUserId, currentUsername, currentUserAvatar]
   )
 
   // ! ЗДЕСЬ СДЕЛАЕМ ДЕМКУ
@@ -275,12 +279,26 @@ export const Room = () => {
           // @ts-ignore
           cursor: 'always',
           displaySurface: 'screen',
-          width: 1280,
-          height: 720,
+          width: 1920,
+          height: 1080,
           frameRate: 60,
         },
-        audio: true,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+          sampleRate: 48000,
+        },
       })
+
+      const audioTrack = stream.getAudioTracks()[0]
+      if (audioTrack) {
+        audioTrack.onended = () => {
+          console.log('🔊 System audio ended')
+          stopScreenShare()
+        }
+      }
 
       console.log('🖥️ Screen stream obtained')
 
@@ -292,8 +310,28 @@ export const Room = () => {
 
       return stream
     } catch (error) {
-      console.error('❌ Ошибка доступа к экрану: ', error)
-      return null
+      console.error('❌ Ошибка доступа к экрану с системным звуком: ', error)
+
+      try {
+        console.log('🔄 Trying screen share without system audio...')
+        const fallbackStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            // @ts-ignore
+            cursor: 'always',
+            displaySurface: 'screen',
+            width: 1920,
+            height: 1080,
+            frameRate: 60,
+          },
+          audio: false,
+        })
+
+        console.log('✅ Screen share without audio obtained')
+        return fallbackStream
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError)
+        return null
+      }
     }
   }, [])
 
@@ -331,9 +369,9 @@ export const Room = () => {
       setScreenStream(null)
     }
 
-    // Закрываем screen producer если он есть
+    // Закрываем screen video producer если он есть
     if (producersRef.current.screen) {
-      console.log('🖥️ Closing screen producer')
+      console.log('🖥️ Closing screen video producer')
       if (socket && roomId) {
         socket.emit('producer-close', {
           producerId: producersRef.current.screen.id,
@@ -346,6 +384,20 @@ export const Room = () => {
       setScreenProducer(null)
     }
 
+    // Закрываем screen audio producer если он есть
+    if (producersRef.current.screenAudio) {
+      console.log('🔊 Closing screen audio producer')
+      if (socket && roomId) {
+        socket.emit('producer-close', {
+          producerId: producersRef.current.screenAudio.id,
+          roomId,
+          appData: { isScreenShare: true },
+        })
+      }
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
+    }
+
     setIsScreenSharing(false)
   }, [screenStream, socket, roomId])
 
@@ -355,7 +407,6 @@ export const Room = () => {
   }, [isScreenSharing, startScreenShare, stopScreenShare])
 
   // Обработка создания screen producer при получении screenStream
-  // Обработка создания screen producer при получении screenStream
   useEffect(() => {
     const createScreenProducer = async () => {
       if (!screenStream || !sendTransport || !isConnected) {
@@ -363,23 +414,31 @@ export const Room = () => {
       }
 
       try {
-        console.log('🖥️ Creating screen producer...')
-        const screenTrack = screenStream.getVideoTracks()[0]
-        if (!screenTrack) {
-          console.error('❌ No video track in screen stream')
-          return
+        console.log('🖥️ Creating screen producers...')
+
+        // Создаем видео продюсер для демки
+        const screenVideoTrack = screenStream.getVideoTracks()[0]
+        if (screenVideoTrack) {
+          await createProducer(
+            sendTransport,
+            new MediaStream([screenVideoTrack]),
+            'screen'
+          )
+          console.log('✅ Screen video producer created successfully')
         }
 
-        // Создаем screen producer
-        await createProducer(
-          sendTransport,
-          new MediaStream([screenTrack]),
-          'screen'
-        )
-
-        console.log('✅ Screen producer created successfully')
+        // Создаем аудио продюсер для системного звука
+        const screenAudioTrack = screenStream.getAudioTracks()[0]
+        if (screenAudioTrack) {
+          await createProducer(
+            sendTransport,
+            new MediaStream([screenAudioTrack]),
+            'screenAudio'
+          )
+          console.log('✅ Screen audio producer created successfully')
+        }
       } catch (error) {
-        console.error('❌ Error creating screen producer:', error)
+        console.error('❌ Error creating screen producers:', error)
       }
     }
 
@@ -551,8 +610,8 @@ export const Room = () => {
         return
       }
 
-      // Для аудио проверяем, нет ли уже аудио consumer от этого пользователя
-      if (data.kind === 'audio') {
+      // Для обычного аудио проверяем, нет ли уже аудио consumer от этого пользователя
+      if (data.kind === 'audio' && !data.appData?.isScreenShare) {
         const existingAudioConsumer = Object.values(consumers).find(
           (consumerData) =>
             consumerData.userId === data.userId &&
@@ -561,6 +620,23 @@ export const Room = () => {
         )
         if (existingAudioConsumer) {
           console.log('Audio consumer already exists for user:', data.userId)
+          return
+        }
+      }
+
+      // Для аудио демки проверяем, нет ли уже аудио демки consumer от этого пользователя
+      if (data.kind === 'audio' && data.appData?.isScreenShare) {
+        const existingScreenAudioConsumer = Object.values(consumers).find(
+          (consumerData) =>
+            consumerData.userId === data.userId &&
+            consumerData.kind === 'audio' &&
+            consumerData.isScreenShare
+        )
+        if (existingScreenAudioConsumer) {
+          console.log(
+            'Screen audio consumer already exists for user:',
+            data.userId
+          )
           return
         }
       }
@@ -576,7 +652,7 @@ export const Room = () => {
           data.appData?.isScreenShare
         )
 
-        // Определяем isScreenShare (по умолчанию false)
+        // Определяем isScreenShare
         const isScreenShare = data.appData?.isScreenShare || false
 
         // Создаём consumer
@@ -607,7 +683,7 @@ export const Room = () => {
               userId: data.userId,
               username: data.username,
               avatar: data.avatar,
-              isScreenShare: isScreenShare, // помечаем демонстрации экрана
+              isScreenShare: isScreenShare,
             },
           }
         })
@@ -751,6 +827,11 @@ export const Room = () => {
     })
     producersRef.current = {} // обнуляем массив продюсеров
     setProducers({}) // обнуляем state массив продюсеров
+
+    if (producersRef.current.screenAudio) {
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
+    }
 
     // Закрываем консюмеры
     Object.values(consumers).forEach((consumerData) => {
@@ -1086,6 +1167,11 @@ export const Room = () => {
       // закрываем все треки локального стрима
       localStream.getTracks().forEach((track) => track.stop())
       setLocalStream(null)
+    }
+
+    if (producersRef.current.screenAudio) {
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
     }
 
     // закрываем все продюсеры
@@ -1516,23 +1602,9 @@ export const Room = () => {
             cursor: 'pointer',
           }}
         >
-          {isScreenSharing ? 'Остановить демонстрацию' : 'Демонстрация экрана'}
+          {isScreenSharing ? 'Stop screen share' : 'Start screen share'}
         </button>
 
-        <button
-          onClick={handleFullRetry}
-          style={{
-            marginLeft: '15px',
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Reconnect
-        </button>
         <button
           onClick={leaveRoom}
           style={{

@@ -11,7 +11,7 @@ const config = {
     // ! КОЛИЧЕСТВО ЯДЕР(ВОРКЕРОВ) - ДЛЯ ПРОДА
     // numWorkers: Object.keys(os.cpus()).length, // количество workers = количество CPU ядер в системе
     // ! КОЛИЧЕСТВО ЯДЕР(ВОКЕРОВ) - ДЛЯ ДЕВА
-    numWorkers: 2,
+    numWorkers: 3,
     // Worker - отдельный процесс mediasoup для обработки медиа (именно обработки)
 
     // Настройки Worker процессов
