@@ -247,6 +247,32 @@
   position: relative;
 }
 
+.closedStream {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  /* border: 1px solid #181818; */
+  /* background-color: #0e0e0e; */
+  background-image: url('./images/closed-stream-background.png');
+  background-size: cover;
+  z-index: 10;
+  position: relative;
+}
+
+.buttonWatchStream {
+  color: #cbcbcb;
+  font-family: 'Poppins SemiBold', sans-serif;
+  box-shadow: 0 0 2vh #e3c2ff17;
+  background-color: #1e1e1e;
+  border: 1px solid #282828;
+  padding: 1vh 1.5vh;
+  border-radius: 1vh;
+  cursor: pointer;
+}
+
 .cameraActive {
   width: 38vh;
   aspect-ratio: 16/9;

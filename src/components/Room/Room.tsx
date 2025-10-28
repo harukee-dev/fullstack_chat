@@ -57,6 +57,7 @@ export const Room = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
   const navigate = useNavigate() // функция навигации на нужный адрес
   const [isVideoCall, setIsVideoCall] = useState<boolean>(false)
+  const [openedScreens, setOpenedScreens] = useState<any[]>([])
 
   const joinSoundRef = useRef<HTMLAudioElement | null>(null)
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -1637,6 +1638,7 @@ export const Room = () => {
             screenStream={screenStream}
             isScreenSharing={isScreenSharing}
           />
+          <ClosedStream />
         </div>
       </div>
 
@@ -1957,3 +1959,11 @@ const LocalScreenShareElement = React.memo(
     )
   }
 )
+
+const ClosedStream = () => {
+  return (
+    <div className={cl.closedStream}>
+      <button className={cl.buttonWatchStream}>Watch Stream</button>
+    </div>
+  )
+}
