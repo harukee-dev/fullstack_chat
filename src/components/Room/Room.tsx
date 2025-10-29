@@ -516,24 +516,34 @@ export const Room = () => {
           producerData.producerId,
           //@ts-ignore
           device.rtpCapabilities
-        ) // создаем consumer из продюсера, передавая его айди и параметры кодирования
+        )
 
-        // проверка, что консюмер правильно создался
         if (!consumer) {
           return null
         }
 
         // если консюмер с типом аудио и у него есть трек
         if (consumer.kind === 'audio' && consumer.track) {
-          const audioElement = document.createElement('audio') // создаем аудио элемент
-          audioElement.srcObject = new MediaStream([consumer.track]) // передаем в него наш трек (чтобы воспроизводить его звук, как только мы создали консюмер)
-          audioElement.autoplay = true // включаем авто запуск
+          const audioElement = document.createElement('audio')
+          audioElement.srcObject = new MediaStream([consumer.track])
+          audioElement.autoplay = true
           // @ts-ignore
           audioElement.playsInline = true
           audioElement.muted = false
           audioElement.style.display = 'none'
 
-          // Добавляем обработчики для управления воспроизведением - просто логи событий
+          // Для screen audio - изначально приостанавливаем, если экран не открыт
+          const isScreenAudio = producerData.appData?.isScreenShare
+          if (isScreenAudio) {
+            const userId = producerData.userId
+            const isScreenOpened = openedScreens.includes(userId)
+
+            if (!isScreenOpened) {
+              audioElement.pause()
+              audioElement.muted = true
+            }
+          }
+
           audioElement.oncanplaythrough = () => {
             console.log(
               'Audio element ready to play for consumer:',
@@ -549,21 +559,19 @@ export const Room = () => {
             )
           }
 
-          document.body.appendChild(audioElement) // добавляем в DOM наш аудио элемент, чтобы аудиотрек консюмера воспроизводился
-          consumer.audioElement = audioElement // сохраняем внутри этого консюмера аудио элемент, чтобы мы могли получить к нему доступ в будущем, если пригодится (например чтобы удалить его при удалении консюмера)
+          document.body.appendChild(audioElement)
+          consumer.audioElement = audioElement
 
           // Функция воспроизведения с обработкой прерываний
           const playAudioWithRetry = async (retryCount = 0) => {
             try {
               await audioElement.play()
             } catch (error: any) {
-              // отладка ошибок
               if (error.name === 'AbortError') {
-                return // если AbortError - не повторяем попытку
+                return
               } else if (error.name === 'NotAllowedError') {
-                return // здесь тоже не повторяем попытку
+                return
               } else {
-                // в остальных случаях повторяем попытку (максимум 3 раза)
                 if (retryCount < 3 && error.name !== 'AbortError') {
                   setTimeout(
                     () => playAudioWithRetry(retryCount + 1),
@@ -574,16 +582,21 @@ export const Room = () => {
             }
           }
 
-          playAudioWithRetry()
+          // Для screen audio воспроизводим только если экран открыт
+          if (
+            !producerData.appData?.isScreenShare ||
+            openedScreens.includes(producerData.userId)
+          ) {
+            playAudioWithRetry()
+          }
         }
 
-        return consumer // возвращаем консюмер
+        return consumer
       } catch (error) {
-        // отладка ошибок при создании consumer
         return null
       }
     },
-    [device, createConsumer]
+    [device, createConsumer, openedScreens] // Добавляем openedScreens в зависимости
   )
 
   // Базовая очистка при размонтировании
@@ -964,6 +977,43 @@ export const Room = () => {
     getMediaStream,
     reconnectAttempts,
   ]) // УБИРАЕМ isCameraOn из зависимостей
+
+  useEffect(() => {
+    const manageScreenAudio = () => {
+      Object.values(consumers).forEach((consumerData) => {
+        // Находим screen audio consumer'ов
+        if (
+          consumerData.kind === 'audio' &&
+          consumerData.isScreenShare &&
+          consumerData.consumer?.audioElement
+        ) {
+          const audioElement = consumerData.consumer.audioElement
+          const userId = consumerData.userId
+
+          // Проверяем, открыт ли экран этого пользователя
+          const isScreenOpened = openedScreens.includes(userId)
+
+          if (isScreenOpened) {
+            // Если экран открыт - воспроизводим звук
+            if (audioElement.paused) {
+              audioElement.play().catch((error: any) => {
+                if (error.name !== 'AbortError') {
+                  console.error('Error playing screen audio:', error)
+                }
+              })
+            }
+            audioElement.muted = false
+          } else {
+            // Если экран закрыт - приостанавливаем и мутируем звук
+            audioElement.pause()
+            audioElement.muted = true
+          }
+        }
+      })
+    }
+
+    manageScreenAudio()
+  }, [openedScreens, consumers])
 
   // Базовая очистка при размонтировании
   useEffect(() => {
@@ -1898,22 +1948,22 @@ const ScreenShareElement = React.memo(
     const streamRef = useRef<MediaStream | null>(null)
 
     // Используем ID consumer'а для проверки открытости
-    const consumerId = consumerData.consumer?.id
-    const isOpened = consumerId ? openedScreens.includes(consumerId) : false
+    const userId = consumerData.userId
+    const isOpened = openedScreens.includes(userId)
 
     const handleOpen = () => {
-      if (consumerId && !openedScreens.includes(consumerId)) {
+      if (userId && !openedScreens.includes(userId)) {
         setOpenedScreens((prev: string[]) => {
-          const newOpenedScreens = [...prev, consumerId]
+          const newOpenedScreens = [...prev, userId]
           return newOpenedScreens
         })
       }
     }
 
     const handleClose = () => {
-      if (consumerId && openedScreens.includes(consumerId)) {
+      if (userId && openedScreens.includes(userId)) {
         setOpenedScreens((prev: string[]) => {
-          const newOpenedScreens = prev.filter((el) => el !== consumerId)
+          const newOpenedScreens = prev.filter((el) => el !== userId)
           return newOpenedScreens
         })
       }
@@ -1965,7 +2015,7 @@ const ScreenShareElement = React.memo(
     }, [consumerData.consumer?.track, isOpened])
 
     console.log('ScreenShareElement render:', {
-      consumerId,
+      userId,
       isOpened,
       hasTrack: !!consumerData.consumer?.track,
       trackState: consumerData.consumer?.track?.readyState,
