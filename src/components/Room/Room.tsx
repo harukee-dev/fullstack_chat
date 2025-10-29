@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAudioVolume, useAudioControl } from './roomUtils'
 import React from 'react'
 import { useAppSelector } from '../../store'
+import closeStreamIcon from './images/close-stream-icon.png'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -57,7 +58,7 @@ export const Room = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
   const navigate = useNavigate() // функция навигации на нужный адрес
   const [isVideoCall, setIsVideoCall] = useState<boolean>(false)
-  const [openedScreens, setOpenedScreens] = useState<any[]>([])
+  const [openedScreens, setOpenedScreens] = useState<string[]>([])
 
   const joinSoundRef = useRef<HTMLAudioElement | null>(null)
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -1253,6 +1254,8 @@ export const Room = () => {
           <ScreenShareElement
             key={`screen-${screenConsumer.consumer.id}`}
             consumerData={screenConsumer}
+            openedScreens={openedScreens}
+            setOpenedScreens={setOpenedScreens}
           />
         )
       }
@@ -1397,7 +1400,7 @@ export const Room = () => {
     }
 
     return elements
-  }, [consumers, mutedUsers, speakingUsers, isVideoCall])
+  }, [consumers, mutedUsers, speakingUsers, isVideoCall, openedScreens])
 
   const localVideoElement = useMemo(() => {
     if (!localStream) return null
@@ -1638,7 +1641,6 @@ export const Room = () => {
             screenStream={screenStream}
             isScreenSharing={isScreenSharing}
           />
-          <ClosedStream />
         </div>
       </div>
 
@@ -1874,9 +1876,40 @@ const LocalVideoElement = React.memo(
 )
 
 const ScreenShareElement = React.memo(
-  ({ consumerData }: { consumerData: ConsumerData }) => {
+  ({
+    consumerData,
+    openedScreens,
+    setOpenedScreens,
+  }: {
+    consumerData: ConsumerData
+    openedScreens: string[]
+    setOpenedScreens: React.Dispatch<React.SetStateAction<string[]>>
+  }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const trackRef = useRef<MediaStreamTrack | null>(null)
+    const streamRef = useRef<MediaStream | null>(null)
+
+    // Используем ID consumer'а для проверки открытости
+    const consumerId = consumerData.consumer?.id
+    const isOpened = consumerId ? openedScreens.includes(consumerId) : false
+
+    const handleOpen = () => {
+      if (consumerId && !openedScreens.includes(consumerId)) {
+        setOpenedScreens((prev: string[]) => {
+          const newOpenedScreens = [...prev, consumerId]
+          return newOpenedScreens
+        })
+      }
+    }
+
+    const handleClose = () => {
+      if (consumerId && openedScreens.includes(consumerId)) {
+        setOpenedScreens((prev: string[]) => {
+          const newOpenedScreens = prev.filter((el) => el !== consumerId)
+          return newOpenedScreens
+        })
+      }
+    }
 
     useEffect(() => {
       const videoElement = videoRef.current
@@ -1884,37 +1917,83 @@ const ScreenShareElement = React.memo(
 
       if (!videoElement || !track) return
 
-      if (trackRef.current === track) return
-      trackRef.current = track
-
-      if (videoElement.srcObject) {
-        const currentStream = videoElement.srcObject as MediaStream
-        const currentTracks = currentStream.getTracks()
-        if (currentTracks.length === 1 && currentTracks[0].id === track.id) {
+      // Если трек не изменился и стрим уже установлен, не делаем ничего
+      if (trackRef.current === track && streamRef.current) {
+        // Если видео уже воспроизводится, просто возвращаемся
+        if (videoElement.srcObject === streamRef.current) {
           return
         }
-        currentTracks.forEach((t) => t.stop())
       }
 
+      // Сохраняем текущий трек
+      trackRef.current = track
+
+      // Останавливаем предыдущий стрим, но НЕ останавливаем треки!
+      if (streamRef.current) {
+        // Важно: не останавливаем треки, только очищаем ссылку
+        streamRef.current = null
+      }
+
+      // Создаем новый стрим с тем же треком
       const newStream = new MediaStream([track])
+      streamRef.current = newStream
       videoElement.srcObject = newStream
 
+      // Воспроизводим видео
       videoElement.play().catch((error) => {
         if (error.name !== 'AbortError') {
           console.error('Error playing screen share:', error)
         }
       })
-    }, [consumerData.consumer?.track])
 
-    return (
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted={false}
-        className={cl.camera}
-      />
-    )
+      return () => {
+        // Cleanup при размонтировании компонента
+        // НЕ останавливаем треки, так как они управляются consumer'ом
+        if (videoElement) {
+          videoElement.srcObject = null
+        }
+        // Не останавливаем streamRef.current, так как треки должны продолжать работать
+      }
+    }, [consumerData.consumer?.track, isOpened])
+
+    console.log('ScreenShareElement render:', {
+      consumerId,
+      isOpened,
+      hasTrack: !!consumerData.consumer?.track,
+      trackState: consumerData.consumer?.track?.readyState,
+      openedScreens,
+    })
+
+    if (isOpened) {
+      return (
+        <div className={cl.otherStreamContainer}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={false}
+            className={cl.camera}
+            onLoadedMetadata={() => {
+              console.log('Screen share video metadata loaded')
+              videoRef.current?.play().catch(console.error)
+            }}
+            onCanPlay={() => {
+              console.log('Screen share video can play')
+              videoRef.current?.play().catch(console.error)
+            }}
+          />
+          <button onClick={handleClose} className={cl.buttonCloseStream}>
+            <img
+              className={cl.iconCloseStream}
+              src={closeStreamIcon}
+              alt="close"
+            />
+          </button>
+        </div>
+      )
+    } else {
+      return <ClosedStream handleOpen={handleOpen} />
+    }
   }
 )
 
@@ -1960,10 +2039,12 @@ const LocalScreenShareElement = React.memo(
   }
 )
 
-const ClosedStream = () => {
+const ClosedStream = ({ handleOpen }: { handleOpen: any }) => {
   return (
     <div className={cl.closedStream}>
-      <button className={cl.buttonWatchStream}>Watch Stream</button>
+      <button onClick={handleOpen} className={cl.buttonWatchStream}>
+        Watch Stream
+      </button>
     </div>
   )
 }
