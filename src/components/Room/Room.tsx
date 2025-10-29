@@ -1400,7 +1400,14 @@ export const Room = () => {
     }
 
     return elements
-  }, [consumers, mutedUsers, speakingUsers, isVideoCall, openedScreens])
+  }, [
+    consumers,
+    mutedUsers,
+    speakingUsers,
+    isVideoCall,
+    openedScreens,
+    isScreenSharing,
+  ])
 
   const localVideoElement = useMemo(() => {
     if (!localStream) return null
