@@ -1528,6 +1528,7 @@ export const Room = () => {
     isVideoCall,
     isMicroMuted,
     currentUserId,
+    isScreenSharing,
   ])
   // Отрисовка всего компонента
   return (
