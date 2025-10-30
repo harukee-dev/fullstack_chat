@@ -1,0 +1,80 @@
+.interactionContainer {
+  background-color: #0f0f0f;
+  border: 1px solid #5b5b5b;
+  display: flex;
+  gap: 0.5vh;
+  padding: 0.5vh;
+  border-radius: 3.1vh;
+}
+
+.button {
+  background-color: transparent;
+  border: none;
+  border-radius: 2.7vh;
+  outline: none;
+  background-color: transparent;
+  width: 6vh;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.activeCameraButton {
+  background-color: transparent;
+  border: none;
+  border-radius: 2.7vh;
+  outline: none;
+  background-color: #1a93203d;
+  width: 6vh;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.activeMutedButton {
+  background-color: transparent;
+  border: none;
+  border-radius: 2.7vh;
+  outline: none;
+  background-color: #931a1a53;
+  width: 6vh;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.button:hover {
+  background-color: #151515;
+}
+
+.disconnectButton {
+  background-color: transparent;
+  border: none;
+  border-radius: 2.7vh;
+  outline: none;
+  background-color: transparent;
+  width: 6vh;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.disconnectButton:hover {
+  background-color: #931a1a53;
+}
+
+.icon {
+  height: 3vh;
+}
