@@ -1590,10 +1590,11 @@ export const Room = () => {
   ])
   // Отрисовка всего компонента
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Room: {roomId}</h1>
-
-      <div
+    <div
+      // style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}
+      className={cl.roomContainer}
+    >
+      {/* <div
         style={{
           padding: '10px',
           backgroundColor: isConnected ? '#4CAF50' : '#f44336',
@@ -1624,7 +1625,7 @@ export const Room = () => {
         )}
       </div>
 
-      {/* <div style={{ marginBottom: '30px' }}>
+      <div style={{ marginBottom: '30px' }}>
         <button
           onClick={() => setIsMicroMuted(!isMicroMuted)}
           style={{
@@ -1683,6 +1684,24 @@ export const Room = () => {
           Leave Room
         </button>
       </div> */}
+
+      <div
+        // style={{
+        //   display: 'flex',
+        //   flexWrap: 'wrap',
+        //   width: '90vw',
+        //   gap: '1vh',
+        // }}
+        className={cl.usersContainer}
+      >
+        {localVideoElement}
+        {videoElements}
+        <LocalScreenShareElement
+          screenStream={screenStream}
+          isScreenSharing={isScreenSharing}
+        />
+      </div>
+
       <CallInteraction
         setIsCamera={setIsCameraOn}
         isCamera={isCameraOn}
@@ -1692,48 +1711,7 @@ export const Room = () => {
         isStream={isScreenSharing}
         leaveRoom={leaveRoom}
       />
-      <div>
-        <h3>Participants:</h3>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            width: '90vw',
-            gap: '1vh',
-          }}
-        >
-          {localVideoElement}
-          {videoElements}
-          <LocalScreenShareElement
-            screenStream={screenStream}
-            isScreenSharing={isScreenSharing}
-          />
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '15px',
-          backgroundColor: '#1f1f1fff',
-          borderRadius: '5px',
-        }}
-      >
-        <h4>Connection Info:</h4>
-        <p>Device Initialized: {isDeviceInitialized ? 'yes' : 'no'}</p>
-        <p>Send Transport Ready: {sendTransport ? 'yes' : 'no'}</p>
-        <p>Recv Transport Ready: {recvTransportRef.current ? 'yes' : 'no'}</p>
-        <p>Local Stream: {localStream ? 'yes' : 'no'}</p>
-        <p>Audio Producer: {producers.audio ? 'yes' : 'no'}</p>
-        <p>Video Producer: {producers.video ? 'yes' : 'no'}</p>
-        <p>Consumers: {Object.keys(consumers).length}</p>
-        <p>User ID: {userIdRef.current}</p>
-        <p>Reconnect Attempts: {reconnectAttempts}</p>
-        <p>MediaSoup Attempts: {mediaSoupAttempts}</p>
-        <p>Is Screen Sharing: {isScreenSharing ? 'yes' : 'no'}</p>
-        <p>Is Screen Stream: {screenStream !== null ? 'yes' : 'no'}</p>
-        {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-      </div>
+      <div className={cl.backgroundLight} />
     </div>
   )
 }

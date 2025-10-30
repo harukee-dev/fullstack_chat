@@ -75,6 +75,7 @@ export const CallInteraction: React.FC<ICallInteraction> = ({
         />
       </button>
       <button
+        onClick={leaveRoom}
         onMouseEnter={handleMouseEnterDisconnect}
         onMouseLeave={handleMouseLeaveDisconnect}
         className={cl.disconnectButton}

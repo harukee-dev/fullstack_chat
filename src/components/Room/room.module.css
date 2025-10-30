@@ -1,3 +1,42 @@
+.roomContainer {
+  background-image: url('./images/room-background.png');
+  background-size: cover;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2vh;
+  align-items: center;
+}
+
+.usersContainer {
+  width: 100vw;
+  /* height: 70vh; */
+  max-height: 70vh;
+  display: flex;
+  gap: 1vh;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: center;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.usersContainer::-webkit-scrollbar {
+  display: none;
+}
+
+/* .backgroundLight {
+  position: absolute;
+  width: 150vh;
+  height: 150vh;
+  background-color: #4913d23a;
+  bottom: -75vh;
+  filter: blur(100vh);
+} */
+
 .avatarContainer {
   position: relative;
   display: inline-block;
@@ -247,6 +286,7 @@
   aspect-ratio: 16/9;
   border-radius: 1vh;
   border: 1px solid #ffffff3b;
+  background-color: black;
   z-index: 10;
   position: relative;
 }
