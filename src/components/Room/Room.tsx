@@ -1370,11 +1370,13 @@ export const Room = () => {
                   }
                 >
                   <img
+                    draggable={false}
                     src={userData.avatar || '/default-avatar.png'}
                     alt={userData.username || 'user'}
                     className={cl.boxAvatarBackground}
                   />
                   <img
+                    draggable={false}
                     src={userData.avatar || '/default-avatar.png'}
                     alt={userData.username || 'user'}
                     className={
@@ -1395,6 +1397,7 @@ export const Room = () => {
                         className={cl.mutedIconWrapperBox}
                       >
                         <img
+                          draggable={false}
                           className={cl.mutedIcon}
                           src={mutedIcon}
                           alt="muted"
@@ -1422,6 +1425,7 @@ export const Room = () => {
                   )}
                 </AnimatePresence>
                 <img
+                  draggable={false}
                   src={userData.avatar || '/default-avatar.png'}
                   alt={userData.username || 'User'}
                   className={isSpeaking ? cl.avatarActive : cl.avatar}
@@ -1436,6 +1440,7 @@ export const Room = () => {
                       className={cl.mutedIconWrapper}
                     >
                       <img
+                        draggable={false}
                         className={cl.mutedIcon}
                         src={mutedIcon}
                         alt="muted"
@@ -1494,11 +1499,13 @@ export const Room = () => {
                 }
               >
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={cl.boxAvatarBackground}
                 />
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={
@@ -1519,6 +1526,7 @@ export const Room = () => {
                       className={cl.mutedIconWrapperBox}
                     >
                       <img
+                        draggable={false}
                         className={cl.mutedIcon}
                         src={mutedIcon}
                         alt="muted"
@@ -1547,6 +1555,7 @@ export const Room = () => {
                   )}
                 </AnimatePresence>
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={isTransmitting ? cl.avatarActive : cl.avatar}
@@ -1561,7 +1570,12 @@ export const Room = () => {
                     transition={{ duration: 0.25 }}
                     className={cl.mutedIconWrapper}
                   >
-                    <img className={cl.mutedIcon} src={mutedIcon} alt="muted" />
+                    <img
+                      draggable={false}
+                      className={cl.mutedIcon}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1800,7 +1814,12 @@ const UserVideoElement = React.memo(
               transition={{ duration: 0.25 }}
               className={cl.mutedIconWrapperCam}
             >
-              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+              <img
+                draggable={false}
+                className={cl.mutedIconCam}
+                src={mutedIcon}
+                alt="muted"
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1809,7 +1828,6 @@ const UserVideoElement = React.memo(
   }
 )
 
-// Мемоизированный компонент для локального видео
 // Мемоизированный компонент для локального видео
 const LocalVideoElement = React.memo(
   ({
@@ -1911,7 +1929,12 @@ const LocalVideoElement = React.memo(
               transition={{ duration: 0.25 }}
               className={cl.mutedIconWrapperCam}
             >
-              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+              <img
+                draggable={false}
+                className={cl.mutedIconCam}
+                src={mutedIcon}
+                alt="muted"
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -2029,6 +2052,7 @@ const ScreenShareElement = React.memo(
           />
           <button onClick={handleClose} className={cl.buttonCloseStream}>
             <img
+              draggable={false}
               className={cl.iconCloseStream}
               src={closeStreamIcon}
               alt="close"
