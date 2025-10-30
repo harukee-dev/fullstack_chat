@@ -94,7 +94,6 @@ export const TestPage = () => {
           ))}
         </AnimatePresence>
         <ModalVoiceSettings />
-        <CallInteraction />
       </div>
     </div>
   )

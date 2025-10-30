@@ -1,8 +1,11 @@
 .interactionContainer {
+  position: relative;
+  z-index: 10;
   background-color: #0f0f0f;
   border: 1px solid #5b5b5b;
   display: flex;
   gap: 0.5vh;
+  width: 26vh;
   padding: 0.5vh;
   border-radius: 3.1vh;
 }

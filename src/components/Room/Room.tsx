@@ -12,6 +12,7 @@ import { useAudioVolume, useAudioControl } from './roomUtils'
 import React from 'react'
 import { useAppSelector } from '../../store'
 import closeStreamIcon from './images/close-stream-icon.png'
+import { CallInteraction } from '../CallInteraction/CallInteraction'
 // Интерфейс для данных о потребителе медиа
 interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -1623,7 +1624,7 @@ export const Room = () => {
         )}
       </div>
 
-      <div style={{ marginBottom: '30px' }}>
+      {/* <div style={{ marginBottom: '30px' }}>
         <button
           onClick={() => setIsMicroMuted(!isMicroMuted)}
           style={{
@@ -1681,8 +1682,16 @@ export const Room = () => {
         >
           Leave Room
         </button>
-      </div>
-
+      </div> */}
+      <CallInteraction
+        setIsCamera={setIsCameraOn}
+        isCamera={isCameraOn}
+        isMuted={isMicroMuted}
+        setIsMuted={setIsMicroMuted}
+        toggleStream={toggleScreenShare}
+        isStream={isScreenSharing}
+        leaveRoom={leaveRoom}
+      />
       <div>
         <h3>Participants:</h3>
         <div

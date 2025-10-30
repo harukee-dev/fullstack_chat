@@ -25,6 +25,7 @@
 
 .wave1 {
   position: absolute;
+  z-index: 9;
   width: 7vh;
   height: 7vh;
   background-color: rgba(0, 145, 255, 0.502);
@@ -34,6 +35,7 @@
 }
 
 .wave2 {
+  z-index: 9;
   position: absolute;
   left: 5vh;
   top: 1vh;
@@ -46,6 +48,7 @@
 }
 
 .wave3 {
+  z-index: 9;
   position: absolute;
   left: 4vh;
   top: 4vh;
@@ -58,6 +61,7 @@
 }
 
 .wave4 {
+  z-index: 9;
   position: absolute;
   top: 5vh;
   width: 8vh;

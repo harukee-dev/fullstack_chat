@@ -6,13 +6,28 @@ import activeCameraIcon from './images/active-icons/camera-active-icon.png'
 import activeStreamIcon from './images/active-icons/stream-active-icon.png'
 import activeMuteIcon from './images/active-icons/unmute-icon.png'
 import activeDisconnectIcon from './images/active-icons/disconnect-active-icon.png'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import cl from './callInteraction.module.css'
 
-export const CallInteraction = () => {
-  const [isCamera, setIsCamera] = useState<boolean>(false)
-  const [isStream, setIsStream] = useState<boolean>(false)
-  const [isMuted, setIsMuted] = useState<boolean>(false)
+interface ICallInteraction {
+  setIsCamera: any
+  isCamera: boolean
+  toggleStream: any
+  isStream: boolean
+  setIsMuted: any
+  isMuted: boolean
+  leaveRoom: any
+}
+
+export const CallInteraction: React.FC<ICallInteraction> = ({
+  setIsCamera,
+  isCamera,
+  setIsMuted,
+  isMuted,
+  toggleStream,
+  isStream,
+  leaveRoom,
+}) => {
   const [isDisconnectHover, setIsDisconnectHover] = useState<boolean>(false)
 
   const handleMouseEnterDisconnect = () => {
@@ -26,7 +41,7 @@ export const CallInteraction = () => {
   return (
     <div className={cl.interactionContainer}>
       <button
-        onClick={() => setIsCamera((prev) => !prev)}
+        onClick={() => setIsCamera((prev: any) => !prev)}
         className={isCamera ? cl.activeCameraButton : cl.button}
       >
         <img
@@ -37,7 +52,7 @@ export const CallInteraction = () => {
         />
       </button>
       <button
-        onClick={() => setIsStream((prev) => !prev)}
+        onClick={toggleStream}
         className={isStream ? cl.activeCameraButton : cl.button}
       >
         <img
@@ -49,7 +64,7 @@ export const CallInteraction = () => {
         />
       </button>
       <button
-        onClick={() => setIsMuted((prev) => !prev)}
+        onClick={() => setIsMuted((prev: any) => !prev)}
         className={isMuted ? cl.activeMutedButton : cl.button}
       >
         <img
