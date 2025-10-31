@@ -1,3 +1,42 @@
+.roomContainer {
+  background-image: url('./images/room-background.png');
+  background-size: cover;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2vh;
+  align-items: center;
+}
+
+.usersContainer {
+  width: 100vw;
+  min-height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  gap: 1vh;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: center;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.usersContainer::-webkit-scrollbar {
+  display: none;
+}
+
+/* .backgroundLight {
+  position: absolute;
+  width: 150vh;
+  height: 150vh;
+  background-color: #4913d23a;
+  bottom: -75vh;
+  filter: blur(100vh);
+} */
+
 .avatarContainer {
   position: relative;
   display: inline-block;
@@ -25,6 +64,7 @@
 
 .wave1 {
   position: absolute;
+  z-index: 9;
   width: 7vh;
   height: 7vh;
   background-color: rgba(0, 145, 255, 0.502);
@@ -34,6 +74,7 @@
 }
 
 .wave2 {
+  z-index: 9;
   position: absolute;
   left: 5vh;
   top: 1vh;
@@ -46,6 +87,7 @@
 }
 
 .wave3 {
+  z-index: 9;
   position: absolute;
   left: 4vh;
   top: 4vh;
@@ -58,6 +100,7 @@
 }
 
 .wave4 {
+  z-index: 9;
   position: absolute;
   top: 5vh;
   width: 8vh;
@@ -238,13 +281,232 @@
   transition: 0.2s;
 }
 
+.focusBoxAvatarContainer {
+  overflow: hidden;
+  width: 80vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid rgb(102, 102, 102);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.focusBoxAvatarContainerActive {
+  overflow: hidden;
+  width: 80vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ae00ff96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.focusBoxAvatarBackground {
+  width: 81vw;
+  aspect-ratio: 16/9;
+  filter: blur(1.25vh) brightness(30%);
+  z-index: 10;
+}
+
+.focusBoxAvatarImage {
+  z-index: 11;
+  position: absolute;
+  width: 30vh;
+  height: 30vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffff9d;
+  transition: 0.2s;
+}
+
+.focusBoxAvatarImageActive {
+  z-index: 11;
+  position: absolute;
+  width: 32vh;
+  height: 32vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffffd5;
+  transition: 0.2s;
+}
+
+.focusBoxAvatarImageMuted {
+  z-index: 11;
+  position: absolute;
+  width: 28vh;
+  height: 28vh;
+  border-radius: 100%;
+  box-shadow: 0 0 10vh #ffffff6b;
+  transition: 0.2s;
+}
+
+.focusMutedIconWrapper {
+  position: absolute;
+  z-index: 11;
+  background-color: #a40afd;
+  width: 8vh;
+  height: 8vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  left: 61vh;
+  top: 39vh;
+}
+
+.focusMutedIcon {
+  width: 4vh;
+}
+
+.unfocusElement {
+  position: relative;
+}
+
+.unfocusBoxAvatarContainer {
+  overflow: hidden;
+  width: 17vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid rgb(102, 102, 102);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unfocusBoxAvatarContainerActive {
+  overflow: hidden;
+  width: 17vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ae00ff96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unfocusBoxAvatarBackground {
+  width: 18vw;
+  aspect-ratio: 16/9;
+  filter: blur(1.25vh) brightness(30%);
+  z-index: 10;
+}
+
+.unfocusBoxAvatarImage {
+  z-index: 11;
+  position: absolute;
+  width: 8vh;
+  height: 8vh;
+  border-radius: 100%;
+  box-shadow: 0 0 3vh #ffffff9d;
+  transition: 0.2s;
+}
+
+.unfocusBoxAvatarImageActive {
+  z-index: 11;
+  position: absolute;
+  width: 8.5vh;
+  height: 8.5vh;
+  border-radius: 100%;
+  box-shadow: 0 0 3vh #ffffffd5;
+  transition: 0.2s;
+}
+
+.unfocusBoxAvatarImageMuted {
+  z-index: 11;
+  position: absolute;
+  width: 7.5vh;
+  height: 7.5vh;
+  border-radius: 100%;
+  box-shadow: 0 0 3vh #ffffff6b;
+  transition: 0.2s;
+}
+
+.unfocusMutedIconWrapper {
+  position: absolute;
+  z-index: 11;
+  background-color: #a40afd;
+  width: 3vh;
+  height: 3vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  bottom: 2.6vh;
+  right: 8.6vh;
+}
+
+.unfocusMutedIcon {
+  width: 1.5vh;
+}
+
 .camera {
   width: 38vh;
   aspect-ratio: 16/9;
   border-radius: 1vh;
-  border: 1px solid transparent;
+  border: 1px solid #ffffff3b;
+  background-color: black;
   z-index: 10;
   position: relative;
+}
+
+.closedStream {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38vh;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  /* border: 1px solid #181818; */
+  /* background-color: #0e0e0e; */
+  background-image: url('./images/closed-stream-background.png');
+  background-size: cover;
+  z-index: 10;
+  position: relative;
+}
+
+.buttonWatchStream {
+  color: #cbcbcb;
+  font-family: 'Poppins SemiBold', sans-serif;
+  box-shadow: 0 0 2vh #e3c2ff17;
+  background-color: #1e1e1e;
+  border: 1px solid #282828;
+  padding: 1vh 1.5vh;
+  border-radius: 1vh;
+  cursor: pointer;
+}
+
+.otherStreamContainer {
+  position: relative;
+}
+
+.otherStreamContainer:hover {
+  .buttonCloseStream {
+    opacity: 1;
+  }
+}
+
+.buttonCloseStream {
+  opacity: 0;
+  background-color: #ff6969c6;
+  z-index: 10;
+  position: absolute;
+  right: 1vh;
+  bottom: 1.25vh;
+  border: none;
+  padding: 0.75vh;
+  border-radius: 1vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.iconCloseStream {
+  opacity: 70%;
+  margin-left: 0.3vh;
+  width: 2.65vh;
+  height: 2.65vh;
 }
 
 .cameraActive {
@@ -302,4 +564,102 @@
 .mutedIconCam {
   width: 1.7vh;
   opacity: 70%;
+}
+/* Фокус демка */
+.focusVideo {
+  width: 80vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ffffff3b;
+  background-color: black;
+  z-index: 10;
+  position: relative;
+}
+
+.focusVideoActive {
+  width: 80vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ae00ff96;
+  background-color: black;
+  z-index: 10;
+  position: relative;
+}
+
+.unfocusVideo {
+  width: 17vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ffffff3b;
+  background-color: black;
+  z-index: 10;
+  position: relative;
+}
+
+.unfocusVideoActive {
+  width: 17vw;
+  aspect-ratio: 16/9;
+  border-radius: 1vh;
+  border: 1px solid #ae00ff96;
+  background-color: black;
+  z-index: 10;
+  position: relative;
+}
+
+.focusMutedIconWrapperCam {
+  position: absolute;
+  z-index: 11;
+  background-color: #0000005b;
+  width: 6vh;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  left: 75vw;
+  bottom: 1.2vh;
+}
+
+.focusMutedIconCam {
+  width: 3vh;
+}
+
+.unfocusMutedIconWrapperCam {
+  position: absolute;
+  z-index: 11;
+  background-color: #0000005b;
+  width: 3vh;
+  height: 3vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  bottom: 1vh;
+  right: 1vh;
+}
+
+.unfocusMutedIconCam {
+  width: 1.5vh;
+}
+
+.focusElement {
+  width: 80vw;
+  position: relative;
+}
+
+.focusAvatarContainer {
+  position: relative;
+}
+
+.focusModeContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1vh;
+}
+
+.unfocusVideoContainer {
+  position: relative;
 }

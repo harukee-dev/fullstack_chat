@@ -162,7 +162,7 @@ export const RightWindow = () => {
       }
       if (document.hidden) {
         hasNewMessage = true
-        document.title = 'New Request - Omnio'
+        document.title = 'New Request - Lynk'
       }
       dispatch(setNotification(true))
       dispatch(

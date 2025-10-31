@@ -6,6 +6,7 @@ import { useSocket } from '../../SocketContext'
 import cl from './testPage.module.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ModalVoiceSettings } from '../../components/ModalVoiceSettings/ModalVoiceSettings'
+import { CallInteraction } from '../../components/CallInteraction/CallInteraction'
 
 // Компонент страницы теста
 export const TestPage = () => {

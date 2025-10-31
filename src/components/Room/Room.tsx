@@ -1,5 +1,5 @@
 // Импорты
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo, JSX } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
@@ -11,8 +11,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAudioVolume, useAudioControl } from './roomUtils'
 import React from 'react'
 import { useAppSelector } from '../../store'
+import closeStreamIcon from './images/close-stream-icon.png'
+import { CallInteraction } from '../CallInteraction/CallInteraction'
+import { IFocus } from './roomTypes'
 // Интерфейс для данных о потребителе медиа
-interface ConsumerData {
+export interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
   kind: string // тип медиа - 'audio'/'video'
   userId: string // ID пользователя
@@ -21,7 +24,7 @@ interface ConsumerData {
   isScreenShare: boolean
 }
 
-interface ProducerData {
+export interface ProducerData {
   producerId: string
   kind: string
   userId: string
@@ -31,19 +34,21 @@ interface ProducerData {
 }
 
 // Интерфейс для производителей медиа - то есть для отправки медиа серверу
-interface Producers {
+export interface Producers {
   [key: string]: any
   audio?: any // есть ли аудио в нашем медиа
   video?: any // есть ли видео в нашем медиа
 }
 
 // Интерфейс для хранения всех потребителей
-interface Consumers {
+export interface Consumers {
   [producerId: string]: ConsumerData // ключ - айди продюсера, значение - данные о консюмере
 }
 
 export const Room = () => {
   const currentUserId = localStorage.getItem('user-id') // текущий айди локального пользователя
+  const currentUsername = localStorage.getItem('username')
+  const currentUserAvatar = localStorage.getItem('avatar')
   const { id: roomId } = useParams() // айди комнаты звонка
   const [isMicroMuted, setIsMicroMuted] = useState<boolean>(false) // замучен ли микрофон
   const [isCameraOn, setIsCameraOn] = useState<boolean>(false) // включена ли камера
@@ -55,6 +60,13 @@ export const Room = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0) // колво попыток переподключения к звонку
   const navigate = useNavigate() // функция навигации на нужный адрес
   const [isVideoCall, setIsVideoCall] = useState<boolean>(false)
+  const [openedScreens, setOpenedScreens] = useState<string[]>([])
+
+  const [focus, setFocus] = useState<IFocus | null>(null)
+
+  useEffect(() => {
+    console.log('FOCUS:', focus)
+  }, [focus])
 
   const joinSoundRef = useRef<HTMLAudioElement | null>(null)
   const leaveSoundRef = useRef<HTMLAudioElement | null>(null)
@@ -189,7 +201,9 @@ export const Room = () => {
       try {
         // получаем соответствующие треки
         const tracks =
-          kind === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks()
+          kind === 'audio' || kind === 'screenAudio'
+            ? stream.getAudioTracks()
+            : stream.getVideoTracks()
 
         if (tracks.length === 0) {
           console.error('ERR: no tracks for', kind)
@@ -212,8 +226,15 @@ export const Room = () => {
           producersRef.current[producerKey] = null
         }
 
-        const isScreenShare = kind === 'screen'
-        const appData = { isScreenShare }
+        // Определяем isScreenShare для разных типов продюсеров
+        const isScreenShare = kind === 'screen' || kind === 'screenAudio'
+
+        const appData = {
+          isScreenShare,
+          userId: currentUserId,
+          username: currentUsername,
+          avatar: currentUserAvatar,
+        }
 
         // создаем новый продюсер
         const producer = await transport.produce({
@@ -224,31 +245,16 @@ export const Room = () => {
         producersRef.current[producerKey] = producer
 
         // Сохраняем в соответствующем state
-        if (kind === 'screen') {
+        if (kind === 'screen' || kind === 'screenAudio') {
           setScreenProducer(producer)
         } else {
           setProducers((prev) => ({ ...prev, [kind]: producer }))
         }
 
-        // проверка, что сокет и id комнаты инициализированы
-        if (socket && roomId) {
-          const isScreenShare = kind === 'screen'
-          // отправляем сокет о том, что создали новый продюсер
-          socket.emit('new-producer', {
-            producerId: producer.id,
-            kind: kind === 'screen' ? 'video' : kind,
-            userId: userIdRef.current,
-            roomId: roomId,
-            username: localStorage.getItem('username'),
-            avatar: localStorage.getItem('avatar'),
-            appData: appData,
-          })
-        }
-
         // Обработчики событий продюсера
         producer.on('transportclose', () => {
           producersRef.current[producerKey] = null
-          if (kind === 'screen') {
+          if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
           } else {
             setProducers((prev) => ({ ...prev, [kind]: undefined }))
@@ -257,7 +263,7 @@ export const Room = () => {
 
         producer.on('trackended', () => {
           producersRef.current[producerKey] = null
-          if (kind === 'screen') {
+          if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
           } else {
             setProducers((prev) => ({ ...prev, [kind]: undefined }))
@@ -270,7 +276,7 @@ export const Room = () => {
         return null
       }
     },
-    [socket, roomId]
+    [socket, roomId, currentUserId, currentUsername, currentUserAvatar]
   )
 
   // ! ЗДЕСЬ СДЕЛАЕМ ДЕМКУ
@@ -283,12 +289,26 @@ export const Room = () => {
           // @ts-ignore
           cursor: 'always',
           displaySurface: 'screen',
-          width: 1280,
-          height: 720,
+          width: 1920,
+          height: 1080,
           frameRate: 60,
         },
-        audio: false,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+          sampleRate: 48000,
+        },
       })
+
+      const audioTrack = stream.getAudioTracks()[0]
+      if (audioTrack) {
+        audioTrack.onended = () => {
+          console.log('🔊 System audio ended')
+          stopScreenShare()
+        }
+      }
 
       console.log('🖥️ Screen stream obtained')
 
@@ -300,8 +320,28 @@ export const Room = () => {
 
       return stream
     } catch (error) {
-      console.error('❌ Ошибка доступа к экрану: ', error)
-      return null
+      console.error('❌ Ошибка доступа к экрану с системным звуком: ', error)
+
+      try {
+        console.log('🔄 Trying screen share without system audio...')
+        const fallbackStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            // @ts-ignore
+            cursor: 'always',
+            displaySurface: 'screen',
+            width: 1920,
+            height: 1080,
+            frameRate: 60,
+          },
+          audio: false,
+        })
+
+        console.log('✅ Screen share without audio obtained')
+        return fallbackStream
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError)
+        return null
+      }
     }
   }, [])
 
@@ -339,9 +379,9 @@ export const Room = () => {
       setScreenStream(null)
     }
 
-    // Закрываем screen producer если он есть
+    // Закрываем screen video producer если он есть
     if (producersRef.current.screen) {
-      console.log('🖥️ Closing screen producer')
+      console.log('🖥️ Closing screen video producer')
       if (socket && roomId) {
         socket.emit('producer-close', {
           producerId: producersRef.current.screen.id,
@@ -354,6 +394,20 @@ export const Room = () => {
       setScreenProducer(null)
     }
 
+    // Закрываем screen audio producer если он есть
+    if (producersRef.current.screenAudio) {
+      console.log('🔊 Closing screen audio producer')
+      if (socket && roomId) {
+        socket.emit('producer-close', {
+          producerId: producersRef.current.screenAudio.id,
+          roomId,
+          appData: { isScreenShare: true },
+        })
+      }
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
+    }
+
     setIsScreenSharing(false)
   }, [screenStream, socket, roomId])
 
@@ -363,7 +417,6 @@ export const Room = () => {
   }, [isScreenSharing, startScreenShare, stopScreenShare])
 
   // Обработка создания screen producer при получении screenStream
-  // Обработка создания screen producer при получении screenStream
   useEffect(() => {
     const createScreenProducer = async () => {
       if (!screenStream || !sendTransport || !isConnected) {
@@ -371,23 +424,31 @@ export const Room = () => {
       }
 
       try {
-        console.log('🖥️ Creating screen producer...')
-        const screenTrack = screenStream.getVideoTracks()[0]
-        if (!screenTrack) {
-          console.error('❌ No video track in screen stream')
-          return
+        console.log('🖥️ Creating screen producers...')
+
+        // Создаем видео продюсер для демки
+        const screenVideoTrack = screenStream.getVideoTracks()[0]
+        if (screenVideoTrack) {
+          await createProducer(
+            sendTransport,
+            new MediaStream([screenVideoTrack]),
+            'screen'
+          )
+          console.log('✅ Screen video producer created successfully')
         }
 
-        // Создаем screen producer
-        await createProducer(
-          sendTransport,
-          new MediaStream([screenTrack]),
-          'screen'
-        )
-
-        console.log('✅ Screen producer created successfully')
+        // Создаем аудио продюсер для системного звука
+        const screenAudioTrack = screenStream.getAudioTracks()[0]
+        if (screenAudioTrack) {
+          await createProducer(
+            sendTransport,
+            new MediaStream([screenAudioTrack]),
+            'screenAudio'
+          )
+          console.log('✅ Screen audio producer created successfully')
+        }
       } catch (error) {
-        console.error('❌ Error creating screen producer:', error)
+        console.error('❌ Error creating screen producers:', error)
       }
     }
 
@@ -463,24 +524,34 @@ export const Room = () => {
           producerData.producerId,
           //@ts-ignore
           device.rtpCapabilities
-        ) // создаем consumer из продюсера, передавая его айди и параметры кодирования
+        )
 
-        // проверка, что консюмер правильно создался
         if (!consumer) {
           return null
         }
 
         // если консюмер с типом аудио и у него есть трек
         if (consumer.kind === 'audio' && consumer.track) {
-          const audioElement = document.createElement('audio') // создаем аудио элемент
-          audioElement.srcObject = new MediaStream([consumer.track]) // передаем в него наш трек (чтобы воспроизводить его звук, как только мы создали консюмер)
-          audioElement.autoplay = true // включаем авто запуск
+          const audioElement = document.createElement('audio')
+          audioElement.srcObject = new MediaStream([consumer.track])
+          audioElement.autoplay = true
           // @ts-ignore
           audioElement.playsInline = true
           audioElement.muted = false
           audioElement.style.display = 'none'
 
-          // Добавляем обработчики для управления воспроизведением - просто логи событий
+          // Для screen audio - изначально приостанавливаем, если экран не открыт
+          const isScreenAudio = producerData.appData?.isScreenShare
+          if (isScreenAudio) {
+            const userId = producerData.userId
+            const isScreenOpened = openedScreens.includes(userId)
+
+            if (!isScreenOpened) {
+              audioElement.pause()
+              audioElement.muted = true
+            }
+          }
+
           audioElement.oncanplaythrough = () => {
             console.log(
               'Audio element ready to play for consumer:',
@@ -496,21 +567,19 @@ export const Room = () => {
             )
           }
 
-          document.body.appendChild(audioElement) // добавляем в DOM наш аудио элемент, чтобы аудиотрек консюмера воспроизводился
-          consumer.audioElement = audioElement // сохраняем внутри этого консюмера аудио элемент, чтобы мы могли получить к нему доступ в будущем, если пригодится (например чтобы удалить его при удалении консюмера)
+          document.body.appendChild(audioElement)
+          consumer.audioElement = audioElement
 
           // Функция воспроизведения с обработкой прерываний
           const playAudioWithRetry = async (retryCount = 0) => {
             try {
               await audioElement.play()
             } catch (error: any) {
-              // отладка ошибок
               if (error.name === 'AbortError') {
-                return // если AbortError - не повторяем попытку
+                return
               } else if (error.name === 'NotAllowedError') {
-                return // здесь тоже не повторяем попытку
+                return
               } else {
-                // в остальных случаях повторяем попытку (максимум 3 раза)
                 if (retryCount < 3 && error.name !== 'AbortError') {
                   setTimeout(
                     () => playAudioWithRetry(retryCount + 1),
@@ -521,16 +590,21 @@ export const Room = () => {
             }
           }
 
-          playAudioWithRetry()
+          // Для screen audio воспроизводим только если экран открыт
+          if (
+            !producerData.appData?.isScreenShare ||
+            openedScreens.includes(producerData.userId)
+          ) {
+            playAudioWithRetry()
+          }
         }
 
-        return consumer // возвращаем консюмер
+        return consumer
       } catch (error) {
-        // отладка ошибок при создании consumer
         return null
       }
     },
-    [device, createConsumer]
+    [device, createConsumer, openedScreens] // Добавляем openedScreens в зависимости
   )
 
   // Базовая очистка при размонтировании
@@ -559,8 +633,8 @@ export const Room = () => {
         return
       }
 
-      // Для аудио проверяем, нет ли уже аудио consumer от этого пользователя
-      if (data.kind === 'audio') {
+      // Для обычного аудио проверяем, нет ли уже аудио consumer от этого пользователя
+      if (data.kind === 'audio' && !data.appData?.isScreenShare) {
         const existingAudioConsumer = Object.values(consumers).find(
           (consumerData) =>
             consumerData.userId === data.userId &&
@@ -569,6 +643,23 @@ export const Room = () => {
         )
         if (existingAudioConsumer) {
           console.log('Audio consumer already exists for user:', data.userId)
+          return
+        }
+      }
+
+      // Для аудио демки проверяем, нет ли уже аудио демки consumer от этого пользователя
+      if (data.kind === 'audio' && data.appData?.isScreenShare) {
+        const existingScreenAudioConsumer = Object.values(consumers).find(
+          (consumerData) =>
+            consumerData.userId === data.userId &&
+            consumerData.kind === 'audio' &&
+            consumerData.isScreenShare
+        )
+        if (existingScreenAudioConsumer) {
+          console.log(
+            'Screen audio consumer already exists for user:',
+            data.userId
+          )
           return
         }
       }
@@ -584,7 +675,7 @@ export const Room = () => {
           data.appData?.isScreenShare
         )
 
-        // Определяем isScreenShare (по умолчанию false)
+        // Определяем isScreenShare
         const isScreenShare = data.appData?.isScreenShare || false
 
         // Создаём consumer
@@ -615,7 +706,7 @@ export const Room = () => {
               userId: data.userId,
               username: data.username,
               avatar: data.avatar,
-              isScreenShare: isScreenShare, // помечаем демонстрации экрана
+              isScreenShare: isScreenShare,
             },
           }
         })
@@ -760,6 +851,11 @@ export const Room = () => {
     producersRef.current = {} // обнуляем массив продюсеров
     setProducers({}) // обнуляем state массив продюсеров
 
+    if (producersRef.current.screenAudio) {
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
+    }
+
     // Закрываем консюмеры
     Object.values(consumers).forEach((consumerData) => {
       // проходимся по каждому консюмеру
@@ -889,6 +985,43 @@ export const Room = () => {
     getMediaStream,
     reconnectAttempts,
   ]) // УБИРАЕМ isCameraOn из зависимостей
+
+  useEffect(() => {
+    const manageScreenAudio = () => {
+      Object.values(consumers).forEach((consumerData) => {
+        // Находим screen audio consumer'ов
+        if (
+          consumerData.kind === 'audio' &&
+          consumerData.isScreenShare &&
+          consumerData.consumer?.audioElement
+        ) {
+          const audioElement = consumerData.consumer.audioElement
+          const userId = consumerData.userId
+
+          // Проверяем, открыт ли экран этого пользователя
+          const isScreenOpened = openedScreens.includes(userId)
+
+          if (isScreenOpened) {
+            // Если экран открыт - воспроизводим звук
+            if (audioElement.paused) {
+              audioElement.play().catch((error: any) => {
+                if (error.name !== 'AbortError') {
+                  console.error('Error playing screen audio:', error)
+                }
+              })
+            }
+            audioElement.muted = false
+          } else {
+            // Если экран закрыт - приостанавливаем и мутируем звук
+            audioElement.pause()
+            audioElement.muted = true
+          }
+        }
+      })
+    }
+
+    manageScreenAudio()
+  }, [openedScreens, consumers])
 
   // Базовая очистка при размонтировании
   useEffect(() => {
@@ -1096,6 +1229,11 @@ export const Room = () => {
       setLocalStream(null)
     }
 
+    if (producersRef.current.screenAudio) {
+      producersRef.current.screenAudio.close()
+      producersRef.current.screenAudio = null
+    }
+
     // закрываем все продюсеры
     Object.values(producersRef.current).forEach((producer) => {
       if (producer && typeof producer.close === 'function') {
@@ -1138,7 +1276,6 @@ export const Room = () => {
   }, [isCameraOn, hasOtherUsersVideo])
 
   // Мемоизированная отрисовка
-  // Мемоизированная отрисовка
   const videoElements = useMemo(() => {
     // Группируем consumers по userId
     const consumersByUser = Object.values(consumers).reduce(
@@ -1171,10 +1308,22 @@ export const Room = () => {
       // 1. Сначала добавляем демонстрацию экрана (если есть) - ОТДЕЛЬНО
       if (screenConsumer && screenConsumer.consumer?.track) {
         elements.push(
-          <ScreenShareElement
+          <div
             key={`screen-${screenConsumer.consumer.id}`}
-            consumerData={screenConsumer}
-          />
+            onClick={() =>
+              isVideoCall && setFocus({ userId, isScreenShare: true })
+            }
+            style={isVideoCall ? { cursor: 'pointer' } : {}}
+          >
+            <ScreenShareElement
+              key={`screen-${screenConsumer.consumer.id}`}
+              consumerData={screenConsumer}
+              openedScreens={openedScreens}
+              setOpenedScreens={setOpenedScreens}
+              setFocus={setFocus}
+              isVideoCall={isVideoCall}
+            />
+          </div>
         )
       }
 
@@ -1182,18 +1331,31 @@ export const Room = () => {
       if (videoConsumer && videoConsumer.consumer?.track) {
         // Если есть вебка - показываем ее
         elements.push(
-          <UserVideoElement
+          <div
             key={`video-${videoConsumer.consumer.id}`}
-            consumerData={videoConsumer}
-            isMuted={isMuted}
-            isSpeaking={isSpeaking}
-            isVideoCall={isVideoCall}
-          />
+            onClick={() =>
+              isVideoCall && setFocus({ userId, isScreenShare: false })
+            }
+            style={isVideoCall ? { cursor: 'pointer' } : {}}
+          >
+            <UserVideoElement
+              consumerData={videoConsumer}
+              isMuted={isMuted}
+              isSpeaking={isSpeaking}
+              isVideoCall={isVideoCall}
+            />
+          </div>
         )
       } else if (audioConsumer && audioConsumer.consumer?.track) {
         // Если нет вебки, но есть аудио - показываем аватар
         elements.push(
-          <div key={`audio-${audioConsumer.consumer.id}`}>
+          <div
+            key={`audio-${audioConsumer.consumer.id}`}
+            onClick={() =>
+              isVideoCall && setFocus({ userId, isScreenShare: false })
+            }
+            style={isVideoCall ? { cursor: 'pointer' } : {}}
+          >
             <audio
               ref={(audioElement) => {
                 if (audioElement && audioConsumer.consumer.track) {
@@ -1212,7 +1374,7 @@ export const Room = () => {
               muted={false}
               style={{ display: 'none' }}
             />
-            {isVideoCall ? (
+            {isVideoCall || isScreenSharing ? (
               <div className={cl.avatarContainer}>
                 <AnimatePresence>
                   {isSpeaking && (
@@ -1237,11 +1399,13 @@ export const Room = () => {
                   }
                 >
                   <img
+                    draggable={false}
                     src={userData.avatar || '/default-avatar.png'}
                     alt={userData.username || 'user'}
                     className={cl.boxAvatarBackground}
                   />
                   <img
+                    draggable={false}
                     src={userData.avatar || '/default-avatar.png'}
                     alt={userData.username || 'user'}
                     className={
@@ -1262,6 +1426,7 @@ export const Room = () => {
                         className={cl.mutedIconWrapperBox}
                       >
                         <img
+                          draggable={false}
                           className={cl.mutedIcon}
                           src={mutedIcon}
                           alt="muted"
@@ -1289,6 +1454,7 @@ export const Room = () => {
                   )}
                 </AnimatePresence>
                 <img
+                  draggable={false}
                   src={userData.avatar || '/default-avatar.png'}
                   alt={userData.username || 'User'}
                   className={isSpeaking ? cl.avatarActive : cl.avatar}
@@ -1303,6 +1469,7 @@ export const Room = () => {
                       className={cl.mutedIconWrapper}
                     >
                       <img
+                        draggable={false}
                         className={cl.mutedIcon}
                         src={mutedIcon}
                         alt="muted"
@@ -1318,7 +1485,15 @@ export const Room = () => {
     }
 
     return elements
-  }, [consumers, mutedUsers, speakingUsers, isVideoCall])
+  }, [
+    consumers,
+    mutedUsers,
+    speakingUsers,
+    isVideoCall,
+    openedScreens,
+    isScreenSharing,
+    setFocus, // Добавляем setFocus в зависимости
+  ])
 
   const localVideoElement = useMemo(() => {
     if (!localStream) return null
@@ -1326,10 +1501,19 @@ export const Room = () => {
     const currentUserAvatar = localStorage.getItem('avatar')
     const isMuted = mutedUsers.has(currentUserId || 'userid')
 
+    const handleLocalClick = () => {
+      if (isVideoCall) {
+        setFocus({ userId: currentUserId || '', isScreenShare: false })
+      }
+    }
+
     if (!isCameraOn) {
       return (
-        <div>
-          {isVideoCall ? (
+        <div
+          onClick={handleLocalClick}
+          style={isVideoCall ? { cursor: 'pointer' } : {}}
+        >
+          {isVideoCall || isScreenSharing ? (
             <div className={cl.avatarContainer}>
               <AnimatePresence>
                 {isTransmitting && (
@@ -1354,11 +1538,13 @@ export const Room = () => {
                 }
               >
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={cl.boxAvatarBackground}
                 />
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={
@@ -1379,6 +1565,7 @@ export const Room = () => {
                       className={cl.mutedIconWrapperBox}
                     >
                       <img
+                        draggable={false}
                         className={cl.mutedIcon}
                         src={mutedIcon}
                         alt="muted"
@@ -1407,6 +1594,7 @@ export const Room = () => {
                   )}
                 </AnimatePresence>
                 <img
+                  draggable={false}
                   src={currentUserAvatar || '/default-avatar.png'}
                   alt={'you'}
                   className={isTransmitting ? cl.avatarActive : cl.avatar}
@@ -1421,7 +1609,12 @@ export const Room = () => {
                     transition={{ duration: 0.25 }}
                     className={cl.mutedIconWrapper}
                   >
-                    <img className={cl.mutedIcon} src={mutedIcon} alt="muted" />
+                    <img
+                      draggable={false}
+                      className={cl.mutedIcon}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1431,11 +1624,16 @@ export const Room = () => {
       )
     } else {
       return (
-        <LocalVideoElement
-          localStream={localStream}
-          isTransmitting={isTransmitting}
-          isMuted={isMuted}
-        />
+        <div
+          onClick={handleLocalClick}
+          style={isVideoCall ? { cursor: 'pointer' } : {}}
+        >
+          <LocalVideoElement
+            localStream={localStream}
+            isTransmitting={isTransmitting}
+            isMuted={isMuted}
+          />
+        </div>
       )
     }
   }, [
@@ -1446,159 +1644,69 @@ export const Room = () => {
     isVideoCall,
     isMicroMuted,
     currentUserId,
+    isScreenSharing,
+    setFocus, // Добавляем setFocus в зависимости
   ])
   // Отрисовка всего компонента
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Room: {roomId}</h1>
-
-      <div
-        style={{
-          padding: '10px',
-          backgroundColor: isConnected ? '#4CAF50' : '#f44336',
-          color: 'white',
-          borderRadius: '5px',
-          marginBottom: '20px',
-        }}
-      >
-        Status: {isConnected ? 'Connected' : 'Disconnected'}
-        {error && (
-          <div style={{ marginTop: '10px', fontSize: '14px' }}>
-            Error: {error}
-            <button
-              onClick={handleFullRetry}
-              style={{ marginLeft: '10px', padding: '5px 10px' }}
-            >
-              Full Retry
-            </button>
+    <div className={cl.roomContainer}>
+      {focus ? (
+        <div className={cl.focusModeContainer}>
+          <div
+            className={cl.focusElementWrapper}
+            onClick={() => setFocus(null)}
+          >
+            <FocusElement
+              focus={focus}
+              localStream={localStream}
+              localScreenShare={screenStream}
+              consumers={consumers}
+              isCameraOn={isCameraOn}
+              isScreenSharing={isScreenSharing}
+              isTransmitting={isTransmitting}
+              isMicroMuted={isMicroMuted}
+              mutedUsers={mutedUsers}
+              speakingUsers={speakingUsers}
+            />
           </div>
-        )}
-        {isLoading && (
-          <div style={{ marginTop: '10px', fontSize: '14px' }}>Loading...</div>
-        )}
-        {reconnectAttempts > 0 && (
-          <div style={{ marginTop: '10px', fontSize: '14px' }}>
-            Reconnect attempts: {reconnectAttempts}
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginBottom: '30px' }}>
-        <button
-          onClick={() => setIsMicroMuted(!isMicroMuted)}
-          style={{
-            marginRight: '15px',
-            padding: '10px 20px',
-            backgroundColor: isMicroMuted ? '#f44336' : '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          {isMicroMuted ? ' Unmute' : ' Mute'}
-        </button>
-        <button
-          onClick={() => setIsCameraOn(!isCameraOn)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: isCameraOn ? '#4CAF50' : '#f44336',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          {isCameraOn ? ' Stop Camera' : ' Start Camera'}
-        </button>
-
-        <button
-          onClick={toggleScreenShare}
-          style={{
-            marginLeft: '15px',
-            padding: '10px 20px',
-            backgroundColor: isScreenSharing ? '#ff9800' : '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          {isScreenSharing ? 'Остановить демонстрацию' : 'Демонстрация экрана'}
-        </button>
-
-        <button
-          onClick={handleFullRetry}
-          style={{
-            marginLeft: '15px',
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Reconnect
-        </button>
-        <button
-          onClick={leaveRoom}
-          style={{
-            marginLeft: '15px',
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Leave Room
-        </button>
-      </div>
-
-      <div>
-        <h3>Participants:</h3>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            width: '90vw',
-            gap: '1vh',
-          }}
-        >
+          <UnfocusElements
+            focus={focus}
+            localStream={localStream}
+            localScreenShare={screenStream}
+            consumers={consumers}
+            isCameraOn={isCameraOn}
+            isScreenSharing={isScreenSharing}
+            isTransmitting={isTransmitting}
+            isMicroMuted={isMicroMuted}
+            mutedUsers={mutedUsers}
+            speakingUsers={speakingUsers}
+            isVideoCall={isVideoCall}
+            setFocus={setFocus}
+          />
+        </div>
+      ) : (
+        <div className={cl.usersContainer}>
           {localVideoElement}
           {videoElements}
           <LocalScreenShareElement
             screenStream={screenStream}
             isScreenSharing={isScreenSharing}
+            setFocus={setFocus}
+            isVideoCall={isVideoCall}
           />
         </div>
-      </div>
+      )}
 
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '15px',
-          backgroundColor: '#1f1f1fff',
-          borderRadius: '5px',
-        }}
-      >
-        <h4>Connection Info:</h4>
-        <p>Device Initialized: {isDeviceInitialized ? 'yes' : 'no'}</p>
-        <p>Send Transport Ready: {sendTransport ? 'yes' : 'no'}</p>
-        <p>Recv Transport Ready: {recvTransportRef.current ? 'yes' : 'no'}</p>
-        <p>Local Stream: {localStream ? 'yes' : 'no'}</p>
-        <p>Audio Producer: {producers.audio ? 'yes' : 'no'}</p>
-        <p>Video Producer: {producers.video ? 'yes' : 'no'}</p>
-        <p>Consumers: {Object.keys(consumers).length}</p>
-        <p>User ID: {userIdRef.current}</p>
-        <p>Reconnect Attempts: {reconnectAttempts}</p>
-        <p>MediaSoup Attempts: {mediaSoupAttempts}</p>
-        <p>Is Screen Sharing: {isScreenSharing ? 'yes' : 'no'}</p>
-        <p>Is Screen Stream: {screenStream !== null ? 'yes' : 'no'}</p>
-        {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-      </div>
+      <CallInteraction
+        setIsCamera={setIsCameraOn}
+        isCamera={isCameraOn}
+        isMuted={isMicroMuted}
+        setIsMuted={setIsMicroMuted}
+        toggleStream={toggleScreenShare}
+        isStream={isScreenSharing}
+        leaveRoom={leaveRoom}
+      />
+      <div className={cl.backgroundLight} />
     </div>
   )
 }
@@ -1609,42 +1717,37 @@ const UserVideoElement = React.memo(
     isMuted,
     isSpeaking,
     isVideoCall,
+    isFocus = false,
+    isUnfocus = false,
   }: {
     consumerData: ConsumerData
     isMuted: boolean
     isSpeaking: boolean
     isVideoCall: boolean
+    isFocus?: boolean
+    isUnfocus?: boolean
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const trackRef = useRef<MediaStreamTrack | null>(null)
 
     useEffect(() => {
-      const videoElement = videoRef.current // элемент для вывода видео
-      const track = consumerData.consumer?.track // видео трек консюмера
+      const videoElement = videoRef.current
+      const track = consumerData.consumer?.track
 
-      // проверка, что видео элемент и трек инициализированы
       if (!videoElement || !track) return
-
-      // Если трек не изменился, не делаем ничего
       if (trackRef.current === track) return
 
-      // сохраняем новый трек в ссылке на него
       trackRef.current = track
 
-      // Не пересоздаем MediaStream, если videoElement.srcObject уже содержит этот трек
       if (videoElement.srcObject) {
         const currentStream = videoElement.srcObject as MediaStream
         const currentTracks = currentStream.getTracks()
-
         if (currentTracks.length === 1 && currentTracks[0].id === track.id) {
           return
         }
-
-        // Останавливаем старые треки
         currentTracks.forEach((t) => t.stop())
       }
 
-      // Создаем новый стрим только если нужно
       const newStream = new MediaStream([track])
       videoElement.srcObject = newStream
 
@@ -1653,30 +1756,51 @@ const UserVideoElement = React.memo(
           console.error('Error playing video:', error)
         }
       })
-    }, [consumerData.consumer?.track]) // Только при реальном изменении трека
+    }, [consumerData.consumer?.track])
+
+    const videoClass = isFocus
+      ? isSpeaking
+        ? cl.focusVideoActive
+        : cl.focusVideo
+      : isUnfocus
+      ? isSpeaking
+        ? cl.unfocusVideoActive
+        : cl.unfocusVideo
+      : isSpeaking
+      ? cl.cameraActive
+      : cl.camera
+
+    const containerClass = isFocus
+      ? cl.focusVideoContainer
+      : isUnfocus
+      ? cl.unfocusVideoContainer
+      : cl.avatarContainer
+
     return (
-      <div className={cl.avatarContainer}>
-        <AnimatePresence>
-          {isSpeaking && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className={cl.boxWave1} />
-              <div className={cl.boxWave2} />
-              <div className={cl.boxWave3} />
-              <div className={cl.boxWave4} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className={containerClass}>
+        {!isFocus && !isUnfocus && (
+          <AnimatePresence>
+            {isSpeaking && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className={cl.boxWave1} />
+                <div className={cl.boxWave2} />
+                <div className={cl.boxWave3} />
+                <div className={cl.boxWave4} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted={false}
-          className={isSpeaking ? cl.cameraActive : cl.camera}
+          className={videoClass}
         />
         <AnimatePresence>
           {isMuted && (
@@ -1685,9 +1809,26 @@ const UserVideoElement = React.memo(
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0.5 }}
               transition={{ duration: 0.25 }}
-              className={cl.mutedIconWrapperCam}
+              className={
+                isFocus
+                  ? cl.focusMutedIconWrapperCam
+                  : isUnfocus
+                  ? cl.unfocusMutedIconWrapperCam
+                  : cl.mutedIconWrapperCam
+              }
             >
-              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+              <img
+                draggable={false}
+                className={
+                  isFocus
+                    ? cl.focusMutedIconCam
+                    : isUnfocus
+                    ? cl.unfocusMutedIconCam
+                    : cl.mutedIconCam
+                }
+                src={mutedIcon}
+                alt="muted"
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1697,16 +1838,19 @@ const UserVideoElement = React.memo(
 )
 
 // Мемоизированный компонент для локального видео
-// Мемоизированный компонент для локального видео
 const LocalVideoElement = React.memo(
   ({
     localStream,
     isTransmitting,
     isMuted,
+    isFocus = false,
+    isUnfocus = false,
   }: {
     localStream: MediaStream | null
     isTransmitting: boolean
     isMuted: boolean
+    isFocus?: boolean
+    isUnfocus?: boolean
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -1714,80 +1858,67 @@ const LocalVideoElement = React.memo(
       const videoElement = videoRef.current
       if (!videoElement || !localStream) return
 
-      console.log('🎥 Setting up local video element:', {
-        hasVideoTracks: localStream.getVideoTracks().length,
-        videoTrackLabel: localStream.getVideoTracks()[0]?.label,
-        videoTrackReadyState: localStream.getVideoTracks()[0]?.readyState,
-      })
-
-      // Устанавливаем stream
       videoElement.srcObject = localStream
-
-      // Пытаемся воспроизвести
       videoElement.play().catch((error) => {
         console.error('❌ Error playing local video:', error)
       })
 
       return () => {
-        // Cleanup при размонтировании
         if (videoElement) {
           videoElement.srcObject = null
         }
       }
     }, [localStream])
 
-    if (!localStream) {
-      console.log('❌ No local stream in LocalVideoElement')
-      return null
-    }
+    if (!localStream) return null
 
     const hasVideo = localStream.getVideoTracks().length > 0
-    console.log('🎥 Rendering LocalVideoElement, has video:', hasVideo)
+    if (!hasVideo) return null
 
-    if (!hasVideo) {
-      console.log('⚠️ No video tracks in local stream')
-      return (
-        <div
-          style={{
-            width: '38vh',
-            aspectRatio: '16/9',
-            borderRadius: '1vh',
-            border: '1px solid transparent',
-            zIndex: '10',
-            position: 'relative',
-            background: '#0A0A0A',
-          }}
-        />
-      )
-    }
+    const videoClass = isFocus
+      ? isTransmitting
+        ? cl.focusVideoActive
+        : cl.focusVideo
+      : isUnfocus
+      ? isTransmitting
+        ? cl.unfocusVideoActive
+        : cl.unfocusVideo
+      : isTransmitting
+      ? cl.cameraActive
+      : cl.camera
+
+    const containerClass = isFocus
+      ? cl.focusVideoContainer
+      : isUnfocus
+      ? cl.unfocusVideoContainer
+      : cl.avatarContainer
 
     return (
-      <div className={cl.avatarContainer}>
-        <AnimatePresence>
-          {isTransmitting && (
-            <motion.div
-              style={{ zIndex: 5 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className={cl.boxWave1} />
-              <div className={cl.boxWave2} />
-              <div className={cl.boxWave3} />
-              <div className={cl.boxWave4} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className={containerClass}>
+        {!isFocus && !isUnfocus && (
+          <AnimatePresence>
+            {isTransmitting && (
+              <motion.div
+                style={{ zIndex: 5 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className={cl.boxWave1} />
+                <div className={cl.boxWave2} />
+                <div className={cl.boxWave3} />
+                <div className={cl.boxWave4} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted={true}
-          className={isTransmitting ? cl.cameraActive : cl.camera}
-          onLoadedData={() => console.log('✅ Local video loaded')}
-          onCanPlay={() => console.log('✅ Local video can play')}
-          onError={(e) => console.error('❌ Local video error:', e)}
+          className={videoClass}
         />
         <AnimatePresence>
           {isMuted && (
@@ -1796,9 +1927,26 @@ const LocalVideoElement = React.memo(
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0.5 }}
               transition={{ duration: 0.25 }}
-              className={cl.mutedIconWrapperCam}
+              className={
+                isFocus
+                  ? cl.focusMutedIconWrapperCam
+                  : isUnfocus
+                  ? cl.unfocusMutedIconWrapperCam
+                  : cl.mutedIconWrapperCam
+              }
             >
-              <img className={cl.mutedIconCam} src={mutedIcon} alt="muted" />
+              <img
+                draggable={false}
+                className={
+                  isFocus
+                    ? cl.focusMutedIconCam
+                    : isUnfocus
+                    ? cl.unfocusMutedIconCam
+                    : cl.mutedIconCam
+                }
+                src={mutedIcon}
+                alt="muted"
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1808,9 +1956,50 @@ const LocalVideoElement = React.memo(
 )
 
 const ScreenShareElement = React.memo(
-  ({ consumerData }: { consumerData: ConsumerData }) => {
+  ({
+    consumerData,
+    openedScreens,
+    setOpenedScreens,
+    setFocus, // Добавляем setFocus в пропсы
+    isVideoCall,
+  }: {
+    consumerData: ConsumerData
+    openedScreens: string[]
+    setOpenedScreens: React.Dispatch<React.SetStateAction<string[]>>
+    setFocus?: React.Dispatch<React.SetStateAction<IFocus | null>>
+    isVideoCall?: boolean
+  }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const trackRef = useRef<MediaStreamTrack | null>(null)
+    const streamRef = useRef<MediaStream | null>(null)
+
+    // Используем ID consumer'а для проверки открытости
+    const userId = consumerData.userId
+    const isOpened = openedScreens.includes(userId)
+
+    const handleOpen = () => {
+      if (userId && !openedScreens.includes(userId)) {
+        setOpenedScreens((prev: string[]) => {
+          const newOpenedScreens = [...prev, userId]
+          return newOpenedScreens
+        })
+      }
+    }
+
+    const handleClose = () => {
+      if (userId && openedScreens.includes(userId)) {
+        setOpenedScreens((prev: string[]) => {
+          const newOpenedScreens = prev.filter((el) => el !== userId)
+          return newOpenedScreens
+        })
+      }
+    }
+
+    const handleScreenClick = () => {
+      if (isVideoCall && setFocus && !isOpened) {
+        setFocus({ userId, isScreenShare: true })
+      }
+    }
 
     useEffect(() => {
       const videoElement = videoRef.current
@@ -1818,37 +2007,91 @@ const ScreenShareElement = React.memo(
 
       if (!videoElement || !track) return
 
-      if (trackRef.current === track) return
-      trackRef.current = track
-
-      if (videoElement.srcObject) {
-        const currentStream = videoElement.srcObject as MediaStream
-        const currentTracks = currentStream.getTracks()
-        if (currentTracks.length === 1 && currentTracks[0].id === track.id) {
+      // Если трек не изменился и стрим уже установлен, не делаем ничего
+      if (trackRef.current === track && streamRef.current) {
+        // Если видео уже воспроизводится, просто возвращаемся
+        if (videoElement.srcObject === streamRef.current) {
           return
         }
-        currentTracks.forEach((t) => t.stop())
       }
 
+      // Сохраняем текущий трек
+      trackRef.current = track
+
+      // Останавливаем предыдущий стрим, но НЕ останавливаем треки!
+      if (streamRef.current) {
+        // Важно: не останавливаем треки, только очищаем ссылку
+        streamRef.current = null
+      }
+
+      // Создаем новый стрим с тем же треком
       const newStream = new MediaStream([track])
+      streamRef.current = newStream
       videoElement.srcObject = newStream
 
+      // Воспроизводим видео
       videoElement.play().catch((error) => {
         if (error.name !== 'AbortError') {
           console.error('Error playing screen share:', error)
         }
       })
-    }, [consumerData.consumer?.track])
 
-    return (
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted={false}
-        className={cl.camera}
-      />
-    )
+      return () => {
+        // Cleanup при размонтировании компонента
+        // НЕ останавливаем треки, так как они управляются consumer'ом
+        if (videoElement) {
+          videoElement.srcObject = null
+        }
+        // Не останавливаем streamRef.current, так как треки должны продолжать работать
+      }
+    }, [consumerData.consumer?.track, isOpened])
+
+    console.log('ScreenShareElement render:', {
+      userId,
+      isOpened,
+      hasTrack: !!consumerData.consumer?.track,
+      trackState: consumerData.consumer?.track?.readyState,
+      openedScreens,
+    })
+
+    if (isOpened) {
+      return (
+        <div className={cl.otherStreamContainer}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={false}
+            className={cl.camera}
+            onLoadedMetadata={() => {
+              console.log('Screen share video metadata loaded')
+              videoRef.current?.play().catch(console.error)
+            }}
+            onCanPlay={() => {
+              console.log('Screen share video can play')
+              videoRef.current?.play().catch(console.error)
+            }}
+          />
+          <button onClick={handleClose} className={cl.buttonCloseStream}>
+            <img
+              draggable={false}
+              className={cl.iconCloseStream}
+              src={closeStreamIcon}
+              alt="close"
+            />
+          </button>
+        </div>
+      )
+    } else {
+      return (
+        <div
+          onClick={handleScreenClick}
+          style={isVideoCall ? { cursor: 'pointer' } : {}}
+        >
+          <ClosedStream handleOpen={handleOpen} />
+        </div>
+      )
+    }
   }
 )
 
@@ -1856,11 +2099,16 @@ const LocalScreenShareElement = React.memo(
   ({
     screenStream,
     isScreenSharing,
+    setFocus, // Добавляем setFocus в пропсы
+    isVideoCall,
   }: {
     screenStream: MediaStream | null
     isScreenSharing: boolean
+    setFocus?: React.Dispatch<React.SetStateAction<IFocus | null>>
+    isVideoCall?: boolean
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
+    const currentUserId = localStorage.getItem('user-id')
 
     useEffect(() => {
       const videoElement = videoRef.current
@@ -1882,14 +2130,731 @@ const LocalScreenShareElement = React.memo(
 
     if (!isScreenSharing || !screenStream) return null
 
+    const handleClick = () => {
+      if (isVideoCall && setFocus) {
+        setFocus({ userId: currentUserId || '', isScreenShare: true })
+      }
+    }
+
+    return (
+      <div
+        onClick={handleClick}
+        style={isVideoCall ? { cursor: 'pointer' } : {}}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={true}
+          className={cl.camera}
+        />
+      </div>
+    )
+  }
+)
+
+const ClosedStream = ({ handleOpen }: { handleOpen: any }) => {
+  return (
+    <div className={cl.closedStream}>
+      <button onClick={handleOpen} className={cl.buttonWatchStream}>
+        Watch Stream
+      </button>
+    </div>
+  )
+}
+
+const FocusElement = ({
+  focus,
+  localStream,
+  localScreenShare,
+  consumers,
+  isCameraOn,
+  isScreenSharing,
+  isTransmitting,
+  isMicroMuted,
+  mutedUsers,
+  speakingUsers,
+}: {
+  focus: IFocus
+  localStream: MediaStream | null
+  localScreenShare: MediaStream | null
+  consumers: Consumers
+  isCameraOn: boolean
+  isScreenSharing: boolean
+  isTransmitting: boolean
+  isMicroMuted: boolean
+  mutedUsers: Set<string>
+  speakingUsers: Set<string>
+}) => {
+  const currentUserId = localStorage.getItem('user-id')
+  const currentUserAvatar = localStorage.getItem('avatar')
+  const currentUsername = localStorage.getItem('username')
+
+  // Выносим логику создания stream на верхний уровень
+  const consumerEntries = Object.values(consumers)
+  let consumerData: ConsumerData | undefined
+
+  if (focus.userId !== currentUserId) {
+    if (focus.isScreenShare) {
+      consumerData = consumerEntries.find(
+        (c) =>
+          c.userId === focus.userId && c.isScreenShare && c.kind === 'video'
+      )
+    } else {
+      consumerData = consumerEntries.find(
+        (c) =>
+          c.userId === focus.userId && !c.isScreenShare && c.kind === 'video'
+      )
+      if (!consumerData) {
+        consumerData = consumerEntries.find(
+          (c) =>
+            c.userId === focus.userId && !c.isScreenShare && c.kind === 'audio'
+        )
+      }
+    }
+  }
+
+  // Мемоизируем stream ДО любых условий
+  const stream = useMemo(
+    () =>
+      consumerData?.consumer?.track
+        ? new MediaStream([consumerData.consumer.track])
+        : null,
+    [consumerData?.consumer?.track]
+  )
+
+  if (focus.userId === currentUserId) {
+    if (focus.isScreenShare) {
+      return (
+        <div className={cl.focusElement}>
+          {localScreenShare ? (
+            <FocusScreenShareElement stream={localScreenShare} isLocal={true} />
+          ) : (
+            <div className={cl.focusPlaceholder}>No screen share</div>
+          )}
+        </div>
+      )
+    } else {
+      if (isCameraOn && localStream) {
+        return (
+          <div className={cl.focusElement}>
+            <LocalVideoElement
+              localStream={localStream}
+              isTransmitting={isTransmitting}
+              isMuted={mutedUsers.has(currentUserId || '')}
+              isFocus={true}
+            />
+          </div>
+        )
+      } else {
+        return (
+          <div className={cl.focusElement}>
+            <div className={cl.focusAvatarContainer}>
+              <div
+                className={
+                  isTransmitting
+                    ? cl.focusBoxAvatarContainerActive
+                    : cl.focusBoxAvatarContainer
+                }
+              >
+                <img
+                  draggable={false}
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={currentUsername || 'user'}
+                  className={cl.focusBoxAvatarBackground}
+                />
+                <img
+                  draggable={false}
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={currentUsername || 'user'}
+                  className={
+                    isTransmitting
+                      ? cl.focusBoxAvatarImageActive
+                      : mutedUsers.has(currentUserId || '')
+                      ? cl.focusBoxAvatarImageMuted
+                      : cl.focusBoxAvatarImage
+                  }
+                />
+              </div>
+              <AnimatePresence>
+                {isMicroMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.focusMutedIconWrapper}
+                  >
+                    <img
+                      draggable={false}
+                      className={cl.focusMutedIcon}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )
+      }
+    }
+  } else {
+    if (consumerData) {
+      if (focus.isScreenShare && consumerData.kind === 'video') {
+        return (
+          <div className={cl.focusElement}>
+            <FocusScreenShareElement stream={stream} isLocal={false} />
+          </div>
+        )
+      } else if (!focus.isScreenShare && consumerData.kind === 'video') {
+        return (
+          <div className={cl.focusElement}>
+            <UserVideoElement
+              consumerData={consumerData}
+              isMuted={mutedUsers.has(focus.userId)}
+              isSpeaking={speakingUsers.has(focus.userId)}
+              isVideoCall={true}
+              isFocus={true}
+            />
+          </div>
+        )
+      } else if (!focus.isScreenShare && consumerData.kind === 'audio') {
+        const isMuted = mutedUsers.has(focus.userId)
+        const isSpeaking = speakingUsers.has(focus.userId)
+
+        return (
+          <div className={cl.focusElement}>
+            <div className={cl.focusAvatarContainer}>
+              <div
+                className={
+                  isSpeaking
+                    ? cl.focusBoxAvatarContainerActive
+                    : cl.focusBoxAvatarContainer
+                }
+              >
+                <img
+                  draggable={false}
+                  src={consumerData.avatar || '/default-avatar.png'}
+                  alt={consumerData.username || 'user'}
+                  className={cl.focusBoxAvatarBackground}
+                />
+                <img
+                  draggable={false}
+                  src={consumerData.avatar || '/default-avatar.png'}
+                  alt={consumerData.username || 'user'}
+                  className={
+                    isSpeaking
+                      ? cl.focusBoxAvatarImageActive
+                      : isMuted
+                      ? cl.focusBoxAvatarImageMuted
+                      : cl.focusBoxAvatarImage
+                  }
+                />
+              </div>
+              <AnimatePresence>
+                {isMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.focusMutedIconWrapper}
+                  >
+                    <img
+                      draggable={false}
+                      className={cl.focusMutedIcon}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )
+      }
+    }
+
+    return (
+      <div className={cl.focusElement}>
+        <div className={cl.focusPlaceholder}>User not available</div>
+      </div>
+    )
+  }
+}
+const UnfocusElements = ({
+  focus,
+  localStream,
+  localScreenShare,
+  consumers,
+  isCameraOn,
+  isScreenSharing,
+  isTransmitting,
+  isMicroMuted,
+  mutedUsers,
+  speakingUsers,
+  isVideoCall,
+  setFocus,
+}: {
+  focus: IFocus
+  localStream: MediaStream | null
+  localScreenShare: MediaStream | null
+  consumers: Consumers
+  isCameraOn: boolean
+  isScreenSharing: boolean
+  isTransmitting: boolean
+  isMicroMuted: boolean
+  mutedUsers: Set<string>
+  speakingUsers: Set<string>
+  isVideoCall: boolean
+  setFocus: React.Dispatch<React.SetStateAction<IFocus | null>>
+}) => {
+  const currentUserId = localStorage.getItem('user-id')
+  const currentUserAvatar = localStorage.getItem('avatar')
+  const currentUsername = localStorage.getItem('username')
+
+  // Мемоизируем извлечение screen consumers и создание streams
+  const screenStreams = useMemo(() => {
+    const streams: Record<string, MediaStream | null> = {}
+
+    Object.values(consumers).forEach((consumerData) => {
+      if (
+        consumerData.kind === 'video' &&
+        consumerData.isScreenShare &&
+        consumerData.consumer?.track
+      ) {
+        // Используем track.id как ключ для стабильности
+        const trackId = consumerData.consumer.track.id
+        const userId = consumerData.userId
+
+        // Создаем stream только если трек изменился
+        if (
+          !streams[userId] ||
+          streams[userId]?.getTracks()[0]?.id !== trackId
+        ) {
+          streams[userId] = new MediaStream([consumerData.consumer.track])
+        }
+      }
+    })
+
+    return streams
+  }, [consumers]) // Зависимость только от consumers
+
+  const unfocusElements: React.ReactElement[] = []
+
+  // 1. Локальные элементы (кроме того, что в фокусе)
+  if (focus.userId !== currentUserId || focus.isScreenShare) {
+    if (isCameraOn && localStream) {
+      unfocusElements.push(
+        <div
+          key="local-video"
+          onClick={() =>
+            setFocus({ userId: currentUserId || '', isScreenShare: false })
+          }
+        >
+          <LocalVideoElement
+            localStream={localStream}
+            isTransmitting={isTransmitting}
+            isMuted={mutedUsers.has(currentUserId || '')}
+            isUnfocus={true}
+          />
+        </div>
+      )
+    } else {
+      unfocusElements.push(
+        <div
+          key="local-avatar"
+          onClick={() =>
+            setFocus({ userId: currentUserId || '', isScreenShare: false })
+          }
+        >
+          <div className={cl.unfocusElement}>
+            <div className={cl.unfocusAvatarContainer}>
+              <div
+                className={
+                  isTransmitting
+                    ? cl.unfocusBoxAvatarContainerActive
+                    : cl.unfocusBoxAvatarContainer
+                }
+              >
+                <img
+                  draggable={false}
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={currentUsername || 'user'}
+                  className={cl.unfocusBoxAvatarBackground}
+                />
+                <img
+                  draggable={false}
+                  src={currentUserAvatar || '/default-avatar.png'}
+                  alt={currentUsername || 'user'}
+                  className={
+                    isTransmitting
+                      ? cl.unfocusBoxAvatarImageActive
+                      : mutedUsers.has(currentUserId || '')
+                      ? cl.unfocusBoxAvatarImageMuted
+                      : cl.unfocusBoxAvatarImage
+                  }
+                />
+              </div>
+              <AnimatePresence>
+                {isMicroMuted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0.5 }}
+                    transition={{ duration: 0.25 }}
+                    className={cl.unfocusMutedIconWrapper}
+                  >
+                    <img
+                      draggable={false}
+                      className={cl.unfocusMutedIcon}
+                      src={mutedIcon}
+                      alt="muted"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  if (focus.userId !== currentUserId || !focus.isScreenShare) {
+    if (isScreenSharing && localScreenShare) {
+      unfocusElements.push(
+        <div
+          key="local-screen"
+          onClick={() =>
+            setFocus({ userId: currentUserId || '', isScreenShare: true })
+          }
+        >
+          <UnfocusScreenShareElement stream={localScreenShare} isLocal={true} />
+        </div>
+      )
+    }
+  }
+
+  // 2. Элементы других пользователей
+  // Группируем consumers по userId с мемоизацией
+  const users = useMemo(() => {
+    const usersMap: Record<string, ConsumerData[]> = {}
+    Object.values(consumers).forEach((consumer) => {
+      if (!usersMap[consumer.userId]) {
+        usersMap[consumer.userId] = []
+      }
+      usersMap[consumer.userId].push(consumer)
+    })
+    return usersMap
+  }, [consumers])
+
+  for (const [userId, userConsumers] of Object.entries(users)) {
+    if (userId === currentUserId) continue
+
+    const audioConsumer = userConsumers.find(
+      (c) => c.kind === 'audio' && !c.isScreenShare
+    )
+    const videoConsumer = userConsumers.find(
+      (c) => c.kind === 'video' && !c.isScreenShare
+    )
+    const screenConsumer = userConsumers.find(
+      (c) => c.kind === 'video' && c.isScreenShare
+    )
+
+    const userData = userConsumers[0]
+    const isMuted = mutedUsers.has(userId)
+    const isSpeaking = speakingUsers.has(userId)
+
+    // Для пользователя в фокусе показываем только противоположный элемент
+    if (userId === focus.userId) {
+      if (focus.isScreenShare) {
+        if (videoConsumer) {
+          unfocusElements.push(
+            <div
+              key={`video-${userId}`}
+              onClick={() => setFocus({ userId, isScreenShare: false })}
+            >
+              <UserVideoElement
+                consumerData={videoConsumer}
+                isMuted={isMuted}
+                isSpeaking={isSpeaking}
+                isVideoCall={isVideoCall}
+                isUnfocus={true}
+              />
+            </div>
+          )
+        } else if (audioConsumer) {
+          unfocusElements.push(
+            <div
+              key={`audio-${userId}`}
+              onClick={() => setFocus({ userId, isScreenShare: false })}
+            >
+              <div className={cl.unfocusElement}>
+                <div className={cl.unfocusAvatarContainer}>
+                  <div
+                    className={
+                      isSpeaking
+                        ? cl.unfocusBoxAvatarContainerActive
+                        : cl.unfocusBoxAvatarContainer
+                    }
+                  >
+                    <img
+                      draggable={false}
+                      src={userData.avatar || '/default-avatar.png'}
+                      alt={userData.username || 'user'}
+                      className={cl.unfocusBoxAvatarBackground}
+                    />
+                    <img
+                      draggable={false}
+                      src={userData.avatar || '/default-avatar.png'}
+                      alt={userData.username || 'user'}
+                      className={
+                        isSpeaking
+                          ? cl.unfocusBoxAvatarImageActive
+                          : mutedUsers.has(currentUserId || '')
+                          ? cl.unfocusBoxAvatarImageMuted
+                          : cl.unfocusBoxAvatarImage
+                      }
+                    />
+                  </div>
+                  <AnimatePresence>
+                    {isMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.unfocusMutedIconWrapper}
+                      >
+                        <img
+                          draggable={false}
+                          className={cl.unfocusMutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      } else {
+        if (screenConsumer) {
+          unfocusElements.push(
+            <UnfocusScreenShareElement
+              key={`screen-${userId}`}
+              stream={screenStreams[userId]}
+              isLocal={false}
+              onClick={() => setFocus({ userId, isScreenShare: true })}
+            />
+          )
+        }
+      }
+    } else {
+      // Для остальных пользователей показываем ВСЕ их элементы
+      if (videoConsumer) {
+        unfocusElements.push(
+          <div
+            key={`video-${userId}`}
+            onClick={() => setFocus({ userId, isScreenShare: false })}
+          >
+            <UserVideoElement
+              consumerData={videoConsumer}
+              isMuted={isMuted}
+              isSpeaking={isSpeaking}
+              isVideoCall={isVideoCall}
+              isUnfocus={true}
+            />
+          </div>
+        )
+      } else if (audioConsumer) {
+        unfocusElements.push(
+          <div
+            key={`audio-${userId}`}
+            onClick={() => setFocus({ userId, isScreenShare: false })}
+          >
+            <div className={cl.unfocusElement}>
+              <div className={cl.unfocusAvatarContainer}>
+                <div
+                  className={
+                    isSpeaking
+                      ? cl.unfocusBoxAvatarContainerActive
+                      : cl.unfocusBoxAvatarContainer
+                  }
+                >
+                  <img
+                    draggable={false}
+                    src={userData.avatar || '/default-avatar.png'}
+                    alt={userData.username || 'user'}
+                    className={cl.unfocusBoxAvatarBackground}
+                  />
+                  <img
+                    draggable={false}
+                    src={userData.avatar || '/default-avatar.png'}
+                    alt={userData.username || 'user'}
+                    className={
+                      isSpeaking
+                        ? cl.unfocusBoxAvatarImageActive
+                        : mutedUsers.has(currentUserId || '')
+                        ? cl.unfocusBoxAvatarImageMuted
+                        : cl.unfocusBoxAvatarImage
+                    }
+                  />
+                </div>
+                <AnimatePresence>
+                  {isMuted && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0.5 }}
+                      transition={{ duration: 0.25 }}
+                      className={cl.unfocusMutedIconWrapper}
+                    >
+                      <img
+                        draggable={false}
+                        className={cl.unfocusMutedIcon}
+                        src={mutedIcon}
+                        alt="muted"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      if (screenConsumer) {
+        unfocusElements.push(
+          <UnfocusScreenShareElement
+            key={`screen-${userId}`}
+            stream={screenStreams[userId]}
+            isLocal={false}
+            onClick={() => setFocus({ userId, isScreenShare: true })}
+          />
+        )
+      }
+    }
+  }
+
+  return <div className={cl.unfocusContainer}>{unfocusElements}</div>
+}
+
+const FocusScreenShareElement = React.memo(
+  ({
+    stream,
+    isLocal = false,
+  }: {
+    stream: MediaStream | null
+    isLocal?: boolean
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const streamRef = useRef<MediaStream | null>(null)
+
+    useEffect(() => {
+      const videoElement = videoRef.current
+      if (!videoElement || !stream) return
+
+      // Проверяем, изменился ли stream
+      if (streamRef.current !== stream) {
+        streamRef.current = stream
+        videoElement.srcObject = stream
+
+        videoElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Error playing focus screen share:', error)
+          }
+        })
+      }
+
+      return () => {
+        if (videoElement) {
+          videoElement.srcObject = null
+        }
+      }
+    }, [stream])
+
+    if (!stream) return null
+
     return (
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        muted={true}
-        className={cl.camera}
+        muted={isLocal}
+        className={cl.focusVideo}
       />
+    )
+  },
+  (prevProps, nextProps) => {
+    // Кастомная функция сравнения для React.memo
+    return (
+      prevProps.stream === nextProps.stream &&
+      prevProps.isLocal === nextProps.isLocal
+    )
+  }
+)
+
+const UnfocusScreenShareElement = React.memo(
+  ({
+    stream,
+    isLocal = false,
+    onClick,
+  }: {
+    stream: MediaStream | null
+    isLocal?: boolean
+    onClick?: () => void
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const streamRef = useRef<MediaStream | null>(null)
+
+    useEffect(() => {
+      const videoElement = videoRef.current
+      if (!videoElement || !stream) return
+
+      // Проверяем, изменился ли stream
+      if (streamRef.current !== stream) {
+        streamRef.current = stream
+        videoElement.srcObject = stream
+
+        videoElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Error playing unfocus screen share:', error)
+          }
+        })
+      }
+
+      return () => {
+        if (videoElement) {
+          videoElement.srcObject = null
+        }
+      }
+    }, [stream])
+
+    if (!stream) return null
+
+    return (
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={isLocal}
+        className={cl.unfocusVideo}
+        onClick={onClick}
+      />
+    )
+  },
+  (prevProps, nextProps) => {
+    // Кастомная функция сравнения для React.memo
+    return (
+      prevProps.stream === nextProps.stream &&
+      prevProps.isLocal === nextProps.isLocal &&
+      prevProps.onClick === nextProps.onClick
     )
   }
 )

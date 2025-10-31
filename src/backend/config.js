@@ -9,9 +9,9 @@ const config = {
   // Конфигурация mediasoup
   mediasoup: {
     // ! КОЛИЧЕСТВО ЯДЕР(ВОРКЕРОВ) - ДЛЯ ПРОДА
-    numWorkers: Object.keys(os.cpus()).length, // количество workers = количество CPU ядер в системе
+    // numWorkers: Object.keys(os.cpus()).length, // количество workers = количество CPU ядер в системе
     // ! КОЛИЧЕСТВО ЯДЕР(ВОКЕРОВ) - ДЛЯ ДЕВА
-    // numWorkers: 3,
+    numWorkers: 1,
     // Worker - отдельный процесс mediasoup для обработки медиа (именно обработки)
 
     // Настройки Worker процессов
@@ -67,8 +67,8 @@ const config = {
         {
           ip: '0.0.0.0', // слушаем на всех интерфейсах
           // ПОЗЖЕ НИЖЕ ВСТАВИТЬ PUBLIC_IP ЗАДЕПЛОЕННОГО СЕРВЕРА (некст строка 58)
-          announcedIp: '185.207.64.7', // !PROD IP
-          // announcedIp: '194.87.190.7', // !DEV IP
+          // announcedIp: '185.207.64.7', // !PROD IP
+          announcedIp: process.env.SERVER_IP || '127.0.0.1', // !DEV IP
         },
       ],
       // Настройки битрейта
