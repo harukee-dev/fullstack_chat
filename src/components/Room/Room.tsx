@@ -2190,6 +2190,39 @@ const FocusElement = ({
   const currentUserAvatar = localStorage.getItem('avatar')
   const currentUsername = localStorage.getItem('username')
 
+  // Выносим логику создания stream на верхний уровень
+  const consumerEntries = Object.values(consumers)
+  let consumerData: ConsumerData | undefined
+
+  if (focus.userId !== currentUserId) {
+    if (focus.isScreenShare) {
+      consumerData = consumerEntries.find(
+        (c) =>
+          c.userId === focus.userId && c.isScreenShare && c.kind === 'video'
+      )
+    } else {
+      consumerData = consumerEntries.find(
+        (c) =>
+          c.userId === focus.userId && !c.isScreenShare && c.kind === 'video'
+      )
+      if (!consumerData) {
+        consumerData = consumerEntries.find(
+          (c) =>
+            c.userId === focus.userId && !c.isScreenShare && c.kind === 'audio'
+        )
+      }
+    }
+  }
+
+  // Мемоизируем stream ДО любых условий
+  const stream = useMemo(
+    () =>
+      consumerData?.consumer?.track
+        ? new MediaStream([consumerData.consumer.track])
+        : null,
+    [consumerData?.consumer?.track]
+  )
+
   if (focus.userId === currentUserId) {
     if (focus.isScreenShare) {
       return (
@@ -2267,32 +2300,8 @@ const FocusElement = ({
       }
     }
   } else {
-    const consumerEntries = Object.values(consumers)
-    let consumerData: ConsumerData | undefined
-
-    if (focus.isScreenShare) {
-      consumerData = consumerEntries.find(
-        (c) =>
-          c.userId === focus.userId && c.isScreenShare && c.kind === 'video'
-      )
-    } else {
-      consumerData = consumerEntries.find(
-        (c) =>
-          c.userId === focus.userId && !c.isScreenShare && c.kind === 'video'
-      )
-      if (!consumerData) {
-        consumerData = consumerEntries.find(
-          (c) =>
-            c.userId === focus.userId && !c.isScreenShare && c.kind === 'audio'
-        )
-      }
-    }
-
     if (consumerData) {
       if (focus.isScreenShare && consumerData.kind === 'video') {
-        const stream = consumerData.consumer?.track
-          ? new MediaStream([consumerData.consumer.track])
-          : null
         return (
           <div className={cl.focusElement}>
             <FocusScreenShareElement stream={stream} isLocal={false} />
@@ -2374,7 +2383,6 @@ const FocusElement = ({
     )
   }
 }
-
 const UnfocusElements = ({
   focus,
   localStream,
@@ -2406,13 +2414,37 @@ const UnfocusElements = ({
   const currentUserAvatar = localStorage.getItem('avatar')
   const currentUsername = localStorage.getItem('username')
 
+  // Мемоизируем извлечение screen consumers и создание streams
+  const screenStreams = useMemo(() => {
+    const streams: Record<string, MediaStream | null> = {}
+
+    Object.values(consumers).forEach((consumerData) => {
+      if (
+        consumerData.kind === 'video' &&
+        consumerData.isScreenShare &&
+        consumerData.consumer?.track
+      ) {
+        // Используем track.id как ключ для стабильности
+        const trackId = consumerData.consumer.track.id
+        const userId = consumerData.userId
+
+        // Создаем stream только если трек изменился
+        if (
+          !streams[userId] ||
+          streams[userId]?.getTracks()[0]?.id !== trackId
+        ) {
+          streams[userId] = new MediaStream([consumerData.consumer.track])
+        }
+      }
+    })
+
+    return streams
+  }, [consumers]) // Зависимость только от consumers
+
   const unfocusElements: React.ReactElement[] = []
 
   // 1. Локальные элементы (кроме того, что в фокусе)
   if (focus.userId !== currentUserId || focus.isScreenShare) {
-    // Показываем локальную вебку/аватарку если:
-    // - фокус на чужом элементе ИЛИ
-    // - фокус на нашей демке
     if (isCameraOn && localStream) {
       unfocusElements.push(
         <div
@@ -2491,9 +2523,6 @@ const UnfocusElements = ({
   }
 
   if (focus.userId !== currentUserId || !focus.isScreenShare) {
-    // Показываем локальную демку если:
-    // - фокус на чужом элементе ИЛИ
-    // - фокус на нашей вебке/аватарке
     if (isScreenSharing && localScreenShare) {
       unfocusElements.push(
         <div
@@ -2509,18 +2538,19 @@ const UnfocusElements = ({
   }
 
   // 2. Элементы других пользователей
-  const consumerEntries = Object.values(consumers)
-  const users: Record<string, ConsumerData[]> = {}
-
-  consumerEntries.forEach((consumer) => {
-    if (!users[consumer.userId]) {
-      users[consumer.userId] = []
-    }
-    users[consumer.userId].push(consumer)
-  })
+  // Группируем consumers по userId с мемоизацией
+  const users = useMemo(() => {
+    const usersMap: Record<string, ConsumerData[]> = {}
+    Object.values(consumers).forEach((consumer) => {
+      if (!usersMap[consumer.userId]) {
+        usersMap[consumer.userId] = []
+      }
+      usersMap[consumer.userId].push(consumer)
+    })
+    return usersMap
+  }, [consumers])
 
   for (const [userId, userConsumers] of Object.entries(users)) {
-    // Пропускаем текущего пользователя
     if (userId === currentUserId) continue
 
     const audioConsumer = userConsumers.find(
@@ -2540,7 +2570,6 @@ const UnfocusElements = ({
     // Для пользователя в фокусе показываем только противоположный элемент
     if (userId === focus.userId) {
       if (focus.isScreenShare) {
-        // Если в фокусе демка пользователя, показываем его вебку/аватарку
         if (videoConsumer) {
           unfocusElements.push(
             <div
@@ -2614,15 +2643,11 @@ const UnfocusElements = ({
           )
         }
       } else {
-        // Если в фокусе вебка/аватарка пользователя, показываем его демку
         if (screenConsumer) {
-          const stream = screenConsumer.consumer?.track
-            ? new MediaStream([screenConsumer.consumer.track])
-            : null
           unfocusElements.push(
             <UnfocusScreenShareElement
               key={`screen-${userId}`}
-              stream={stream}
+              stream={screenStreams[userId]}
               isLocal={false}
               onClick={() => setFocus({ userId, isScreenShare: true })}
             />
@@ -2705,13 +2730,10 @@ const UnfocusElements = ({
       }
 
       if (screenConsumer) {
-        const stream = screenConsumer.consumer?.track
-          ? new MediaStream([screenConsumer.consumer.track])
-          : null
         unfocusElements.push(
           <UnfocusScreenShareElement
             key={`screen-${userId}`}
-            stream={stream}
+            stream={screenStreams[userId]}
             isLocal={false}
             onClick={() => setFocus({ userId, isScreenShare: true })}
           />
