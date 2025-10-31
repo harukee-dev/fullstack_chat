@@ -2732,17 +2732,23 @@ const FocusScreenShareElement = React.memo(
     isLocal?: boolean
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
+    const streamRef = useRef<MediaStream | null>(null)
 
     useEffect(() => {
       const videoElement = videoRef.current
       if (!videoElement || !stream) return
 
-      videoElement.srcObject = stream
-      videoElement.play().catch((error) => {
-        if (error.name !== 'AbortError') {
-          console.error('Error playing focus screen share:', error)
-        }
-      })
+      // Проверяем, изменился ли stream
+      if (streamRef.current !== stream) {
+        streamRef.current = stream
+        videoElement.srcObject = stream
+
+        videoElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Error playing focus screen share:', error)
+          }
+        })
+      }
 
       return () => {
         if (videoElement) {
@@ -2762,6 +2768,13 @@ const FocusScreenShareElement = React.memo(
         className={cl.focusVideo}
       />
     )
+  },
+  (prevProps, nextProps) => {
+    // Кастомная функция сравнения для React.memo
+    return (
+      prevProps.stream === nextProps.stream &&
+      prevProps.isLocal === nextProps.isLocal
+    )
   }
 )
 
@@ -2776,17 +2789,23 @@ const UnfocusScreenShareElement = React.memo(
     onClick?: () => void
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null)
+    const streamRef = useRef<MediaStream | null>(null)
 
     useEffect(() => {
       const videoElement = videoRef.current
       if (!videoElement || !stream) return
 
-      videoElement.srcObject = stream
-      videoElement.play().catch((error) => {
-        if (error.name !== 'AbortError') {
-          console.error('Error playing unfocus screen share:', error)
-        }
-      })
+      // Проверяем, изменился ли stream
+      if (streamRef.current !== stream) {
+        streamRef.current = stream
+        videoElement.srcObject = stream
+
+        videoElement.play().catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('Error playing unfocus screen share:', error)
+          }
+        })
+      }
 
       return () => {
         if (videoElement) {
@@ -2806,6 +2825,14 @@ const UnfocusScreenShareElement = React.memo(
         className={cl.unfocusVideo}
         onClick={onClick}
       />
+    )
+  },
+  (prevProps, nextProps) => {
+    // Кастомная функция сравнения для React.memo
+    return (
+      prevProps.stream === nextProps.stream &&
+      prevProps.isLocal === nextProps.isLocal &&
+      prevProps.onClick === nextProps.onClick
     )
   }
 )
