@@ -2562,48 +2562,53 @@ const UnfocusElements = ({
               key={`audio-${userId}`}
               onClick={() => setFocus({ userId, isScreenShare: false })}
             >
-              <div className={cl.unfocusAvatarContainer}>
-                <AnimatePresence>
-                  {isSpeaking && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className={cl.unfocusWave1} />
-                      <div className={cl.unfocusWave2} />
-                      <div className={cl.unfocusWave3} />
-                      <div className={cl.unfocusWave4} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <img
-                  draggable={false}
-                  src={userData.avatar || '/default-avatar.png'}
-                  alt={userData.username || 'user'}
-                  className={
-                    isSpeaking ? cl.unfocusAvatarActive : cl.unfocusAvatar
-                  }
-                />
-                <AnimatePresence>
-                  {isMuted && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0.5 }}
-                      transition={{ duration: 0.25 }}
-                      className={cl.unfocusMutedIconWrapper}
-                    >
-                      <img
-                        draggable={false}
-                        className={cl.unfocusMutedIcon}
-                        src={mutedIcon}
-                        alt="muted"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className={cl.unfocusElement}>
+                <div className={cl.unfocusAvatarContainer}>
+                  <div
+                    className={
+                      isSpeaking
+                        ? cl.unfocusBoxAvatarContainerActive
+                        : cl.unfocusBoxAvatarContainer
+                    }
+                  >
+                    <img
+                      draggable={false}
+                      src={userData.avatar || '/default-avatar.png'}
+                      alt={userData.username || 'user'}
+                      className={cl.unfocusBoxAvatarBackground}
+                    />
+                    <img
+                      draggable={false}
+                      src={userData.avatar || '/default-avatar.png'}
+                      alt={userData.username || 'user'}
+                      className={
+                        isSpeaking
+                          ? cl.unfocusBoxAvatarImageActive
+                          : mutedUsers.has(currentUserId || '')
+                          ? cl.unfocusBoxAvatarImageMuted
+                          : cl.unfocusBoxAvatarImage
+                      }
+                    />
+                  </div>
+                  <AnimatePresence>
+                    {isMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.unfocusMutedIconWrapper}
+                      >
+                        <img
+                          draggable={false}
+                          className={cl.unfocusMutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           )
@@ -2647,48 +2652,53 @@ const UnfocusElements = ({
             key={`audio-${userId}`}
             onClick={() => setFocus({ userId, isScreenShare: false })}
           >
-            <div className={cl.unfocusAvatarContainer}>
-              <AnimatePresence>
-                {isSpeaking && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className={cl.unfocusWave1} />
-                    <div className={cl.unfocusWave2} />
-                    <div className={cl.unfocusWave3} />
-                    <div className={cl.unfocusWave4} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <img
-                draggable={false}
-                src={userData.avatar || '/default-avatar.png'}
-                alt={userData.username || 'user'}
-                className={
-                  isSpeaking ? cl.unfocusAvatarActive : cl.unfocusAvatar
-                }
-              />
-              <AnimatePresence>
-                {isMuted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.unfocusMutedIconWrapper}
-                  >
-                    <img
-                      draggable={false}
-                      className={cl.unfocusMutedIcon}
-                      src={mutedIcon}
-                      alt="muted"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            <div className={cl.unfocusElement}>
+              <div className={cl.unfocusAvatarContainer}>
+                <div
+                  className={
+                    isSpeaking
+                      ? cl.unfocusBoxAvatarContainerActive
+                      : cl.unfocusBoxAvatarContainer
+                  }
+                >
+                  <img
+                    draggable={false}
+                    src={userData.avatar || '/default-avatar.png'}
+                    alt={userData.username || 'user'}
+                    className={cl.unfocusBoxAvatarBackground}
+                  />
+                  <img
+                    draggable={false}
+                    src={userData.avatar || '/default-avatar.png'}
+                    alt={userData.username || 'user'}
+                    className={
+                      isSpeaking
+                        ? cl.unfocusBoxAvatarImageActive
+                        : mutedUsers.has(currentUserId || '')
+                        ? cl.unfocusBoxAvatarImageMuted
+                        : cl.unfocusBoxAvatarImage
+                    }
+                  />
+                </div>
+                <AnimatePresence>
+                  {isMuted && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0.5 }}
+                      transition={{ duration: 0.25 }}
+                      className={cl.unfocusMutedIconWrapper}
+                    >
+                      <img
+                        draggable={false}
+                        className={cl.unfocusMutedIcon}
+                        src={mutedIcon}
+                        alt="muted"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         )
