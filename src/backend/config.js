@@ -75,7 +75,12 @@ const config = {
       // Настройки битрейта
       initialAvailableOutgoingBitrate: 8000000, // начальная пропускная способность
       minimumAvailableOutgoingBitrate: 5000000, // минимальная пропускная способность
+      maxIncomingBitrate: 6500000,
       // SCTP настройки
+      enableSctp: true,
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
       maxSctpMessageSize: 262144, // максимальный размер SCTP сообщения (256КБ)
       // SCTP - протокол для передачи данных (не медиа)
     },
