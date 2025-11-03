@@ -50,6 +50,8 @@ const config = {
             'x-google-start-bitrate': 3000, // начальный битрейт
             'x-google-min-bitrate': 8000, // минимальный битрейт
             'x-google-max-bitrate': 15000, // максимальный битрейт
+            'max-fr': 60, // максимальный framerate
+            'max-fs': 8192,
           },
         },
         {
@@ -62,6 +64,8 @@ const config = {
             'x-google-max-bitrate': 15000, // максимальный битрейт
             'quality-scaling-upward': 1,
             complexity: 'high',
+            'max-fr': 60, // максимальный framerate
+            'max-fs': 8192,
           },
         },
         {
@@ -71,6 +75,13 @@ const config = {
           parameters: {
             'packetization-mode': 1, // режим пакетизации
             'profile-level-id': '42e01f',
+            'level-asymmetry-allowed': 1,
+            'x-google-start-bitrate': 3000,
+            'x-google-min-bitrate': 8000,
+            'x-google-max-bitrate': 15000,
+            'max-fr': 60,
+            'max-fs': 8192,
+            'max-mbps': 245760,
           },
         },
       ],
