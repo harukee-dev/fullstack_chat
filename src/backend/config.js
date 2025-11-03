@@ -46,8 +46,8 @@ const config = {
           clockRate: 90000, // стандартная частота для видео
           parameters: {
             'x-google-start-bitrate': 1500, // начальный битрейт
-            'x-google-min-bitrate': 2500, // минимальный битрейт
-            'x-google-max-bitrate': 4000, // максимальный битрейт
+            'x-google-min-bitrate': 4000, // минимальный битрейт
+            'x-google-max-bitrate': 8000, // максимальный битрейт
           },
         },
         {
@@ -73,9 +73,9 @@ const config = {
         },
       ],
       // Настройки битрейта
-      initialAvailableOutgoingBitrate: 4000000, // начальная пропускная способность
+      initialAvailableOutgoingBitrate: 8000000, // начальная пропускная способность
       minimumAvailableOutgoingBitrate: 2000000, // минимальная пропускная способность
-      maxIncomingBitrate: 4000000,
+      maxIncomingBitrate: 7000000,
       // SCTP настройки
       enableSctp: true,
       enableUdp: true,
