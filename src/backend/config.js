@@ -47,7 +47,7 @@ const config = {
           parameters: {
             'x-google-start-bitrate': 1500, // начальный битрейт
             'x-google-min-bitrate': 2500, // минимальный битрейт
-            'x-google-max-bitrate': 6000, // максимальный битрейт
+            'x-google-max-bitrate': 4000, // максимальный битрейт
           },
         },
         {
@@ -73,9 +73,9 @@ const config = {
         },
       ],
       // Настройки битрейта
-      initialAvailableOutgoingBitrate: 8000000, // начальная пропускная способность
-      minimumAvailableOutgoingBitrate: 5000000, // минимальная пропускная способность
-      maxIncomingBitrate: 6500000,
+      initialAvailableOutgoingBitrate: 4000000, // начальная пропускная способность
+      minimumAvailableOutgoingBitrate: 2000000, // минимальная пропускная способность
+      maxIncomingBitrate: 4000000,
       // SCTP настройки
       enableSctp: true,
       enableUdp: true,
