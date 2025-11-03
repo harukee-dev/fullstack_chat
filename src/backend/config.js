@@ -38,6 +38,18 @@ const config = {
           parameters: {
             useinbandfec: 1, // Forward Error Correction(исправление ошибок) для лучшего качества
             usedtx: 1, // Discontinuous Transmission (экономия трафика при тишине)
+            maxaveragebitrate: 128000,
+            stereo: 1,
+          },
+        },
+        {
+          kind: 'video', // для трека типа видео
+          mimeType: 'video/VP9', // Google's VP8 кодек - хороший кодек: широкая поддержка браузерами, хорошее качество при низкой задержке, открытый стандарт (не требует лицензий)
+          clockRate: 90000, // стандартная частота для видео
+          parameters: {
+            'x-google-start-bitrate': 3000, // начальный битрейт
+            'x-google-min-bitrate': 8000, // минимальный битрейт
+            'x-google-max-bitrate': 15000, // максимальный битрейт
           },
         },
         {
@@ -45,9 +57,11 @@ const config = {
           mimeType: 'video/VP8', // Google's VP8 кодек - хороший кодек: широкая поддержка браузерами, хорошее качество при низкой задержке, открытый стандарт (не требует лицензий)
           clockRate: 90000, // стандартная частота для видео
           parameters: {
-            'x-google-start-bitrate': 1500, // начальный битрейт
-            'x-google-min-bitrate': 4000, // минимальный битрейт
-            'x-google-max-bitrate': 8000, // максимальный битрейт
+            'x-google-start-bitrate': 3000, // начальный битрейт
+            'x-google-min-bitrate': 8000, // минимальный битрейт
+            'x-google-max-bitrate': 15000, // максимальный битрейт
+            'quality-scaling-upward': 1,
+            complexity: 'high',
           },
         },
         {
