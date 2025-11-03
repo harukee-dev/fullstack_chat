@@ -46,7 +46,7 @@ const config = {
           clockRate: 90000, // стандартная частота для видео
           parameters: {
             'x-google-start-bitrate': 1000, // начальный битрейт - когда только подключили видео, чтобы оно сразу появилось, и битрейт постепенно появлялся, а не долгая загрузка сразу красивого видео
-            'x-google-max-bitrate': 4000, // максимальный битрейт
+            'x-google-max-bitrate': 6500, // максимальный битрейт
           },
         },
         {
@@ -72,7 +72,7 @@ const config = {
         },
       ],
       // Настройки битрейта
-      initialAvailableOutgoingBitrate: 4000000, // начальная пропускная способность
+      initialAvailableOutgoingBitrate: 6500000, // начальная пропускная способность
       minimumAvailableOutgoingBitrate: 3000000, // минимальная пропускная способность
       // SCTP настройки
       maxSctpMessageSize: 262144, // максимальный размер SCTP сообщения (256КБ)
