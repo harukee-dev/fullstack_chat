@@ -1,116 +1,80 @@
 // Импорт модуля os
 const os = require('os') // встроенный модуль для работы с операционной системой сервера (машины, на которой стоит сервер)
 
-// Основная конфигурация
 const config = {
-  listenIp: '0.0.0.0', // сервер слушает на всех сетевых интерфейсах
-  listenPort: 3016, // порт для mediasoup сервера (отдельный от http порта)
+  listenIp: '0.0.0.0',
+  listenPort: 3016,
 
-  // Конфигурация mediasoup
   mediasoup: {
-    // ! КОЛИЧЕСТВО ЯДЕР(ВОРКЕРОВ) - ДЛЯ ПРОДА
-    numWorkers: Object.keys(os.cpus()).length, // количество workers = количество CPU ядер в системе
-    // ! КОЛИЧЕСТВО ЯДЕР(ВОКЕРОВ) - ДЛЯ ДЕВА
-    // numWorkers: 1,
-    // Worker - отдельный процесс mediasoup для обработки медиа (именно обработки)
+    numWorkers: Object.keys(os.cpus()).length,
 
-    // Настройки Worker процессов
     worker: {
-      // Диапазон портов RTC
-      rtcMinPort: 10000, // минимальный порт для WebRTC
-      rtcMaxPort: 20000, // максимальный порт для WebRTC
-      // диапазон: 10000 портов (около 5000 соединений)
-
-      // Логирование
-      logLevel: 'debug', // максимальный уровень логирования
-      logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'], // типы событий для логирования: общая информация, ice кандидаты и соединения, шифрование, rtp пакеты, шифрование, контрольные пакеты
+      rtcMinPort: 10000,
+      rtcMaxPort: 20000,
+      logLevel: 'warn',
+      logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp', 'h264'],
     },
 
-    // Конфигурация Router и кодеков
-    // Router - управляет медиа потоками в комнате, определяет поддерживаемые кодеки
     router: {
       mediaCodecs: [
         {
-          kind: 'audio', // для трека типа аудио
-          mimeType: 'audio/opus', // кодек opus (стандарт)
-          clockRate: 48000, // частота дискретизации
-          channels: 2, // стерео звук (2 канала)
+          kind: 'audio',
+          mimeType: 'audio/opus',
+          clockRate: 48000,
+          channels: 2,
           parameters: {
-            useinbandfec: 1, // Forward Error Correction(исправление ошибок) для лучшего качества
-            usedtx: 1, // Discontinuous Transmission (экономия трафика при тишине)
+            useinbandfec: 1,
+            usedtx: 1,
             maxaveragebitrate: 128000,
             stereo: 1,
           },
         },
         {
-          kind: 'video', // для трека типа видео
-          mimeType: 'video/VP9', // Google's VP8 кодек - хороший кодек: широкая поддержка браузерами, хорошее качество при низкой задержке, открытый стандарт (не требует лицензий)
-          clockRate: 90000, // стандартная частота для видео
+          kind: 'video',
+          mimeType: 'video/H264',
+          clockRate: 90000,
           parameters: {
-            'x-google-start-bitrate': 3000, // начальный битрейт
-            'x-google-min-bitrate': 8000, // минимальный битрейт
-            'x-google-max-bitrate': 15000, // максимальный битрейт
-            'max-fr': 60, // максимальный framerate
-            'max-fs': 8192,
-          },
-        },
-        {
-          kind: 'video', // для трека типа видео
-          mimeType: 'video/VP8', // Google's VP8 кодек - хороший кодек: широкая поддержка браузерами, хорошее качество при низкой задержке, открытый стандарт (не требует лицензий)
-          clockRate: 90000, // стандартная частота для видео
-          parameters: {
-            'x-google-start-bitrate': 3000, // начальный битрейт
-            'x-google-min-bitrate': 8000, // минимальный битрейт
-            'x-google-max-bitrate': 15000, // максимальный битрейт
-            'quality-scaling-upward': 1,
-            complexity: 'high',
-            'max-fr': 60, // максимальный framerate
-            'max-fs': 8192,
-          },
-        },
-        {
-          kind: 'video', // если VP8 видео не поддерживается
-          mimeType: 'video/H264', // кодек H264 - тоже очень широкоиспользуемый формат
-          clockRate: 90000, // стандартная частота
-          parameters: {
-            'packetization-mode': 1, // режим пакетизации
-            'profile-level-id': '42e01f',
+            'packetization-mode': 1,
+            'profile-level-id': '640034',
             'level-asymmetry-allowed': 1,
-            'x-google-start-bitrate': 3000,
-            'x-google-min-bitrate': 8000,
-            'x-google-max-bitrate': 15000,
+            'max-br': 30000,
+            'max-cpb': 100000,
+            'max-dpb': 300000,
             'max-fr': 60,
             'max-fs': 8192,
             'max-mbps': 245760,
+            'x-google-start-bitrate': 5000,
+            'x-google-min-bitrate': 15000,
+            'x-google-max-bitrate': 30000,
+          },
+        },
+
+        {
+          kind: 'video',
+          mimeType: 'video/VP8',
+          clockRate: 90000,
+          parameters: {
+            'x-google-start-bitrate': 3000,
+            'x-google-min-bitrate': 8000,
+            'x-google-max-bitrate': 20000,
+            'max-fr': 60,
+            'max-fs': 8192,
           },
         },
       ],
     },
 
-    // Конфигурация WebRTCTransport
     webRtcTransport: {
-      listenIps: [
-        {
-          ip: '0.0.0.0', // слушаем на всех интерфейсах
-          // ПОЗЖЕ НИЖЕ ВСТАВИТЬ PUBLIC_IP ЗАДЕПЛОЕННОГО СЕРВЕРА (некст строка 58)
-          announcedIp: '185.207.64.7', // !PROD IP
-          // announcedIp: process.env.SERVER_IP || '127.0.0.1', // !DEV IP
-        },
-      ],
-      // Настройки битрейта
-      initialAvailableOutgoingBitrate: 8000000, // начальная пропускная способность
-      minimumAvailableOutgoingBitrate: 2000000, // минимальная пропускная способность
-      maxIncomingBitrate: 7000000,
-      // SCTP настройки
+      listenIps: [{ ip: '0.0.0.0', announcedIp: '185.207.64.7' }],
+
+      initialAvailableOutgoingBitrate: 30000000,
+      minimumAvailableOutgoingBitrate: 15000000,
+      maxIncomingBitrate: 25000000,
       enableSctp: true,
       enableUdp: true,
       enableTcp: true,
       preferUdp: true,
-      maxSctpMessageSize: 262144, // максимальный размер SCTP сообщения (256КБ)
-      // SCTP - протокол для передачи данных (не медиа)
+      maxSctpMessageSize: 262144,
     },
   },
 }
-
-// Экспорт конфигурации
-module.exports = { config, secret: 'JWTSECRETKEYACCESS' } // основаня конфигурация, секретный ключ JWT токенов
