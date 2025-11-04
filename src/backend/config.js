@@ -78,3 +78,6 @@ const config = {
     },
   },
 }
+
+// Экспорт конфигурации
+module.exports = { config, secret: 'JWTSECRETKEYACCESS' } // основаня конфигурация, секретный ключ JWT токенов
