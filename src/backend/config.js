@@ -31,6 +31,19 @@ const config = {
         },
         {
           kind: 'video',
+          mimeType: 'video/VP8',
+          clockRate: 90000,
+          parameters: {
+            'x-google-start-bitrate': 1500,
+            'x-google-min-bitrate': 3000,
+            'x-google-max-bitrate': 6000,
+            'max-fr': 60,
+            'max-fs': 8192,
+            complexity: 'medium',
+          },
+        },
+        {
+          kind: 'video',
           mimeType: 'video/H264',
           clockRate: 90000,
           parameters: {
@@ -46,20 +59,6 @@ const config = {
             'x-google-start-bitrate': 1500,
             'x-google-min-bitrate': 3000,
             'x-google-max-bitrate': 6000,
-          },
-        },
-
-        {
-          kind: 'video',
-          mimeType: 'video/VP8',
-          clockRate: 90000,
-          parameters: {
-            'x-google-start-bitrate': 1500,
-            'x-google-min-bitrate': 3000,
-            'x-google-max-bitrate': 6000,
-            'max-fr': 60,
-            'max-fs': 8192,
-            complexity: 'medium',
           },
         },
       ],
