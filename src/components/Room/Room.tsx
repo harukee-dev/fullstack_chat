@@ -1,5 +1,5 @@
 // Импорты
-import { useEffect, useState, useCallback, useRef, useMemo, JSX } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMediaSoup } from '../../hooks/useMediaSoup'
 import { useSocket } from '../../SocketContext'
@@ -1272,8 +1272,8 @@ export const Room = () => {
   )
 
   useEffect(() => {
-    setIsVideoCall(isCameraOn || hasOtherUsersVideo)
-  }, [isCameraOn, hasOtherUsersVideo])
+    setIsVideoCall(isCameraOn || hasOtherUsersVideo || isScreenSharing)
+  }, [isCameraOn, hasOtherUsersVideo, isScreenSharing])
 
   // Мемоизированная отрисовка
   const videoElements = useMemo(() => {
