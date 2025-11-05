@@ -6,7 +6,8 @@ const config = {
   listenPort: 3016,
 
   mediasoup: {
-    numWorkers: Object.keys(os.cpus()).length,
+    // numWorkers: Object.keys(os.cpus()).length,
+    numWorkers: 2,
 
     worker: {
       rtcMinPort: 10000,
@@ -62,7 +63,13 @@ const config = {
     },
 
     webRtcTransport: {
-      listenIps: [{ ip: '0.0.0.0', announcedIp: '185.207.64.7' }],
+      listenIps: [
+        {
+          ip: '0.0.0.0',
+          // announcedIp: '185.207.64.7'
+          announcedIp: process.env.SERVER_IP || '127.0.0.1',
+        },
+      ],
 
       initialAvailableOutgoingBitrate: 35000000,
       minimumAvailableOutgoingBitrate: 15000000,
