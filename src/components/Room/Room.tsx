@@ -2265,37 +2265,39 @@ const FocusElement = ({
                   alt={currentUsername || 'user'}
                   className={cl.focusBoxAvatarBackground}
                 />
-                <img
-                  draggable={false}
-                  src={currentUserAvatar || '/default-avatar.png'}
-                  alt={currentUsername || 'user'}
-                  className={
-                    isTransmitting
-                      ? cl.focusBoxAvatarImageActive
-                      : mutedUsers.has(currentUserId || '')
-                      ? cl.focusBoxAvatarImageMuted
-                      : cl.focusBoxAvatarImage
-                  }
-                />
+                <div className={cl.avatarAndMuteBoxWrapper}>
+                  <img
+                    draggable={false}
+                    src={currentUserAvatar || '/default-avatar.png'}
+                    alt={currentUsername || 'user'}
+                    className={
+                      isTransmitting
+                        ? cl.focusBoxAvatarImageActive
+                        : mutedUsers.has(currentUserId || '')
+                        ? cl.focusBoxAvatarImageMuted
+                        : cl.focusBoxAvatarImage
+                    }
+                  />
+                  <AnimatePresence>
+                    {isMicroMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.focusMutedIconWrapper}
+                      >
+                        <img
+                          draggable={false}
+                          className={cl.focusMutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-              <AnimatePresence>
-                {isMicroMuted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.focusMutedIconWrapper}
-                  >
-                    <img
-                      draggable={false}
-                      className={cl.focusMutedIcon}
-                      src={mutedIcon}
-                      alt="muted"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
         )
@@ -2341,37 +2343,39 @@ const FocusElement = ({
                   alt={consumerData.username || 'user'}
                   className={cl.focusBoxAvatarBackground}
                 />
-                <img
-                  draggable={false}
-                  src={consumerData.avatar || '/default-avatar.png'}
-                  alt={consumerData.username || 'user'}
-                  className={
-                    isSpeaking
-                      ? cl.focusBoxAvatarImageActive
-                      : isMuted
-                      ? cl.focusBoxAvatarImageMuted
-                      : cl.focusBoxAvatarImage
-                  }
-                />
+                <div className={cl.avatarAndMuteBoxWrapper}>
+                  <img
+                    draggable={false}
+                    src={consumerData.avatar || '/default-avatar.png'}
+                    alt={consumerData.username || 'user'}
+                    className={
+                      isSpeaking
+                        ? cl.focusBoxAvatarImageActive
+                        : mutedUsers.has(currentUserId || '')
+                        ? cl.focusBoxAvatarImageMuted
+                        : cl.focusBoxAvatarImage
+                    }
+                  />
+                  <AnimatePresence>
+                    {isMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.focusMutedIconWrapper}
+                      >
+                        <img
+                          draggable={false}
+                          className={cl.focusMutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-              <AnimatePresence>
-                {isMuted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.focusMutedIconWrapper}
-                  >
-                    <img
-                      draggable={false}
-                      className={cl.focusMutedIcon}
-                      src={mutedIcon}
-                      alt="muted"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
         )

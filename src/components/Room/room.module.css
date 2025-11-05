@@ -350,8 +350,17 @@
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  left: 61vh;
-  top: 39vh;
+  align-self: flex-end;
+  right: 10%;
+}
+
+.avatarAndMuteBoxWrapper {
+  position: absolute;
+  width: 30vh;
+  height: 30vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .focusMutedIcon {
