@@ -1801,7 +1801,7 @@ const UserVideoElement = React.memo(
           ref={videoRef}
           autoPlay
           playsInline
-          muted={false}
+          muted={true}
           className={videoClass}
         />
         <AnimatePresence>
@@ -2063,7 +2063,7 @@ const ScreenShareElement = React.memo(
             ref={videoRef}
             autoPlay
             playsInline
-            muted={false}
+            muted={true}
             className={cl.camera}
             onLoadedMetadata={() => {
               console.log('Screen share video metadata loaded')
@@ -2796,7 +2796,7 @@ const FocusScreenShareElement = React.memo(
         ref={videoRef}
         autoPlay
         playsInline
-        muted={isLocal}
+        muted={true}
         className={cl.focusVideo}
       />
     )
@@ -2853,7 +2853,7 @@ const UnfocusScreenShareElement = React.memo(
         ref={videoRef}
         autoPlay
         playsInline
-        muted={isLocal}
+        muted={true}
         className={cl.unfocusVideo}
         onClick={onClick}
       />
