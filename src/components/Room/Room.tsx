@@ -285,22 +285,31 @@ export const Room = () => {
     try {
       console.log('🖥️ Requesting screen share...')
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          // @ts-ignore
-          cursor: 'always',
-          displaySurface: 'screen',
-          width: 1920,
-          height: 1080,
-          frameRate: 60,
-        },
+        video: true,
         audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          channelCount: 2,
+          // Агрессивное эхоподавление
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+
+          // Chrome-специфичные улучшения
+          // @ts-ignore
+          googEchoCancellation: true,
+          googNoiseSuppression: true,
+          googAutoGainControl: true,
+          googHighpassFilter: true,
+          googNoiseSuppression2: true,
+          googEchoCancellation2: true,
+
+          // Экспериментальные настройки
+          // @ts-ignore
+          googBeamforming: true,
+          // @ts-ignore
+          googArrayGeometry: 'circular',
+
           sampleRate: 48000,
-          //@ts-ignore
-          suppressLocalAudioPlayback: true,
+          channelCount: 2,
+          sampleSize: 16,
         },
       })
 
