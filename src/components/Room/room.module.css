@@ -572,7 +572,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  margin: -5.05vh 0 0 32vh;
+  right: 2%;
+  bottom: 4%;
 }
 
 .mutedIcon {
@@ -634,8 +635,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  left: 75vw;
-  bottom: 1.2vh;
+  right: 2%;
+  bottom: 2.5%;
 }
 
 .focusMutedIconCam {
@@ -652,12 +653,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  bottom: 1vh;
-  right: 1vh;
+  right: 2%;
+  bottom: 5%;
 }
 
 .unfocusMutedIconCam {
-  width: 1.5vh;
+  width: 1.25vh;
 }
 
 .focusElement {
