@@ -299,6 +299,8 @@ export const Room = () => {
           autoGainControl: false,
           channelCount: 2,
           sampleRate: 48000,
+          //@ts-ignore
+          suppressLocalAudioPlayback: true,
         },
       })
 
