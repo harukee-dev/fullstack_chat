@@ -350,8 +350,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  align-self: flex-end;
-  right: 10%;
+  bottom: 5%;
+  right: 7%;
 }
 
 .avatarAndMuteBoxWrapper {
@@ -403,8 +403,8 @@
 .unfocusBoxAvatarImage {
   z-index: 11;
   position: absolute;
-  width: 8vh;
-  height: 8vh;
+  width: 10vh;
+  height: 10vh;
   border-radius: 100%;
   box-shadow: 0 0 3vh #ffffff9d;
   transition: 0.2s;
@@ -413,39 +413,48 @@
 .unfocusBoxAvatarImageActive {
   z-index: 11;
   position: absolute;
-  width: 8.5vh;
-  height: 8.5vh;
+  width: 10.5vh;
+  height: 10.5vh;
   border-radius: 100%;
-  box-shadow: 0 0 3vh #ffffffd5;
+  box-shadow: 0 0 5vh #ffffffb1;
   transition: 0.2s;
 }
 
 .unfocusBoxAvatarImageMuted {
   z-index: 11;
   position: absolute;
-  width: 7.5vh;
-  height: 7.5vh;
+  width: 9.5vh;
+  height: 9.5vh;
   border-radius: 100%;
   box-shadow: 0 0 3vh #ffffff6b;
   transition: 0.2s;
+}
+
+.avatarAndMuteBoxWrapperUnfocus {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 10vh;
+  height: 10vh;
 }
 
 .unfocusMutedIconWrapper {
   position: absolute;
   z-index: 11;
   background-color: #a40afd;
-  width: 3vh;
-  height: 3vh;
+  width: 4vh;
+  height: 4vh;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 100%;
-  bottom: 2.6vh;
-  right: 8.6vh;
+  bottom: 0;
+  right: 0;
 }
 
 .unfocusMutedIcon {
-  width: 1.5vh;
+  width: 1.85vh;
 }
 
 .camera {

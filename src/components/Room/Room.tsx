@@ -2490,37 +2490,39 @@ const UnfocusElements = ({
                   alt={currentUsername || 'user'}
                   className={cl.unfocusBoxAvatarBackground}
                 />
-                <img
-                  draggable={false}
-                  src={currentUserAvatar || '/default-avatar.png'}
-                  alt={currentUsername || 'user'}
-                  className={
-                    isTransmitting
-                      ? cl.unfocusBoxAvatarImageActive
-                      : mutedUsers.has(currentUserId || '')
-                      ? cl.unfocusBoxAvatarImageMuted
-                      : cl.unfocusBoxAvatarImage
-                  }
-                />
+                <div className={cl.avatarAndMuteBoxWrapperUnfocus}>
+                  <img
+                    draggable={false}
+                    src={currentUserAvatar || '/default-avatar.png'}
+                    alt={currentUsername || 'user'}
+                    className={
+                      isTransmitting
+                        ? cl.unfocusBoxAvatarImageActive
+                        : mutedUsers.has(currentUserId || '')
+                        ? cl.unfocusBoxAvatarImageMuted
+                        : cl.unfocusBoxAvatarImage
+                    }
+                  />
+                  <AnimatePresence>
+                    {isMicroMuted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0.5 }}
+                        transition={{ duration: 0.25 }}
+                        className={cl.unfocusMutedIconWrapper}
+                      >
+                        <img
+                          draggable={false}
+                          className={cl.unfocusMutedIcon}
+                          src={mutedIcon}
+                          alt="muted"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-              <AnimatePresence>
-                {isMicroMuted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0.5 }}
-                    transition={{ duration: 0.25 }}
-                    className={cl.unfocusMutedIconWrapper}
-                  >
-                    <img
-                      draggable={false}
-                      className={cl.unfocusMutedIcon}
-                      src={mutedIcon}
-                      alt="muted"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -2612,37 +2614,39 @@ const UnfocusElements = ({
                       alt={userData.username || 'user'}
                       className={cl.unfocusBoxAvatarBackground}
                     />
-                    <img
-                      draggable={false}
-                      src={userData.avatar || '/default-avatar.png'}
-                      alt={userData.username || 'user'}
-                      className={
-                        isSpeaking
-                          ? cl.unfocusBoxAvatarImageActive
-                          : mutedUsers.has(currentUserId || '')
-                          ? cl.unfocusBoxAvatarImageMuted
-                          : cl.unfocusBoxAvatarImage
-                      }
-                    />
+                    <div className={cl.avatarAndMuteBoxWrapperUnfocus}>
+                      <img
+                        draggable={false}
+                        src={userData.avatar || '/default-avatar.png'}
+                        alt={userData.username || 'user'}
+                        className={
+                          isSpeaking
+                            ? cl.unfocusBoxAvatarImageActive
+                            : mutedUsers.has(currentUserId || '')
+                            ? cl.unfocusBoxAvatarImageMuted
+                            : cl.unfocusBoxAvatarImage
+                        }
+                      />
+                      <AnimatePresence>
+                        {isMuted && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0.5 }}
+                            transition={{ duration: 0.25 }}
+                            className={cl.unfocusMutedIconWrapper}
+                          >
+                            <img
+                              draggable={false}
+                              className={cl.unfocusMutedIcon}
+                              src={mutedIcon}
+                              alt="muted"
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
-                  <AnimatePresence>
-                    {isMuted && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0.5 }}
-                        transition={{ duration: 0.25 }}
-                        className={cl.unfocusMutedIconWrapper}
-                      >
-                        <img
-                          draggable={false}
-                          className={cl.unfocusMutedIcon}
-                          src={mutedIcon}
-                          alt="muted"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
             </div>
