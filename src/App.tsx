@@ -1,5 +1,11 @@
 import { Chat } from './pages/ChatPage/ChatPage'
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Navigate,
+  HashRouter,
+} from 'react-router-dom'
 import { Register } from './pages/RegisterPage/RegisterPage'
 import { NotFoundPage } from './pages/NotFoundPage/NotFoundPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
@@ -10,7 +16,7 @@ import { SocketProvider } from './SocketContext'
 function App() {
   return (
     <SocketProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<NotFoundPage />} />
@@ -20,7 +26,7 @@ function App() {
           <Route path="/test" element={<TestPage />} />
           <Route path="/test/room/:id" element={<Room />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </SocketProvider>
   )
 }
