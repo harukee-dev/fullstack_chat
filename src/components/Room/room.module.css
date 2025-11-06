@@ -682,3 +682,116 @@
 .unfocusVideoContainer {
   position: relative;
 }
+
+.sourceSelectorOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+}
+
+.sourceSelector {
+  background: var(--background-primary);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.sourceSelector h3 {
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.sourceSelector h4 {
+  margin: 20px 0 12px 0;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.sourceGroup {
+  margin-bottom: 24px;
+}
+
+.sourceList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.sourceItem {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sourceItem:hover {
+  background: var(--background-hover);
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.sourceThumbnail {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.sourceName {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.sourceBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--accent-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.sourceSelectorActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: var(--background-hover);
+}

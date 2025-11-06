@@ -95,6 +95,12 @@ export const TestPage = () => {
         </AnimatePresence>
         <ModalVoiceSettings />
       </div>
+      <button
+        className={cl.navigateMainButton}
+        onClick={() => navigate('/main')}
+      >
+        main
+      </button>
     </div>
   )
 }

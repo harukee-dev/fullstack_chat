@@ -14,3 +14,9 @@
   touch-action: none;
   background-color: black;
 }
+
+.navigateTestButton {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}

@@ -116,3 +116,9 @@ body {
   color: #e2e2e2;
   background-color: #383838;
 }
+
+.navigateMainButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}

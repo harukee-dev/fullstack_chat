@@ -9,6 +9,7 @@ import { AppDispatch, useAppSelector } from '../../store'
 import { Notification } from '../../components/Notification/Notification'
 import { AnimatePresence } from 'framer-motion'
 import { FriendModal } from '../../components/FriendRequestSender/Components/FriendModal/FriendModal'
+import { useNavigate } from 'react-router-dom'
 
 export const Chat = () => {
   const currentUserId = localStorage.getItem('user-id') || 'none'
@@ -19,6 +20,7 @@ export const Chat = () => {
   const friends = useAppSelector((state) => state.friends.friends)
   const { isOpened, username, avatar, description, isOnline, userId, banner } =
     useAppSelector((state) => state.userProfileModal)
+  const navigate = useNavigate()
 
   const fetchFriends = async (userId: string) => {
     try {
@@ -73,6 +75,12 @@ export const Chat = () => {
           />
         )}
       </AnimatePresence>
+      <button
+        className={cl.navigateTestButton}
+        onClick={() => navigate('/test')}
+      >
+        test
+      </button>
     </div>
   )
 }

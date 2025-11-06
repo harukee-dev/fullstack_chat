@@ -17,6 +17,7 @@ interface ICallInteraction {
   setIsMuted: any
   isMuted: boolean
   leaveRoom: any
+  canCaptureSystemAudio?: boolean
 }
 
 export const CallInteraction: React.FC<ICallInteraction> = ({
@@ -27,6 +28,7 @@ export const CallInteraction: React.FC<ICallInteraction> = ({
   toggleStream,
   isStream,
   leaveRoom,
+  canCaptureSystemAudio = false,
 }) => {
   const [isDisconnectHover, setIsDisconnectHover] = useState<boolean>(false)
 

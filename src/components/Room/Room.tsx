@@ -14,6 +14,8 @@ import { useAppSelector } from '../../store'
 import closeStreamIcon from './images/close-stream-icon.png'
 import { CallInteraction } from '../CallInteraction/CallInteraction'
 import { IFocus } from './roomTypes'
+import { isElectron, canCaptureSystemAudio } from './electronHelpers'
+import { DesktopSource } from '../../types/electron'
 // Интерфейс для данных о потребителе медиа
 export interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -43,6 +45,11 @@ export interface Producers {
 // Интерфейс для хранения всех потребителей
 export interface Consumers {
   [producerId: string]: ConsumerData // ключ - айди продюсера, значение - данные о консюмере
+}
+
+interface ElectronMediaStreamConstraints extends MediaStreamConstraints {
+  audio?: any
+  video?: any
 }
 
 export const Room = () => {
@@ -79,6 +86,12 @@ export const Room = () => {
 
   const { noise, echo, autoGain, threshold } = useAppSelector(
     (state) => state.voiceSettings
+  )
+
+  const [desktopSources, setDesktopSources] = useState<DesktopSource[]>([])
+  const [showSourceSelector, setShowSourceSelector] = useState<boolean>(false)
+  const [selectedSource, setSelectedSource] = useState<DesktopSource | null>(
+    null
   )
 
   // инициализация звуков входа и выхода (и предварительная загрузка сразу, чтобы они срабатывали без задержки)
@@ -282,48 +295,165 @@ export const Room = () => {
   // ! ЗДЕСЬ СДЕЛАЕМ ДЕМКУ
 
   const getScreenStream = useCallback(async () => {
+    // Если мы в Electron - используем расширенный функционал
+    if (isElectron() && window.electronAPI) {
+      try {
+        console.log('🖥️ Requesting desktop sources from Electron...')
+
+        // Получаем список всех доступных окон и экранов
+        const sources = await window.electronAPI.getDesktopSources({
+          types: ['window', 'screen'],
+        })
+
+        setDesktopSources(sources)
+        setShowSourceSelector(true)
+
+        // Ждем выбора пользователя
+        return new Promise<MediaStream | null>((resolve) => {
+          const checkSelection = setInterval(() => {
+            if (selectedSource && !showSourceSelector) {
+              clearInterval(checkSelection)
+              // Используем безопасный метод
+              startElectronScreenShareSafe(selectedSource).then(resolve)
+            }
+          }, 100)
+
+          // Таймаут на случай если пользователь отменит выбор
+          setTimeout(() => {
+            clearInterval(checkSelection)
+            if (!selectedSource) {
+              setShowSourceSelector(false)
+              resolve(null)
+            }
+          }, 30000)
+        })
+      } catch (error) {
+        console.error('❌ Error getting desktop sources:', error)
+        // Fallback к стандартному методу
+        return getFallbackScreenStream()
+      }
+    } else {
+      // Стандартный браузерный метод
+      return getFallbackScreenStream()
+    }
+  }, [selectedSource, showSourceSelector])
+
+  const startElectronScreenShare = async (
+    source: DesktopSource
+  ): Promise<MediaStream | null> => {
     try {
-      console.log('🖥️ Requesting screen share...')
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+      console.log('🎯 Starting Electron screen share with source:', source.name)
+
+      // Определяем тип источника
+      const isScreen =
+        source.name.toLowerCase().includes('screen') ||
+        source.name === 'Entire Screen' ||
+        source.name === 'Screen 1' ||
+        source.name === 'Screen 2'
+
+      // Используем any для обхода TypeScript проверок для Electron-specific constraints
+      const constraints: ElectronMediaStreamConstraints = {
         audio: {
-          // Агрессивное эхоподавление
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-
-          // Chrome-специфичные улучшения
-          // @ts-ignore
-          googEchoCancellation: true,
-          googNoiseSuppression: true,
-          googAutoGainControl: true,
-          googHighpassFilter: true,
-          googNoiseSuppression2: true,
-          googEchoCancellation2: true,
-
-          // Экспериментальные настройки
-          // @ts-ignore
-          googBeamforming: true,
-          // @ts-ignore
-          googArrayGeometry: 'circular',
-
-          sampleRate: 48000,
-          channelCount: 2,
-          sampleSize: 16,
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+          },
         },
-      })
-
-      const audioTrack = stream.getAudioTracks()[0]
-      if (audioTrack) {
-        audioTrack.onended = () => {
-          console.log('🔊 System audio ended')
-          stopScreenShare()
-        }
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+            minWidth: 1280,
+            maxWidth: 1920,
+            minHeight: 720,
+            maxHeight: 1080,
+            maxFrameRate: 30,
+          },
+        },
       }
 
-      console.log('🖥️ Screen stream obtained')
+      // Для окон добавляем курсор
+      if (!isScreen) {
+        ;(constraints.video as any).mandatory.cursor = 'always'
+      }
 
-      // Обработчик остановки демонстрации через браузер
+      // Используем any для вызова getUserMedia с Electron constraints
+      const stream = await (navigator.mediaDevices as any).getUserMedia(
+        constraints
+      )
+
+      console.log('✅ Electron screen share started successfully')
+      console.log('Audio tracks:', stream.getAudioTracks().length)
+      console.log('Video tracks:', stream.getVideoTracks().length)
+
+      // Обработчики окончания треков
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
+        track.onended = () => {
+          console.log(`Track ${track.kind} ended`)
+          stopScreenShare()
+        }
+      })
+
+      return stream
+    } catch (error) {
+      console.error('❌ Error starting Electron screen share:', error)
+
+      // Пробуем без звука если с звуком не получилось
+      try {
+        console.log('🔄 Trying without audio...')
+
+        const fallbackConstraints: ElectronMediaStreamConstraints = {
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+              minWidth: 1280,
+              maxWidth: 1920,
+              minHeight: 720,
+              maxHeight: 1080,
+              maxFrameRate: 30,
+            },
+          },
+          audio: false,
+        }
+
+        // Добавляем курсор для окон
+        if (!source.name.toLowerCase().includes('screen')) {
+          ;(fallbackConstraints.video as any).mandatory.cursor = 'always'
+        }
+
+        const fallbackStream = await (
+          navigator.mediaDevices as any
+        ).getUserMedia(fallbackConstraints)
+        console.log('✅ Electron screen share started without audio')
+        return fallbackStream
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError)
+        return null
+      }
+    }
+  }
+
+  const getFallbackScreenStream = async (): Promise<MediaStream | null> => {
+    try {
+      console.log('🖥️ Using fallback screen share method...')
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 },
+        },
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          // @ts-ignore - это опциональный параметр
+          suppressLocalAudioPlayback: true,
+        } as any,
+      })
+
+      console.log('✅ Fallback screen share obtained')
+
       stream.getVideoTracks()[0].onended = () => {
         console.log('🖥️ Screen share ended by browser')
         stopScreenShare()
@@ -331,30 +461,68 @@ export const Room = () => {
 
       return stream
     } catch (error) {
-      console.error('❌ Ошибка доступа к экрану с системным звуком: ', error)
-
-      try {
-        console.log('🔄 Trying screen share without system audio...')
-        const fallbackStream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            // @ts-ignore
-            cursor: 'always',
-            displaySurface: 'screen',
-            width: 1920,
-            height: 1080,
-            frameRate: 60,
-          },
-          audio: false,
-        })
-
-        console.log('✅ Screen share without audio obtained')
-        return fallbackStream
-      } catch (fallbackError) {
-        console.error('❌ Fallback also failed:', fallbackError)
-        return null
-      }
+      console.error('❌ Fallback screen share failed:', error)
+      return null
     }
-  }, [])
+  }
+
+  // Альтернативный подход - более безопасный с TypeScript
+  const startElectronScreenShareSafe = async (
+    source: DesktopSource
+  ): Promise<MediaStream | null> => {
+    try {
+      console.log(
+        '🎯 Starting Electron screen share (safe method):',
+        source.name
+      )
+
+      // Создаем constraints с правильными типами
+      const constraints: MediaStreamConstraints = {}
+
+      // Настраиваем видео constraints
+      const videoConstraints: MediaTrackConstraints = {
+        width: { min: 1280, ideal: 1920, max: 1920 },
+        height: { min: 720, ideal: 1080, max: 1080 },
+        frameRate: { ideal: 30, max: 30 },
+      }
+
+      // Добавляем Electron-specific свойства через расширение
+      ;(videoConstraints as any).mandatory = {
+        chromeMediaSource: 'desktop',
+        chromeMediaSourceId: source.id,
+      }
+
+      // Для окон добавляем курсор
+      if (!source.name.toLowerCase().includes('screen')) {
+        ;(videoConstraints as any).mandatory.cursor = 'always'
+      }
+
+      constraints.video = videoConstraints
+
+      // Настраиваем audio constraints для Electron
+      const audioConstraints: MediaTrackConstraints = {}
+      ;(audioConstraints as any).mandatory = {
+        chromeMediaSource: 'desktop',
+        chromeMediaSourceId: source.id,
+      }
+
+      constraints.audio = audioConstraints
+
+      // Используем any для обхода TypeScript проверок
+      const stream = await (navigator.mediaDevices as any).getUserMedia(
+        constraints
+      )
+
+      console.log('✅ Electron screen share started successfully')
+      console.log('Audio tracks:', stream.getAudioTracks().length)
+      console.log('Video tracks:', stream.getVideoTracks().length)
+
+      return stream
+    } catch (error) {
+      console.error('❌ Error in safe Electron screen share:', error)
+      return getFallbackScreenStream()
+    }
+  }
 
   const startScreenShare = useCallback(async () => {
     if (isScreenSharing) {
@@ -369,18 +537,25 @@ export const Room = () => {
         console.log('🖥️ Screen stream obtained successfully')
         setScreenStream(stream)
         setIsScreenSharing(true)
+        setSelectedSource(null) // Сбрасываем выбор после успешного старта
       } else {
         console.error('❌ Failed to get screen stream')
         setIsScreenSharing(false)
+        setSelectedSource(null)
       }
     } catch (error) {
       console.error('❌ Error starting screen share:', error)
       setIsScreenSharing(false)
+      setSelectedSource(null)
     }
   }, [getScreenStream, isScreenSharing])
 
   const stopScreenShare = useCallback(() => {
     console.log('🖥️ Stopping screen share...')
+
+    // Закрываем селектор если открыт
+    setShowSourceSelector(false)
+    setSelectedSource(null)
 
     // Останавливаем screen stream
     if (screenStream) {
@@ -390,7 +565,7 @@ export const Room = () => {
       setScreenStream(null)
     }
 
-    // Закрываем screen video producer если он есть
+    // Закрываем screen producers
     if (producersRef.current.screen) {
       console.log('🖥️ Closing screen video producer')
       if (socket && roomId) {
@@ -405,7 +580,6 @@ export const Room = () => {
       setScreenProducer(null)
     }
 
-    // Закрываем screen audio producer если он есть
     if (producersRef.current.screenAudio) {
       console.log('🔊 Closing screen audio producer')
       if (socket && roomId) {
@@ -422,9 +596,99 @@ export const Room = () => {
     setIsScreenSharing(false)
   }, [screenStream, socket, roomId])
 
+  const SourceSelector = () => {
+    if (!showSourceSelector) return null
+
+    const handleSourceSelect = (source: DesktopSource) => {
+      setSelectedSource(source)
+      setShowSourceSelector(false)
+    }
+
+    const handleCancel = () => {
+      setSelectedSource(null)
+      setShowSourceSelector(false)
+    }
+
+    // Группируем источники по типу
+    const screens = desktopSources.filter(
+      (source) =>
+        source.name.toLowerCase().includes('screen') ||
+        source.name === 'Entire Screen'
+    )
+
+    const windows = desktopSources.filter((source) => !screens.includes(source))
+
+    return (
+      <div className={cl.sourceSelectorOverlay}>
+        <div className={cl.sourceSelector}>
+          <h3>Выберите что показать</h3>
+
+          {screens.length > 0 && (
+            <div className={cl.sourceGroup}>
+              <h4>Экраны</h4>
+              <div className={cl.sourceList}>
+                {screens.map((source) => (
+                  <div
+                    key={source.id}
+                    className={cl.sourceItem}
+                    onClick={() => handleSourceSelect(source)}
+                  >
+                    <img
+                      src={source.thumbnail}
+                      alt={source.name}
+                      className={cl.sourceThumbnail}
+                    />
+                    <span className={cl.sourceName}>{source.name}</span>
+                    <div className={cl.sourceBadge}>Экран</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {windows.length > 0 && (
+            <div className={cl.sourceGroup}>
+              <h4>Окна приложений</h4>
+              <div className={cl.sourceList}>
+                {windows.map((source) => (
+                  <div
+                    key={source.id}
+                    className={cl.sourceItem}
+                    onClick={() => handleSourceSelect(source)}
+                  >
+                    <img
+                      src={source.thumbnail}
+                      alt={source.name}
+                      className={cl.sourceThumbnail}
+                    />
+                    <span className={cl.sourceName}>
+                      {source.name.length > 30
+                        ? source.name.substring(0, 30) + '...'
+                        : source.name}
+                    </span>
+                    <div className={cl.sourceBadge}>Окно</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className={cl.sourceSelectorActions}>
+            <button onClick={handleCancel} className={cl.cancelButton}>
+              Отмена
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const toggleScreenShare = useCallback(() => {
-    if (isScreenSharing) stopScreenShare()
-    else startScreenShare()
+    if (isScreenSharing) {
+      stopScreenShare()
+    } else {
+      startScreenShare()
+    }
   }, [isScreenSharing, startScreenShare, stopScreenShare])
 
   // Обработка создания screen producer при получении screenStream
@@ -1661,6 +1925,7 @@ export const Room = () => {
   // Отрисовка всего компонента
   return (
     <div className={cl.roomContainer}>
+      <SourceSelector />
       {focus ? (
         <div className={cl.focusModeContainer}>
           <div
