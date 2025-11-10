@@ -14,8 +14,14 @@ import { useAppSelector } from '../../store'
 import closeStreamIcon from './images/close-stream-icon.png'
 import { CallInteraction } from '../CallInteraction/CallInteraction'
 import { IFocus } from './roomTypes'
-import { isElectron, canCaptureSystemAudio } from './electronHelpers'
+import {
+  isElectron,
+  canCaptureSystemAudio,
+  checkSystemAudioSupport,
+  checkScreenShareSupport,
+} from './electronHelpers'
 import { DesktopSource } from '../../types/electron'
+
 // Интерфейс для данных о потребителе медиа
 export interface ConsumerData {
   consumer: any // объект Consumer - получает медиа от других пользователей
@@ -162,11 +168,7 @@ export const Room = () => {
 
         // Всегда получаем аудио с микрофона
         const audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: echo,
-            noiseSuppression: noise,
-            autoGainControl: autoGain,
-          },
+          audio: true,
           video: false, // только аудио
         })
         streams.push(audioStream)
@@ -203,11 +205,12 @@ export const Room = () => {
   )
 
   // Создание Producer - объекта, который отправляет медиа данные на сервер
+  // Создание Producer - объекта, который отправляет медиа данные на сервер
   const createProducer = useCallback(
     async (transport: any, stream: MediaStream, kind: string) => {
       // проверка, что транспорт и стрим инициализированы
       if (!transport || !stream) {
-        console.error('ERR: !transport || !stream')
+        console.error('ERR: !transport || !stream for', kind)
         return null
       }
 
@@ -218,6 +221,18 @@ export const Room = () => {
             ? stream.getAudioTracks()
             : stream.getVideoTracks()
 
+        console.log(`🔍 Checking tracks for ${kind}:`, {
+          tracksCount: tracks.length,
+          tracks: tracks.map((t) => ({
+            id: t.id,
+            kind: t.kind,
+            label: t.label,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+        })
+
         if (tracks.length === 0) {
           console.error('ERR: no tracks for', kind)
           return null
@@ -226,7 +241,7 @@ export const Room = () => {
         const track = tracks[0]
 
         if (track.readyState !== 'live') {
-          console.error('Track is not live:', kind)
+          console.error('Track is not live:', kind, track.readyState)
           return null
         }
 
@@ -235,6 +250,7 @@ export const Room = () => {
 
         // если такой продюсер уже существует, то закрываем старый
         if (producersRef.current[producerKey]) {
+          console.log(`🔄 Closing existing ${producerKey} producer`)
           producersRef.current[producerKey].close()
           producersRef.current[producerKey] = null
         }
@@ -249,23 +265,29 @@ export const Room = () => {
           avatar: currentUserAvatar,
         }
 
+        console.log(`🎯 Creating ${kind} producer with appData:`, appData)
+
         // создаем новый продюсер
         const producer = await transport.produce({
           track,
           appData,
         })
 
+        console.log(`✅ ${kind} producer created successfully:`, producer.id)
+
         producersRef.current[producerKey] = producer
 
         // Сохраняем в соответствующем state
         if (kind === 'screen' || kind === 'screenAudio') {
           setScreenProducer(producer)
+          console.log(`📝 Set screenProducer for ${kind}:`, producer.id)
         } else {
           setProducers((prev) => ({ ...prev, [kind]: producer }))
         }
 
         // Обработчики событий продюсера
         producer.on('transportclose', () => {
+          console.log(`🚪 ${kind} producer transport closed`)
           producersRef.current[producerKey] = null
           if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
@@ -275,6 +297,7 @@ export const Room = () => {
         })
 
         producer.on('trackended', () => {
+          console.log(`⏹️ ${kind} producer track ended`)
           producersRef.current[producerKey] = null
           if (kind === 'screen' || kind === 'screenAudio') {
             setScreenProducer(null)
@@ -285,7 +308,7 @@ export const Room = () => {
 
         return producer
       } catch (error) {
-        console.error('Ошибка при создании Producer:', error)
+        console.error(`❌ Ошибка при создании ${kind} Producer:`, error)
         return null
       }
     },
@@ -294,115 +317,81 @@ export const Room = () => {
 
   // ! ЗДЕСЬ СДЕЛАЕМ ДЕМКУ
 
-  const getScreenStream = useCallback(async () => {
-    // Если мы в Electron - используем расширенный функционал
-    if (isElectron() && window.electronAPI) {
-      try {
-        console.log('🖥️ Requesting desktop sources from Electron...')
-
-        // Получаем список всех доступных окон и экранов
-        const sources = await window.electronAPI.getDesktopSources({
-          types: ['window', 'screen'],
-        })
-
-        setDesktopSources(sources)
-        setShowSourceSelector(true)
-
-        // Ждем выбора пользователя
-        return new Promise<MediaStream | null>((resolve) => {
-          const checkSelection = setInterval(() => {
-            if (selectedSource && !showSourceSelector) {
-              clearInterval(checkSelection)
-              // Используем безопасный метод
-              startElectronScreenShareSafe(selectedSource).then(resolve)
-            }
-          }, 100)
-
-          // Таймаут на случай если пользователь отменит выбор
-          setTimeout(() => {
-            clearInterval(checkSelection)
-            if (!selectedSource) {
-              setShowSourceSelector(false)
-              resolve(null)
-            }
-          }, 30000)
-        })
-      } catch (error) {
-        console.error('❌ Error getting desktop sources:', error)
-        // Fallback к стандартному методу
-        return getFallbackScreenStream()
-      }
-    } else {
-      // Стандартный браузерный метод
-      return getFallbackScreenStream()
+  const getScreenStream = useCallback(async (): Promise<MediaStream | null> => {
+    // Проверяем, что electronAPI доступен
+    if (!window.electronAPI) {
+      console.error('❌ Electron API is not available')
+      alert('Electron API не доступен. Проверьте настройки приложения.')
+      return null
     }
-  }, [selectedSource, showSourceSelector])
 
-  const startElectronScreenShare = async (
+    try {
+      console.log('🖥️ Requesting desktop sources from Electron...')
+
+      // Получаем список всех доступных окон и экранов
+      const sources = await window.electronAPI.getDesktopSources({
+        types: ['window', 'screen'],
+      })
+
+      if (!sources || sources.length === 0) {
+        console.error('❌ No desktop sources available')
+        alert('Не удалось найти доступные источники для демонстрации экрана')
+        return null
+      }
+
+      console.log('✅ Desktop sources received:', sources.length)
+      setDesktopSources(sources)
+      setShowSourceSelector(true)
+
+      // Возвращаем null - ждем выбора пользователя
+      return null
+    } catch (error: any) {
+      console.error('❌ Error getting desktop sources:', error)
+
+      // Проверяем, если это ошибка отсутствия обработчика
+      if (
+        error.message?.includes('No handler registered') ||
+        error.message?.includes('get-desktop-sources')
+      ) {
+        console.error(
+          '❌ Electron main process missing get-desktop-sources handler'
+        )
+        alert('Ошибка конфигурации приложения. Перезапустите приложение.')
+      } else {
+        alert('Ошибка при получении списка источников для демонстрации')
+      }
+
+      return null
+    }
+  }, [])
+
+  const startElectronScreenShareSafe = async (
     source: DesktopSource
   ): Promise<MediaStream | null> => {
     try {
       console.log('🎯 Starting Electron screen share with source:', source.name)
 
-      // Определяем тип источника
+      const hasAccess = await checkScreenShareSupport()
+      if (!hasAccess) {
+        alert('Нет доступа к захвату экрана. Проверьте разрешения системы.')
+        return null
+      }
+
       const isScreen =
         source.name.toLowerCase().includes('screen') ||
         source.name === 'Entire Screen' ||
-        source.name === 'Screen 1' ||
-        source.name === 'Screen 2'
+        source.name.startsWith('Screen ')
 
-      // Используем any для обхода TypeScript проверок для Electron-specific constraints
-      const constraints: ElectronMediaStreamConstraints = {
-        audio: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: source.id,
+      // Улучшенные варианты constraints с приоритетом на системный звук
+      const constraintsVariants = [
+        // Вариант 1: Полная конфигурация с системным звуком
+        {
+          audio: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+            },
           },
-        },
-        video: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: source.id,
-            minWidth: 1280,
-            maxWidth: 1920,
-            minHeight: 720,
-            maxHeight: 1080,
-            maxFrameRate: 30,
-          },
-        },
-      }
-
-      // Для окон добавляем курсор
-      if (!isScreen) {
-        ;(constraints.video as any).mandatory.cursor = 'always'
-      }
-
-      // Используем any для вызова getUserMedia с Electron constraints
-      const stream = await (navigator.mediaDevices as any).getUserMedia(
-        constraints
-      )
-
-      console.log('✅ Electron screen share started successfully')
-      console.log('Audio tracks:', stream.getAudioTracks().length)
-      console.log('Video tracks:', stream.getVideoTracks().length)
-
-      // Обработчики окончания треков
-      stream.getTracks().forEach((track: MediaStreamTrack) => {
-        track.onended = () => {
-          console.log(`Track ${track.kind} ended`)
-          stopScreenShare()
-        }
-      })
-
-      return stream
-    } catch (error) {
-      console.error('❌ Error starting Electron screen share:', error)
-
-      // Пробуем без звука если с звуком не получилось
-      try {
-        console.log('🔄 Trying without audio...')
-
-        const fallbackConstraints: ElectronMediaStreamConstraints = {
           video: {
             mandatory: {
               chromeMediaSource: 'desktop',
@@ -412,115 +401,178 @@ export const Room = () => {
               minHeight: 720,
               maxHeight: 1080,
               maxFrameRate: 30,
+              ...(isScreen ? {} : { cursor: 'always' }),
             },
           },
-          audio: false,
-        }
-
-        // Добавляем курсор для окон
-        if (!source.name.toLowerCase().includes('screen')) {
-          ;(fallbackConstraints.video as any).mandatory.cursor = 'always'
-        }
-
-        const fallbackStream = await (
-          navigator.mediaDevices as any
-        ).getUserMedia(fallbackConstraints)
-        console.log('✅ Electron screen share started without audio')
-        return fallbackStream
-      } catch (fallbackError) {
-        console.error('❌ Fallback also failed:', fallbackError)
-        return null
-      }
-    }
-  }
-
-  const getFallbackScreenStream = async (): Promise<MediaStream | null> => {
-    try {
-      console.log('🖥️ Using fallback screen share method...')
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30 },
         },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          // @ts-ignore - это опциональный параметр
-          suppressLocalAudioPlayback: true,
-        } as any,
-      })
+        // Вариант 2: Упрощенная конфигурация с системным звуком
+        {
+          audio: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+            },
+          },
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+            },
+          },
+        },
+        // Вариант 3: Без указания sourceId для аудио (только для Windows)
+        {
+          audio: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+            },
+          },
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+            },
+          },
+        },
+        // Вариант 4: Без системного звука (fallback)
+        {
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: source.id,
+              width: 1920,
+              height: 1080,
+              maxFrameRate: 60,
+              ...(isScreen ? {} : { cursor: 'always' }),
+            },
+          },
+        },
+      ]
 
-      console.log('✅ Fallback screen share obtained')
+      let lastError: any = null
 
-      stream.getVideoTracks()[0].onended = () => {
-        console.log('🖥️ Screen share ended by browser')
-        stopScreenShare()
+      for (let i = 0; i < constraintsVariants.length; i++) {
+        try {
+          console.log(`🔄 Trying constraints variant ${i + 1}...`)
+
+          // Пропускаем вариант 3 если не Windows
+          const platform = window.electronAPI?.platform || process.platform
+          if (i === 2 && platform !== 'win32') {
+            console.log('Skipping variant 3 (Windows-only audio configuration)')
+            continue
+          }
+
+          const stream = await (navigator.mediaDevices as any).getUserMedia(
+            constraintsVariants[i]
+          )
+
+          const audioTracks = stream.getAudioTracks()
+          const videoTracks = stream.getVideoTracks()
+
+          console.log(`✅ Success with variant ${i + 1}`)
+          console.log(`🎵 Audio tracks: ${audioTracks.length}`)
+          console.log(`🎥 Video tracks: ${videoTracks.length}`)
+
+          // Детальная информация о треках
+          audioTracks.forEach((track: any, index: any) => {
+            console.log(`🔊 Audio track ${index}:`, {
+              id: track.id,
+              kind: track.kind,
+              label: track.label,
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+            })
+          })
+
+          videoTracks.forEach((track: any, index: any) => {
+            console.log(`🎥 Video track ${index}:`, {
+              id: track.id,
+              kind: track.kind,
+              label: track.label,
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+            })
+          })
+
+          if (audioTracks.length > 0) {
+            console.log('🔊 System audio is being captured')
+          } else {
+            console.log('🔇 System audio is not available')
+          }
+
+          // Обработчики окончания треков
+          stream.getTracks().forEach((track: MediaStreamTrack) => {
+            track.onended = () => {
+              console.log(`Track ${track.kind} ended`)
+              stopScreenShare()
+            }
+          })
+
+          return stream
+        } catch (error) {
+          lastError = error
+          console.log(`❌ Variant ${i + 1} failed:`, error)
+
+          if (i === constraintsVariants.length - 1) {
+            throw error
+          }
+        }
       }
 
-      return stream
-    } catch (error) {
-      console.error('❌ Fallback screen share failed:', error)
+      throw lastError
+    } catch (error: any) {
+      console.error('❌ All screen share attempts failed:', error)
+
+      let errorMessage = 'Не удалось начать демонстрацию экрана.'
+
+      if (error.name === 'NotAllowedError') {
+        errorMessage =
+          'Доступ к захвату экрана запрещен. Проверьте разрешения системы.'
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'Не удалось найти источник для демонстрации.'
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Системный звук недоступен для этого источника.'
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = 'Требования к медиа не могут быть удовлетворены.'
+      }
+
+      alert(errorMessage)
       return null
     }
   }
 
-  // Альтернативный подход - более безопасный с TypeScript
-  const startElectronScreenShareSafe = async (
-    source: DesktopSource
-  ): Promise<MediaStream | null> => {
+  const checkAndRequestPermissions = async (): Promise<boolean> => {
+    if (!isElectron()) return true
+
     try {
-      console.log(
-        '🎯 Starting Electron screen share (safe method):',
-        source.name
-      )
+      console.log('🔐 Checking screen capture permissions...')
 
-      // Создаем constraints с правильными типами
-      const constraints: MediaStreamConstraints = {}
+      // Проверяем доступ к захвату экрана
+      const hasScreenAccess = await checkScreenShareSupport()
 
-      // Настраиваем видео constraints
-      const videoConstraints: MediaTrackConstraints = {
-        width: { min: 1280, ideal: 1920, max: 1920 },
-        height: { min: 720, ideal: 1080, max: 1080 },
-        frameRate: { ideal: 30, max: 30 },
+      if (!hasScreenAccess) {
+        console.log('❌ No screen capture access')
+
+        // На macOS можно показать инструкцию
+        if (window.electronAPI?.platform === 'darwin') {
+          alert(
+            'Для демонстрации экрана необходимо предоставить разрешение. ' +
+              'Откройте Системные настройки > Защита и безопасность > Конфиденциальность > Запись экрана ' +
+              'и разрешите приложению записывать экран.'
+          )
+        }
+
+        return false
       }
 
-      // Добавляем Electron-specific свойства через расширение
-      ;(videoConstraints as any).mandatory = {
-        chromeMediaSource: 'desktop',
-        chromeMediaSourceId: source.id,
-      }
-
-      // Для окон добавляем курсор
-      if (!source.name.toLowerCase().includes('screen')) {
-        ;(videoConstraints as any).mandatory.cursor = 'always'
-      }
-
-      constraints.video = videoConstraints
-
-      // Настраиваем audio constraints для Electron
-      const audioConstraints: MediaTrackConstraints = {}
-      ;(audioConstraints as any).mandatory = {
-        chromeMediaSource: 'desktop',
-        chromeMediaSourceId: source.id,
-      }
-
-      constraints.audio = audioConstraints
-
-      // Используем any для обхода TypeScript проверок
-      const stream = await (navigator.mediaDevices as any).getUserMedia(
-        constraints
-      )
-
-      console.log('✅ Electron screen share started successfully')
-      console.log('Audio tracks:', stream.getAudioTracks().length)
-      console.log('Video tracks:', stream.getVideoTracks().length)
-
-      return stream
+      console.log('✅ Screen capture permissions granted')
+      return true
     } catch (error) {
-      console.error('❌ Error in safe Electron screen share:', error)
-      return getFallbackScreenStream()
+      console.error('Error checking permissions:', error)
+      return false
     }
   }
 
@@ -532,21 +584,19 @@ export const Room = () => {
 
     try {
       console.log('🖥️ Starting screen share...')
-      const stream = await getScreenStream()
-      if (stream) {
-        console.log('🖥️ Screen stream obtained successfully')
-        setScreenStream(stream)
-        setIsScreenSharing(true)
-        setSelectedSource(null) // Сбрасываем выбор после успешного старта
-      } else {
-        console.error('❌ Failed to get screen stream')
+
+      // Проверяем разрешения перед началом
+      const hasPermissions = await checkAndRequestPermissions()
+      if (!hasPermissions) {
         setIsScreenSharing(false)
-        setSelectedSource(null)
+        return
       }
+
+      const stream = await getScreenStream()
+      // Дальнейшая логика остается без изменений
     } catch (error) {
       console.error('❌ Error starting screen share:', error)
       setIsScreenSharing(false)
-      setSelectedSource(null)
     }
   }, [getScreenStream, isScreenSharing])
 
@@ -559,7 +609,9 @@ export const Room = () => {
 
     // Останавливаем screen stream
     if (screenStream) {
+      console.log('🛑 Stopping screen stream tracks...')
       screenStream.getTracks().forEach((track) => {
+        console.log(`🛑 Stopping track: ${track.kind} - ${track.id}`)
         track.stop()
       })
       setScreenStream(null)
@@ -567,7 +619,10 @@ export const Room = () => {
 
     // Закрываем screen producers
     if (producersRef.current.screen) {
-      console.log('🖥️ Closing screen video producer')
+      console.log(
+        '🖥️ Closing screen video producer:',
+        producersRef.current.screen.id
+      )
       if (socket && roomId) {
         socket.emit('producer-close', {
           producerId: producersRef.current.screen.id,
@@ -581,7 +636,10 @@ export const Room = () => {
     }
 
     if (producersRef.current.screenAudio) {
-      console.log('🔊 Closing screen audio producer')
+      console.log(
+        '🔊 Closing screen audio producer:',
+        producersRef.current.screenAudio.id
+      )
       if (socket && roomId) {
         socket.emit('producer-close', {
           producerId: producersRef.current.screenAudio.id,
@@ -591,29 +649,82 @@ export const Room = () => {
       }
       producersRef.current.screenAudio.close()
       producersRef.current.screenAudio = null
+    } else {
+      console.log('❌ No screen audio producer found to close')
     }
 
     setIsScreenSharing(false)
+    console.log('✅ Screen share stopped completely')
   }, [screenStream, socket, roomId])
 
   const SourceSelector = () => {
+    // Хуки должны вызываться на верхнем уровне, ДО любого условия
+    const [systemAudioSupported, setSystemAudioSupported] =
+      useState<boolean>(false)
+
+    // Проверяем поддержку системного звука при монтировании
+    useEffect(() => {
+      const checkAudioSupport = async () => {
+        const supported = await checkSystemAudioSupport()
+        setSystemAudioSupported(supported)
+      }
+      checkAudioSupport()
+    }, [])
+
+    // Условие возврата null должно быть ПОСЛЕ всех хуков
     if (!showSourceSelector) return null
 
-    const handleSourceSelect = (source: DesktopSource) => {
+    const handleSourceSelect = async (source: DesktopSource) => {
+      console.log('🎯 User selected source:', source.name)
       setSelectedSource(source)
       setShowSourceSelector(false)
+
+      try {
+        console.log('🔄 Starting screen share with selected source...')
+        const stream = await startElectronScreenShareSafe(source)
+
+        if (stream) {
+          console.log('✅ Screen stream obtained successfully from selection')
+
+          // Логируем информацию о треках
+          const audioTracks = stream.getAudioTracks()
+          const videoTracks = stream.getVideoTracks()
+          console.log(`🎵 Audio tracks: ${audioTracks.length}`)
+          console.log(`🎥 Video tracks: ${videoTracks.length}`)
+
+          if (audioTracks.length > 0) {
+            console.log('🔊 System audio is being captured')
+          } else {
+            console.log('🔇 System audio is not available')
+          }
+
+          setScreenStream(stream)
+          setIsScreenSharing(true)
+        } else {
+          console.error('❌ Failed to get screen stream from selected source')
+          setIsScreenSharing(false)
+        }
+      } catch (error) {
+        console.error(
+          '❌ Error starting screen share with selected source:',
+          error
+        )
+        setIsScreenSharing(false)
+      }
     }
 
     const handleCancel = () => {
-      setSelectedSource(null)
+      console.log('❌ User cancelled screen share')
       setShowSourceSelector(false)
+      setSelectedSource(null)
     }
 
     // Группируем источники по типу
     const screens = desktopSources.filter(
       (source) =>
         source.name.toLowerCase().includes('screen') ||
-        source.name === 'Entire Screen'
+        source.name === 'Entire Screen' ||
+        source.name.startsWith('Screen ')
     )
 
     const windows = desktopSources.filter((source) => !screens.includes(source))
@@ -623,12 +734,25 @@ export const Room = () => {
         <div className={cl.sourceSelector}>
           <h3>Выберите что показать</h3>
 
+          {/* Информация о системном звуке */}
+          <div className={cl.audioInfo}>
+            {systemAudioSupported ? (
+              <div className={cl.audioSupported}>
+                🔊 Системный звук будет передан автоматически
+              </div>
+            ) : (
+              <div className={cl.audioNotSupported}>
+                🔇 Системный звук не поддерживается на вашей платформе
+              </div>
+            )}
+          </div>
+
           {screens.length > 0 && (
             <div className={cl.sourceGroup}>
               <h4>Экраны</h4>
               <div className={cl.sourceList}>
                 {screens.map((source) => (
-                  <div
+                  <button
                     key={source.id}
                     className={cl.sourceItem}
                     onClick={() => handleSourceSelect(source)}
@@ -639,8 +763,10 @@ export const Room = () => {
                       className={cl.sourceThumbnail}
                     />
                     <span className={cl.sourceName}>{source.name}</span>
-                    <div className={cl.sourceBadge}>Экран</div>
-                  </div>
+                    <div className={cl.sourceBadge}>
+                      Экран {systemAudioSupported && '🔊'}
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -651,7 +777,7 @@ export const Room = () => {
               <h4>Окна приложений</h4>
               <div className={cl.sourceList}>
                 {windows.map((source) => (
-                  <div
+                  <button
                     key={source.id}
                     className={cl.sourceItem}
                     onClick={() => handleSourceSelect(source)}
@@ -666,8 +792,10 @@ export const Room = () => {
                         ? source.name.substring(0, 30) + '...'
                         : source.name}
                     </span>
-                    <div className={cl.sourceBadge}>Окно</div>
-                  </div>
+                    <div className={cl.sourceBadge}>
+                      Окно {systemAudioSupported && '🔊'}
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -695,32 +823,113 @@ export const Room = () => {
   useEffect(() => {
     const createScreenProducer = async () => {
       if (!screenStream || !sendTransport || !isConnected) {
+        console.log(
+          '❌ Cannot create screen producer - missing requirements:',
+          {
+            screenStream: !!screenStream,
+            sendTransport: !!sendTransport,
+            isConnected,
+          }
+        )
         return
       }
 
       try {
         console.log('🖥️ Creating screen producers...')
 
+        // Детальная информация о screenStream
+        const audioTracks = screenStream.getAudioTracks()
+        const videoTracks = screenStream.getVideoTracks()
+
+        console.log('📊 Screen stream analysis:', {
+          audioTracks: audioTracks.length,
+          videoTracks: videoTracks.length,
+          audioTrackDetails: audioTracks.map((track) => ({
+            id: track.id,
+            kind: track.kind,
+            label: track.label,
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+          })),
+          videoTrackDetails: videoTracks.map((track) => ({
+            id: track.id,
+            kind: track.kind,
+            label: track.label,
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+          })),
+        })
+
         // Создаем видео продюсер для демки
         const screenVideoTrack = screenStream.getVideoTracks()[0]
         if (screenVideoTrack) {
-          await createProducer(
+          console.log('🎥 Creating screen video producer...')
+          const videoStream = new MediaStream([screenVideoTrack])
+          const videoProducer = await createProducer(
             sendTransport,
-            new MediaStream([screenVideoTrack]),
+            videoStream,
             'screen'
           )
-          console.log('✅ Screen video producer created successfully')
+          if (videoProducer) {
+            console.log(
+              '✅ Screen video producer created successfully:',
+              videoProducer.id
+            )
+          } else {
+            console.log('❌ Failed to create screen video producer')
+          }
+        } else {
+          console.log('❌ No screen video track available')
         }
 
         // Создаем аудио продюсер для системного звука
         const screenAudioTrack = screenStream.getAudioTracks()[0]
         if (screenAudioTrack) {
-          await createProducer(
+          console.log('🔊 Creating screen audio producer...')
+
+          // Проверяем, что аудио трек активен
+          if (screenAudioTrack.readyState === 'ended') {
+            console.log('❌ Screen audio track has ended')
+            return
+          }
+
+          const audioStream = new MediaStream([screenAudioTrack])
+          const audioProducer = await createProducer(
             sendTransport,
-            new MediaStream([screenAudioTrack]),
+            audioStream,
             'screenAudio'
           )
-          console.log('✅ Screen audio producer created successfully')
+
+          if (audioProducer) {
+            console.log(
+              '✅ Screen audio producer created successfully:',
+              audioProducer.id
+            )
+
+            // Проверяем, что продюсер действительно создался
+            if (producersRef.current.screenAudio) {
+              console.log('🎯 Screen audio producer confirmed in producersRef')
+            } else {
+              console.log('❌ Screen audio producer NOT found in producersRef')
+            }
+          } else {
+            console.log('❌ Failed to create screen audio producer')
+          }
+        } else {
+          console.log('❌ No screen audio track available')
+
+          // Логируем дополнительную информацию для отладки
+          console.log('🔍 All tracks in screenStream:', {
+            tracks: screenStream.getTracks().map((t) => ({
+              kind: t.kind,
+              id: t.id,
+              label: t.label,
+              readyState: t.readyState,
+              enabled: t.enabled,
+            })),
+          })
         }
       } catch (error) {
         console.error('❌ Error creating screen producers:', error)
@@ -728,6 +937,7 @@ export const Room = () => {
     }
 
     if (screenStream && isScreenSharing) {
+      console.log('🚀 Triggering screen producer creation...')
       createScreenProducer()
     }
   }, [
@@ -787,14 +997,23 @@ export const Room = () => {
   }, [socket]) // в зависимостях только socket
 
   // Создание Consumer - объекта, который получает медиа данные от других пользователей
+  // Создание Consumer - объекта, который получает медиа данные от других пользователей
   const handleCreateConsumer = useCallback(
     async (producerData: ProducerData) => {
       // проверка, что девайс и транспорт получения инициализированы
       if (!recvTransportRef.current || !device) {
+        console.error(
+          '❌ Cannot create consumer - missing recvTransport or device'
+        )
         return null
       }
 
       try {
+        console.log(
+          `🔧 Creating ${producerData.kind} consumer for producer:`,
+          producerData.producerId
+        )
+
         const consumer = await createConsumer(
           producerData.producerId,
           //@ts-ignore
@@ -802,11 +1021,16 @@ export const Room = () => {
         )
 
         if (!consumer) {
+          console.error('❌ Failed to create consumer')
           return null
         }
 
+        console.log(`✅ ${producerData.kind} consumer created:`, consumer.id)
+
         // если консюмер с типом аудио и у него есть трек
         if (consumer.kind === 'audio' && consumer.track) {
+          console.log('🎵 Setting up audio element for consumer:', consumer.id)
+
           const audioElement = document.createElement('audio')
           audioElement.srcObject = new MediaStream([consumer.track])
           audioElement.autoplay = true
@@ -821,22 +1045,34 @@ export const Room = () => {
             const userId = producerData.userId
             const isScreenOpened = openedScreens.includes(userId)
 
+            console.log('🖥️ Screen audio settings:', {
+              userId,
+              isScreenAudio,
+              isScreenOpened,
+              openedScreens,
+            })
+
             if (!isScreenOpened) {
               audioElement.pause()
               audioElement.muted = true
+              console.log(
+                '🔇 Screen audio paused and muted (screen not opened)'
+              )
+            } else {
+              console.log('🔊 Screen audio ready to play (screen opened)')
             }
           }
 
           audioElement.oncanplaythrough = () => {
             console.log(
-              'Audio element ready to play for consumer:',
+              '🎧 Audio element ready to play for consumer:',
               consumer.id
             )
           }
 
           audioElement.onerror = (error) => {
             console.error(
-              'Audio element error for consumer:',
+              '❌ Audio element error for consumer:',
               consumer.id,
               error
             )
@@ -849,12 +1085,21 @@ export const Room = () => {
           const playAudioWithRetry = async (retryCount = 0) => {
             try {
               await audioElement.play()
+              console.log(
+                '▶️ Audio playback started for consumer:',
+                consumer.id
+              )
             } catch (error: any) {
               if (error.name === 'AbortError') {
                 return
               } else if (error.name === 'NotAllowedError') {
+                console.log(
+                  '⏸️ Audio play not allowed, will retry:',
+                  consumer.id
+                )
                 return
               } else {
+                console.error('❌ Audio play error:', error)
                 if (retryCount < 3 && error.name !== 'AbortError') {
                   setTimeout(
                     () => playAudioWithRetry(retryCount + 1),
@@ -870,16 +1115,20 @@ export const Room = () => {
             !producerData.appData?.isScreenShare ||
             openedScreens.includes(producerData.userId)
           ) {
+            console.log('🚀 Starting audio playback for consumer:', consumer.id)
             playAudioWithRetry()
+          } else {
+            console.log('⏸️ Screen audio playback deferred (screen not opened)')
           }
         }
 
         return consumer
       } catch (error) {
+        console.error('❌ Error in handleCreateConsumer:', error)
         return null
       }
     },
-    [device, createConsumer, openedScreens] // Добавляем openedScreens в зависимости
+    [device, createConsumer, openedScreens]
   )
 
   // Базовая очистка при размонтировании
@@ -898,7 +1147,7 @@ export const Room = () => {
     const handleNewProducer = async (data: ProducerData) => {
       // Пропускаем собственные продюсеры
       if (data.userId === userIdRef.current) {
-        console.log('Skipping own producer')
+        console.log('Skipping own producer:', data.producerId, data.kind)
         return
       }
 
@@ -907,6 +1156,14 @@ export const Room = () => {
         console.log('Consumer already exists for producer:', data.producerId)
         return
       }
+
+      console.log('🎯 Processing new producer:', {
+        producerId: data.producerId,
+        kind: data.kind,
+        userId: data.userId,
+        isScreenShare: data.appData?.isScreenShare,
+        username: data.username,
+      })
 
       // Для обычного аудио проверяем, нет ли уже аудио consumer от этого пользователя
       if (data.kind === 'audio' && !data.appData?.isScreenShare) {
@@ -941,7 +1198,7 @@ export const Room = () => {
 
       try {
         console.log(
-          'Received new producer:',
+          '🎵 Creating consumer for producer:',
           data.producerId,
           data.kind,
           'from user:',
@@ -966,6 +1223,8 @@ export const Room = () => {
           )
           return
         }
+
+        console.log('✅ Consumer created successfully:', consumer.id)
 
         // Обновляем consumers
         setConsumers((prev: any) => {
@@ -1026,14 +1285,13 @@ export const Room = () => {
         })
 
         console.log(
-          'Successfully created consumer for producer:',
+          '🎉 Successfully created and registered consumer for producer:',
           data.producerId
         )
       } catch (error) {
         console.error('Ошибка при создании consumer:', error)
       }
     }
-
     // функция обработчик закрытия продюсера (чужого)
     const handleProducerClose = (data: { producerId: string }) => {
       // обработчик закрытия продюсеров

@@ -1,179 +1,124 @@
+// В main.js (main process Electron)
 const {
   app,
   BrowserWindow,
   desktopCapturer,
-  ipcMain,
   systemPreferences,
+  ipcMain,
 } = require('electron')
+
 const path = require('path')
-const isDev = process.env.NODE_ENV === 'development'
+
+app.commandLine.appendSwitch('enable-webrtc-audio-processing')
+app.commandLine.appendSwitch('enable-features', 'WebRtcHideLocalIpsWithMdns')
 
 let mainWindow
+
+app.setAsDefaultProtocolClient('lynk')
+app.setAppUserModelId('com.lynk.screenshare')
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    minWidth: 800,
-    minHeight: 600,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      enableBlinkFeatures: 'MediaDevices',
+      webSecurity: false, // для разработки
+      allowRunningInsecureContent: true, // для разработки
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: !isDev,
-      allowRunningInsecureContent: isDev,
     },
-    show: false,
   })
 
-  // DEVELOPMENT: React dev server
+  // Разрешения для захвата экрана
+  mainWindow.webContents.session.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      const allowedPermissions = [
+        'desktopCapture',
+        'display-capture',
+        'media',
+        'camera',
+        'microphone',
+      ]
 
-  mainWindow.loadURL('http://localhost:3000')
-  mainWindow.webContents.openDevTools()
-
-  // Показываем окно когда контент загружен
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show()
-
-    if (process.platform === 'darwin') {
-      app.dock.show()
-    }
-  })
-
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
-
-  // Логируем ошибки загрузки
-  mainWindow.webContents.on(
-    'did-fail-load',
-    (event, errorCode, errorDescription) => {
-      console.error('Failed to load:', errorCode, errorDescription)
+      if (allowedPermissions.includes(permission)) {
+        console.log(`✅ Permission granted: ${permission}`)
+        callback(true)
+      } else {
+        console.log(`❌ Permission denied: ${permission}`)
+        callback(false)
+      }
     }
   )
-}
 
-// Функция запроса разрешений
-async function requestMediaPermissions() {
-  try {
-    // Запрашиваем разрешения для macOS
-    if (process.platform === 'darwin') {
-      // Проверяем текущий статус разрешений
-      const cameraStatus = systemPreferences.getMediaAccessStatus('camera')
-      const microphoneStatus =
-        systemPreferences.getMediaAccessStatus('microphone')
-      const screenStatus = systemPreferences.getMediaAccessStatus('screen')
-
-      console.log('📷 Camera permission status:', cameraStatus)
-      console.log('🎤 Microphone permission status:', microphoneStatus)
-      console.log('🖥️ Screen recording permission status:', screenStatus)
-
-      // Запрашиваем разрешения если они не предоставлены
-      if (cameraStatus !== 'granted') {
-        const cameraGranted =
-          await systemPreferences.askForMediaAccess('camera')
-        console.log('📷 Camera access granted:', cameraGranted)
-      }
-
-      if (microphoneStatus !== 'granted') {
-        const microphoneGranted =
-          await systemPreferences.askForMediaAccess('microphone')
-        console.log('🎤 Microphone access granted:', microphoneGranted)
-      }
-
-      // Для записи экрана в macOS нужно специальное разрешение в настройках системы
-      if (screenStatus !== 'granted') {
-        console.warn('⚠️ Screen recording permission not granted!')
-        console.log(
-          '🔧 Please enable screen recording in System Preferences > Security & Privacy > Privacy > Screen Recording'
-        )
-      }
+  // Разрешить проверку разрешений
+  mainWindow.webContents.session.setPermissionCheckHandler(
+    (webContents, permission, requestingOrigin, details) => {
+      const allowedPermissions = [
+        'desktopCapture',
+        'display-capture',
+        'media',
+        'camera',
+        'microphone',
+      ]
+      return allowedPermissions.includes(permission)
     }
+  )
 
-    // Для Windows и Linux разрешения запрашиваются через браузерные API
-  } catch (error) {
-    console.error('❌ Error requesting media permissions:', error)
-  }
+  mainWindow.webContents.openDevTools()
+  mainWindow.loadURL('http://localhost:3000') // или ваш URL
 }
 
-// Инициализация приложения
+// Запрос разрешений для macOS
 app.whenReady().then(() => {
-  createWindow()
-
-  // Запрашиваем разрешения после создания окна
-  requestMediaPermissions()
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
-
-// IPC handlers для функциональности стримов
-ipcMain.handle('GET_DESKTOP_SOURCES', async (event, options) => {
-  try {
-    const sources = await desktopCapturer.getSources({
-      types: ['window', 'screen'],
-      thumbnailSize: { width: 150, height: 150 },
+  // Запрос разрешений для macOS
+  if (process.platform === 'darwin') {
+    systemPreferences.askForMediaAccess('screen').then((granted) => {
+      console.log('Screen capture access:', granted)
     })
 
-    return sources.map((source) => ({
-      id: source.id,
-      name: source.name,
-      thumbnail: source.thumbnail.toDataURL(),
-    }))
+    // Дополнительные разрешения для звука
+    systemPreferences.askForMediaAccess('microphone').then((granted) => {
+      console.log('Microphone access:', granted)
+    })
+  }
+
+  createWindow()
+})
+
+// Обработчик для получения источников рабочего стола - ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК
+ipcMain.handle('get-desktop-sources', async (event, options) => {
+  try {
+    console.log('🖥️ Main: Getting desktop sources with options:', options)
+    const sources = await desktopCapturer.getSources(options)
+    console.log(`✅ Main: Found ${sources.length} desktop sources`)
+    return sources
   } catch (error) {
-    console.error('Error getting desktop sources:', error)
-    throw error
+    console.error('❌ Main: Error getting desktop sources:', error)
+    return []
   }
 })
 
-// Обработчик для проверки статуса разрешений
-ipcMain.handle('CHECK_MEDIA_PERMISSIONS', async () => {
+// Явно установите разрешения для desktop capture
+ipcMain.handle('check-screen-capture-access', async () => {
   if (process.platform === 'darwin') {
-    return {
-      camera: systemPreferences.getMediaAccessStatus('camera'),
-      microphone: systemPreferences.getMediaAccessStatus('microphone'),
-      screen: systemPreferences.getMediaAccessStatus('screen'),
-    }
-  }
-
-  // Для Windows и Linux возвращаем "granted" так как разрешения запрашиваются через браузер
-  return {
-    camera: 'granted',
-    microphone: 'granted',
-    screen: 'granted',
-  }
-})
-
-// Дополнительные IPC handlers
-ipcMain.handle('GET_APP_VERSION', () => {
-  return app.getVersion()
-})
-
-ipcMain.handle('GET_PLATFORM', () => {
-  return process.platform
-})
-
-// Обработчик для запроса разрешения камеры
-ipcMain.handle('REQUEST_CAMERA_PERMISSION', async () => {
-  if (process.platform === 'darwin') {
-    return await systemPreferences.askForMediaAccess('camera')
+    const hasAccess = systemPreferences.getMediaAccessStatus('screen')
+    console.log('Screen capture access status:', hasAccess)
+    return hasAccess === 'granted'
   }
   return true
 })
 
-// Обработчик для запроса разрешения микрофона
-ipcMain.handle('REQUEST_MICROPHONE_PERMISSION', async () => {
+// Добавьте обработчик для получения статуса медиа-доступа
+ipcMain.handle('get-media-access-status', async (event, mediaType) => {
   if (process.platform === 'darwin') {
-    return await systemPreferences.askForMediaAccess('microphone')
+    return systemPreferences.getMediaAccessStatus(mediaType)
   }
-  return true
+  return 'granted'
+})
+
+ipcMain.handle('can-capture-system-audio', async () => {
+  const platform = process.platform
+  return platform === 'win32' || platform === 'darwin'
 })

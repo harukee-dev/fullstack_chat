@@ -4,11 +4,12 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   // Desktop capture
   getDesktopSources: (options) =>
-    ipcRenderer.invoke('GET_DESKTOP_SOURCES', options),
+    ipcRenderer.invoke('get-desktop-sources', options),
+  platform: process.platform,
 
   // App info
   getAppVersion: () => ipcRenderer.invoke('GET_APP_VERSION'),
-  getPlatform: () => ipcRenderer.invoke('GET_PLATFORM'),
+  getPlatform: () => process.platform,
 
   // Permissions
   checkMediaPermissions: () => ipcRenderer.invoke('CHECK_MEDIA_PERMISSIONS'),
@@ -17,9 +18,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   requestMicrophonePermission: () =>
     ipcRenderer.invoke('REQUEST_MICROPHONE_PERMISSION'),
 
-  // Platform info
-  platform: process.platform,
-  isDev: process.env.NODE_ENV === 'development',
+  // Screen capture access
+  checkScreenCaptureAccess: () => {
+    if (process.platform === 'darwin') {
+      return ipcRenderer.invoke('check-screen-capture-access')
+    }
+    return Promise.resolve(true)
+  },
+  canCaptureSystemAudio: () => {
+    const platform = process.platform
+    return platform === 'win32' || platform === 'darwin'
+  },
+  getMediaAccessStatus: (mediaType) => {
+    if (process.platform === 'darwin') {
+      return ipcRenderer.invoke('get-media-access-status', mediaType)
+    }
+    return Promise.resolve('granted') // Assume granted for non-macOS
+  },
 })
 
 console.log('✅ Preload script loaded successfully')

@@ -61,7 +61,7 @@ export const LoginPage = () => {
         localStorage.setItem('username', data.user.username)
         localStorage.setItem('avatar', data.user.avatar)
 
-        navigate('/main')
+        navigate('/test')
       } else {
         console.error('Ошибка:', data.message)
         setError(data.message)
