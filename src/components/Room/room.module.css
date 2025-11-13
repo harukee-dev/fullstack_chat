@@ -795,3 +795,39 @@
 .cancelButton:hover {
   background: var(--background-hover);
 }
+
+/* room.module.css */
+.audioCapabilities {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-left: 4px solid #007acc;
+}
+
+.audioCapabilities h4 {
+  margin: 0 0 8px 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.audioCapabilities ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #ccc;
+  font-size: 12px;
+}
+
+.audioCapabilities li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.sourceBadge small {
+  display: block;
+  font-size: 10px;
+  opacity: 0.8;
+  margin-top: 2px;
+  font-style: italic;
+}

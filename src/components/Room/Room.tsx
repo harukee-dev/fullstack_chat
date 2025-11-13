@@ -382,164 +382,163 @@ export const Room = () => {
         source.name === 'Entire Screen' ||
         source.name.startsWith('Screen ')
 
-      // Улучшенные варианты constraints с приоритетом на системный звук
-      const constraintsVariants = [
-        // Вариант 1: Полная конфигурация с системным звуком
-        {
-          audio: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-            },
-          },
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-              minWidth: 1280,
-              maxWidth: 1920,
-              minHeight: 720,
-              maxHeight: 1080,
-              maxFrameRate: 30,
-              ...(isScreen ? {} : { cursor: 'always' }),
-            },
-          },
-        },
-        // Вариант 2: Упрощенная конфигурация с системным звуком
-        {
-          audio: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-            },
-          },
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-            },
-          },
-        },
-        // Вариант 3: Без указания sourceId для аудио (только для Windows)
-        {
-          audio: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-            },
-          },
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-            },
-          },
-        },
-        // Вариант 4: Без системного звука (fallback)
-        {
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: source.id,
-              width: 1920,
-              height: 1080,
-              maxFrameRate: 60,
-              ...(isScreen ? {} : { cursor: 'always' }),
-            },
-          },
-        },
-      ]
-
-      let lastError: any = null
-
-      for (let i = 0; i < constraintsVariants.length; i++) {
-        try {
-          console.log(`🔄 Trying constraints variant ${i + 1}...`)
-
-          // Пропускаем вариант 3 если не Windows
-          const platform = window.electronAPI?.platform || process.platform
-          if (i === 2 && platform !== 'win32') {
-            console.log('Skipping variant 3 (Windows-only audio configuration)')
-            continue
-          }
-
-          const stream = await (navigator.mediaDevices as any).getUserMedia(
-            constraintsVariants[i]
-          )
-
-          const audioTracks = stream.getAudioTracks()
-          const videoTracks = stream.getVideoTracks()
-
-          console.log(`✅ Success with variant ${i + 1}`)
-          console.log(`🎵 Audio tracks: ${audioTracks.length}`)
-          console.log(`🎥 Video tracks: ${videoTracks.length}`)
-
-          // Детальная информация о треках
-          audioTracks.forEach((track: any, index: any) => {
-            console.log(`🔊 Audio track ${index}:`, {
-              id: track.id,
-              kind: track.kind,
-              label: track.label,
-              enabled: track.enabled,
-              muted: track.muted,
-              readyState: track.readyState,
-            })
-          })
-
-          videoTracks.forEach((track: any, index: any) => {
-            console.log(`🎥 Video track ${index}:`, {
-              id: track.id,
-              kind: track.kind,
-              label: track.label,
-              enabled: track.enabled,
-              muted: track.muted,
-              readyState: track.readyState,
-            })
-          })
-
-          if (audioTracks.length > 0) {
-            console.log('🔊 System audio is being captured')
-          } else {
-            console.log('🔇 System audio is not available')
-          }
-
-          // Обработчики окончания треков
-          stream.getTracks().forEach((track: MediaStreamTrack) => {
-            track.onended = () => {
-              console.log(`Track ${track.kind} ended`)
-              stopScreenShare()
-            }
-          })
-
-          return stream
-        } catch (error) {
-          lastError = error
-          console.log(`❌ Variant ${i + 1} failed:`, error)
-
-          if (i === constraintsVariants.length - 1) {
-            throw error
-          }
-        }
+      // РАЗДЕЛЬНАЯ ЛОГИКА ДЛЯ WINDOWS:
+      // - Для экрана: ТОЛЬКО видео, БЕЗ системного звука
+      // - Для окон: Видео + звук конкретного окна
+      if (isScreen) {
+        return await startScreenShareWithoutAudio(source)
+      } else {
+        return await startWindowShareWithAudio(source)
       }
-
-      throw lastError
     } catch (error: any) {
-      console.error('❌ All screen share attempts failed:', error)
+      console.error('❌ Screen share failed:', error)
 
       let errorMessage = 'Не удалось начать демонстрацию экрана.'
-
       if (error.name === 'NotAllowedError') {
         errorMessage =
           'Доступ к захвату экрана запрещен. Проверьте разрешения системы.'
       } else if (error.name === 'NotFoundError') {
         errorMessage = 'Не удалось найти источник для демонстрации.'
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = 'Системный звук недоступен для этого источника.'
-      } else if (error.name === 'OverconstrainedError') {
-        errorMessage = 'Требования к медиа не могут быть удовлетворены.'
       }
 
       alert(errorMessage)
+      return null
+    }
+  }
+
+  const startScreenShareWithoutAudio = async (
+    source: DesktopSource
+  ): Promise<MediaStream | null> => {
+    try {
+      console.log(
+        '🖥️ Starting screen share WITHOUT audio (Windows optimization)'
+      )
+
+      // ТОЛЬКО видео, без системного звука
+      const videoConstraints: ElectronMediaStreamConstraints = {
+        audio: false, // Явно отключаем звук для экрана
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+            width: 1920,
+            height: 1080,
+            maxFrameRate: 30,
+          },
+        },
+      }
+
+      const stream = await (navigator.mediaDevices as any).getUserMedia(
+        videoConstraints
+      )
+
+      console.log('✅ Screen share (video only) created successfully:', {
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+      })
+
+      // Обработчики окончания треков
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
+        track.onended = () => {
+          console.log(`Track ${track.kind} ended`)
+          stopScreenShare()
+        }
+      })
+
+      return stream
+    } catch (error) {
+      console.error('❌ Error in screen share without audio:', error)
+      return null
+    }
+  }
+
+  const startWindowShareWithAudio = async (
+    source: DesktopSource
+  ): Promise<MediaStream | null> => {
+    try {
+      console.log('🪟 Starting window share WITH window audio (Windows)')
+
+      // Для окон на Windows пытаемся захватить звук конкретного окна
+      const constraintsWithAudio: ElectronMediaStreamConstraints = {
+        audio: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+          },
+        },
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+            width: 1920,
+            height: 1080,
+            maxFrameRate: 30,
+            cursor: 'always',
+          },
+        },
+      }
+
+      // Fallback вариант если звук окна недоступен
+      const constraintsWithoutAudio: ElectronMediaStreamConstraints = {
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: source.id,
+            width: 1920,
+            height: 1080,
+            maxFrameRate: 30,
+            cursor: 'always',
+          },
+        },
+      }
+
+      // Сначала пробуем с звуком
+      try {
+        console.log('🔄 Trying window share with audio...')
+        const stream = await (navigator.mediaDevices as any).getUserMedia(
+          constraintsWithAudio
+        )
+
+        const audioTracks = stream.getAudioTracks()
+        const videoTracks = stream.getVideoTracks()
+
+        console.log('✅ Window share with audio successful:', {
+          audioTracks: audioTracks.length,
+          videoTracks: videoTracks.length,
+        })
+
+        if (audioTracks.length > 0) {
+          console.log('🔊 Window audio captured successfully')
+        } else {
+          console.log('🔇 No audio available for this window')
+        }
+
+        // Обработчики окончания треков
+        stream.getTracks().forEach((track: MediaStreamTrack) => {
+          track.onended = () => {
+            console.log(`Track ${track.kind} ended`)
+            stopScreenShare()
+          }
+        })
+
+        return stream
+      } catch (audioError) {
+        console.log(
+          '❌ Window audio capture failed, falling back to video only...',
+          audioError
+        )
+
+        // Fallback: только видео без звука
+        const videoOnlyStream = await (
+          navigator.mediaDevices as any
+        ).getUserMedia(constraintsWithoutAudio)
+
+        console.log('✅ Window share without audio successful')
+        return videoOnlyStream
+      }
+    } catch (error) {
+      console.error('❌ Error in window share:', error)
       return null
     }
   }
@@ -658,11 +657,9 @@ export const Room = () => {
   }, [screenStream, socket, roomId])
 
   const SourceSelector = () => {
-    // Хуки должны вызываться на верхнем уровне, ДО любого условия
     const [systemAudioSupported, setSystemAudioSupported] =
       useState<boolean>(false)
 
-    // Проверяем поддержку системного звука при монтировании
     useEffect(() => {
       const checkAudioSupport = async () => {
         const supported = await checkSystemAudioSupport()
@@ -671,7 +668,6 @@ export const Room = () => {
       checkAudioSupport()
     }, [])
 
-    // Условие возврата null должно быть ПОСЛЕ всех хуков
     if (!showSourceSelector) return null
 
     const handleSourceSelect = async (source: DesktopSource) => {
@@ -693,9 +689,9 @@ export const Room = () => {
           console.log(`🎥 Video tracks: ${videoTracks.length}`)
 
           if (audioTracks.length > 0) {
-            console.log('🔊 System audio is being captured')
+            console.log('🔊 Audio is being captured')
           } else {
-            console.log('🔇 System audio is not available')
+            console.log('🔇 Audio is not available')
           }
 
           setScreenStream(stream)
@@ -734,17 +730,21 @@ export const Room = () => {
         <div className={cl.sourceSelector}>
           <h3>Выберите что показать</h3>
 
-          {/* Информация о системном звуке */}
+          {/* Обновленная информация о возможностях звука для Windows */}
           <div className={cl.audioInfo}>
-            {systemAudioSupported ? (
-              <div className={cl.audioSupported}>
-                🔊 Системный звук будет передан автоматически
-              </div>
-            ) : (
-              <div className={cl.audioNotSupported}>
-                🔇 Системный звук не поддерживается на вашей платформе
-              </div>
-            )}
+            <div className={cl.audioCapabilities}>
+              <h4>Возможности звука (Windows):</h4>
+              <ul>
+                <li>
+                  • <strong>Экраны:</strong> 🔇 Без системного звука (избегаем
+                  эха)
+                </li>
+                <li>
+                  • <strong>Окна:</strong> 🔊 Звук конкретного окна (если
+                  доступен)
+                </li>
+              </ul>
+            </div>
           </div>
 
           {screens.length > 0 && (
@@ -764,7 +764,8 @@ export const Room = () => {
                     />
                     <span className={cl.sourceName}>{source.name}</span>
                     <div className={cl.sourceBadge}>
-                      Экран {systemAudioSupported && '🔊'}
+                      Экран 🔇
+                      <small>(без звука)</small>
                     </div>
                   </button>
                 ))}
@@ -793,7 +794,8 @@ export const Room = () => {
                         : source.name}
                     </span>
                     <div className={cl.sourceBadge}>
-                      Окно {systemAudioSupported && '🔊'}
+                      Окно 🔊
+                      <small>(звук этого окна)</small>
                     </div>
                   </button>
                 ))}
