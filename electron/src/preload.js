@@ -1,11 +1,41 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, desktopCapturer } = require('electron')
 
 // Безопасно экспортируем API в React приложение
 contextBridge.exposeInMainWorld('electronAPI', {
   // Desktop capture
-  getDesktopSources: (options) =>
-    ipcRenderer.invoke('get-desktop-sources', options),
+  getDesktopSources: async (options) => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 150, height: 150 },
+        fetchWindowIcons: true,
+      })
+      return sources
+    } catch (error) {
+      console.error('Error getting desktop sources:', error)
+      throw error
+    }
+  },
+
   platform: process.platform,
+
+  checkWindowAudioSupport: async () => {
+    try {
+      // Проверяем доступность API для захвата звука окон
+      return process.platform === 'win32'
+    } catch (error) {
+      return false
+    }
+  },
+
+  getWindowAudioInfo: async (sourceId) => {
+    try {
+      // Здесь можно добавить логику для получения дополнительной информации об окне
+      return { hasAudio: true, sourceId }
+    } catch (error) {
+      return { hasAudio: false, sourceId }
+    }
+  },
 
   // App info
   getAppVersion: () => ipcRenderer.invoke('GET_APP_VERSION'),

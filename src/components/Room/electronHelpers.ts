@@ -42,3 +42,34 @@ export const checkScreenShareSupport = async (): Promise<boolean> => {
     return false
   }
 }
+
+export const checkWindowAudioSupport = async (): Promise<boolean> => {
+  if (!isElectron()) return false
+
+  try {
+    const platform = window.electronAPI?.platform || process.platform
+    if (platform !== 'win32') return false
+
+    // Проверяем поддержку через Electron API
+    //@ts-ignore
+    const supported = await window.electronAPI.checkWindowAudioSupport()
+    return supported
+  } catch (error) {
+    console.error('Error checking window audio support:', error)
+    return false
+  }
+}
+
+export const getWindowAudioInfo = async (
+  sourceId: string
+): Promise<{ hasAudio: boolean }> => {
+  if (!isElectron()) return { hasAudio: false }
+
+  try {
+    //@ts-ignore
+    return await window.electronAPI.getWindowAudioInfo(sourceId)
+  } catch (error) {
+    console.error('Error getting window audio info:', error)
+    return { hasAudio: false }
+  }
+}

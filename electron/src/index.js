@@ -84,6 +84,21 @@ app.whenReady().then(() => {
     })
   }
 
+  session.defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      const allowedPermissions = [
+        'audioCapture',
+        'videoCapture',
+        'desktopCapture',
+      ]
+      if (allowedPermissions.includes(permission)) {
+        callback(true)
+      } else {
+        callback(false)
+      }
+    }
+  )
+
   createWindow()
 })
 
