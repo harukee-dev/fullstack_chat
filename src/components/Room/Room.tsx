@@ -19,6 +19,8 @@ import {
   canCaptureSystemAudio,
   checkSystemAudioSupport,
   checkScreenShareSupport,
+  checkWindowAudioSupport,
+  getWindowAudioInfo,
 } from './electronHelpers'
 import { DesktopSource } from '../../types/electron'
 
@@ -107,6 +109,22 @@ export const Room = () => {
 
     joinSoundRef.current.load()
     leaveSoundRef.current.load()
+  }, [])
+
+  useEffect(() => {
+    const checkElectronAPI = () => {
+      if (!window.electronAPI) {
+        console.error('❌ Electron API not available')
+        alert(
+          'Electron API недоступен. Убедитесь что приложение запущено в Electron.'
+        )
+        return false
+      }
+      return true
+    }
+
+    // Проверяем при монтировании
+    checkElectronAPI()
   }, [])
 
   const { socket } = useSocket() // получаем сокет из контекста
@@ -328,18 +346,33 @@ export const Room = () => {
     try {
       console.log('🖥️ Requesting desktop sources from Electron...')
 
-      // Получаем список всех доступных окон и экранов
-      const sources = await window.electronAPI.getDesktopSources({
+      // Добавляем обработку ошибок с таймаутом
+      const sourcesPromise = window.electronAPI.getDesktopSources({
         types: ['window', 'screen'],
       })
 
+      // Таймаут для запроса источников
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error('Timeout getting desktop sources')),
+          10000
+        )
+      })
+
+      const sources = await Promise.race([sourcesPromise, timeoutPromise])
+
+      //@ts-ignore
       if (!sources || sources.length === 0) {
         console.error('❌ No desktop sources available')
-        alert('Не удалось найти доступные источники для демонстрации экрана')
+        alert(
+          'Не удалось найти доступные источники для демонстрации экрана. Проверьте разрешения системы.'
+        )
         return null
       }
 
+      //@ts-ignore
       console.log('✅ Desktop sources received:', sources.length)
+      //@ts-ignore
       setDesktopSources(sources)
       setShowSourceSelector(true)
 
@@ -348,19 +381,20 @@ export const Room = () => {
     } catch (error: any) {
       console.error('❌ Error getting desktop sources:', error)
 
-      // Проверяем, если это ошибка отсутствия обработчика
-      if (
-        error.message?.includes('No handler registered') ||
-        error.message?.includes('get-desktop-sources')
+      let errorMessage =
+        'Ошибка при получении списка источников для демонстрации'
+
+      if (error.message.includes('Timeout')) {
+        errorMessage = 'Таймаут при получении источников. Попробуйте еще раз.'
+      } else if (
+        error.message.includes('permission') ||
+        error.message.includes('denied')
       ) {
-        console.error(
-          '❌ Electron main process missing get-desktop-sources handler'
-        )
-        alert('Ошибка конфигурации приложения. Перезапустите приложение.')
-      } else {
-        alert('Ошибка при получении списка источников для демонстрации')
+        errorMessage =
+          'Доступ к захвату экрана запрещен. Проверьте разрешения системы.'
       }
 
+      alert(errorMessage)
       return null
     }
   }, [])

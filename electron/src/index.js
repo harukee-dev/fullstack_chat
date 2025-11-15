@@ -5,9 +5,12 @@ const {
   desktopCapturer,
   systemPreferences,
   ipcMain,
+  session,
+  webContents,
 } = require('electron')
 
 const path = require('path')
+const { permission } = require('process')
 
 app.commandLine.appendSwitch('enable-webrtc-audio-processing')
 app.commandLine.appendSwitch('enable-features', 'WebRtcHideLocalIpsWithMdns')
@@ -90,6 +93,8 @@ app.whenReady().then(() => {
         'audioCapture',
         'videoCapture',
         'desktopCapture',
+        'media',
+        'display-capture',
       ]
       if (allowedPermissions.includes(permission)) {
         callback(true)
@@ -99,41 +104,60 @@ app.whenReady().then(() => {
     }
   )
 
+  session.defaultSession.setPermissionCheckHandler(
+    (webContents, permission, requestingOrigin) => {
+      if (permission === 'display-capture' || permission === 'desktopCapture') {
+        return true
+      }
+      return false
+    }
+  )
+
   createWindow()
 })
 
 // Обработчик для получения источников рабочего стола - ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК
-ipcMain.handle('get-desktop-sources', async (event, options) => {
-  try {
-    console.log('🖥️ Main: Getting desktop sources with options:', options)
-    const sources = await desktopCapturer.getSources(options)
-    console.log(`✅ Main: Found ${sources.length} desktop sources`)
-    return sources
-  } catch (error) {
-    console.error('❌ Main: Error getting desktop sources:', error)
-    return []
-  }
-})
+app.whenReady().then(() => {
+  const { ipcMain } = require('electron')
 
-// Явно установите разрешения для desktop capture
-ipcMain.handle('check-screen-capture-access', async () => {
-  if (process.platform === 'darwin') {
-    const hasAccess = systemPreferences.getMediaAccessStatus('screen')
-    console.log('Screen capture access status:', hasAccess)
-    return hasAccess === 'granted'
-  }
-  return true
-})
+  ipcMain.handle('get-desktop-sources', async (event, options) => {
+    try {
+      console.log('🖥️ Getting desktop sources with options:', options)
 
-// Добавьте обработчик для получения статуса медиа-доступа
-ipcMain.handle('get-media-access-status', async (event, mediaType) => {
-  if (process.platform === 'darwin') {
-    return systemPreferences.getMediaAccessStatus(mediaType)
-  }
-  return 'granted'
-})
+      const sources = await desktopCapturer.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 200, height: 200 },
+        fetchWindowIcons: true,
+      })
 
-ipcMain.handle('can-capture-system-audio', async () => {
-  const platform = process.platform
-  return platform === 'win32' || platform === 'darwin'
+      console.log(`✅ Found ${sources.length} desktop sources`)
+      return sources
+    } catch (error) {
+      console.error('❌ Error getting desktop sources:', error)
+      throw error
+    }
+  })
+
+  // Явно установите разрешения для desktop capture
+  ipcMain.handle('check-screen-capture-access', async () => {
+    if (process.platform === 'darwin') {
+      const hasAccess = systemPreferences.getMediaAccessStatus('screen')
+      console.log('Screen capture access status:', hasAccess)
+      return hasAccess === 'granted'
+    }
+    return true
+  })
+
+  // Добавьте обработчик для получения статуса медиа-доступа
+  ipcMain.handle('get-media-access-status', async (event, mediaType) => {
+    if (process.platform === 'darwin') {
+      return systemPreferences.getMediaAccessStatus(mediaType)
+    }
+    return 'granted'
+  })
+
+  ipcMain.handle('can-capture-system-audio', async () => {
+    const platform = process.platform
+    return platform === 'win32' || platform === 'darwin'
+  })
 })
