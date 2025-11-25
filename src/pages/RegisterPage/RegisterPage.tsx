@@ -16,8 +16,7 @@ export const Register = () => {
   const [isVisiblePassword, setIsVisiblePassword] = useState<boolean>(false)
   const [step, setStep] = useState<'info' | 'avatar'>('avatar')
   const [avatar, setAvatar] = useState<string>(
-    // 'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
-    'https://i.pinimg.com/736x/85/e8/fc/85e8fccc2983bdc283adbdaa6d761e25.jpg'
+    'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
   )
   const navigate = useNavigate()
   const isButtonHidden = password !== '' && login !== ''

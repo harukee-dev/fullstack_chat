@@ -13,14 +13,14 @@
 }
 
 .userInput {
-  width: 47.29vh;
+  width: 31.52vh;
   background-color: #272727;
-  padding: 1.66vh 3.43vh;
+  padding: 1.106vh 2.286vh;
   border: none;
-  border-radius: 3vh;
+  border-radius: 2vh;
   outline: none;
   color: white;
-  font-size: 2.2vh;
+  font-size: 1.466vh;
   font-family: 'Be Vietnam Light', serif;
 }
 
@@ -37,19 +37,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2.55vh;
+  gap: 2vh;
   width: 100%;
 }
 
 .lynkText {
   font-family: 'Benzin SemiBold', sans-serif;
   color: white;
-  font-size: 4.4vh;
+  font-size: 2.933vh;
 }
 
 .lynkLogo {
-  width: 7.75vh;
-  height: 7.75vh;
+  width: 5.166vh;
+  height: 5.166vh;
 }
 
 .navigationContainer {
@@ -57,30 +57,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3.76vh;
+  gap: 2.51vh;
 }
 
 .loginLink {
-  font-size: 2.21vh;
+  font-size: 1.6vh;
   background-color: transparent;
   border: none;
   font-family: 'Be Vietnam Bold', sans-serif;
-  border-bottom: 2px solid transparent;
+  border-bottom: 1.5px solid transparent;
   cursor: pointer;
   transition: 0.15s;
 }
 
 .registerLink {
-  font-size: 2.21vh;
+  font-size: 1.6vh;
   background-color: transparent;
   border: none;
   font-family: 'Be Vietnam Bold', sans-serif;
-  border-bottom: 2px solid #288df4;
+  border-bottom: 1.5px solid #288df4;
   cursor: pointer;
 }
 
 .loginLink:hover {
-  border-bottom: 2px solid #288ef482;
+  border-bottom: 1.5px solid #288ef482;
 }
 
 .leftContainer {
@@ -88,44 +88,12 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 5.5vh;
-  width: 62vh;
-  height: 67.8%;
-  border-radius: 2.66vh;
-  margin-left: 9vh;
+  gap: 3.66vh;
+  width: 41.3vh;
+  height: 45.2%;
+  border-radius: 1.773vh;
+  margin-left: 15vh;
   background-color: #1b1b1b;
-}
-
-.rightContainer {
-  width: 60%;
-}
-
-.rightContainerImage {
-  position: absolute;
-  bottom: 0vh;
-}
-
-.register {
-  font-family: 'Jost ExtraLight', sans-serif;
-  font-size: 1.5vh;
-  color: #898989;
-  margin-left: 7vw;
-  width: 10vw;
-}
-
-.arrowIcon {
-  height: 2.1vh;
-  margin-left: 0.2vh;
-}
-
-.hiddenArrowIcon {
-  opacity: 0;
-}
-
-.passwordAndButtonDiv {
-  display: flex;
-  justify-content: start;
-  gap: 0.5vw;
 }
 
 .error {
@@ -138,10 +106,10 @@
 
 .showPasswordButton {
   position: absolute;
-  left: 58.1vh;
-  bottom: 36.57vh;
-  width: 4.87vh;
-  height: 4.87vh;
+  left: 47.775vh;
+  bottom: 40.96vh;
+  width: 3.246vh;
+  height: 3.246vh;
   background-color: #333333;
   border: none;
   border-radius: 100%;
@@ -149,31 +117,20 @@
 }
 
 .showPasswordIcon {
-  margin-top: 3px;
-  width: 2.77vh;
+  margin-top: 3.1px;
+  width: 1.846vh;
 }
 
 .showPasswordButtonChecked {
   position: absolute;
-  left: 58.1vh;
-  bottom: 36.57vh;
-  width: 4.87vh;
-  height: 4.87vh;
+  left: 47.775vh;
+  bottom: 40.96vh;
+  width: 3.246vh;
+  height: 3.246vh;
   background-color: #3a3a3a;
   border: none;
   border-radius: 100%;
   cursor: pointer;
-}
-
-.continueButton {
-  border: none;
-  height: 4.5vh;
-  width: 60%;
-  margin-left: 7vw;
-  font-family: 'Jost ExtraLight', sans-serif;
-  font-size: 1.75vh;
-  cursor: pointer;
-  transition: ease 0.2s;
 }
 
 .leftContainerAvatar {
@@ -189,7 +146,7 @@
 .welcomeTextAvatar {
   font-family: 'Jost ExtraLight', sans-serif;
   color: white;
-  font-size: 4vh;
+  font-size: 2.66vh;
   transition: ease 0.2s;
 }
 
@@ -198,41 +155,18 @@
 }
 
 .userAvatar {
-  height: 21vh;
-  width: 21vh;
+  height: 14vh;
+  width: 14vh;
   border-radius: 100%;
-}
-
-.userInputAvatar {
-  width: 60%;
-  background-color: transparent;
-  border: none;
-  outline: none;
-  color: white;
-  font-size: 2vh;
-  font-family: 'Jost ExtraLight', sans-serif;
-  border-bottom: 1px solid white;
-}
-
-.continueButtonAvatar {
-  border: none;
-  height: 4.5vh;
-  width: 60%;
-  font-family: 'Jost ExtraLight', sans-serif;
-  background-color: white;
-  color: black;
-  font-size: 1.75vh;
-  cursor: pointer;
-  transition: ease 0.2s;
 }
 
 .loginButton {
   border: none;
   border-radius: 3vh;
-  height: 6vh;
-  width: 47.29vh;
+  height: 4vh;
+  width: 31.52vh;
   font-family: 'Be Vietnam Bold', sans-serif;
-  font-size: 2.21vh;
+  font-size: 1.6vh;
   cursor: pointer;
   transition: 0.15s;
   background-color: #45a1ff;
@@ -242,10 +176,10 @@
 .hiddenLoginButton {
   border: none;
   border-radius: 3vh;
-  height: 6vh;
-  width: 47.29vh;
+  height: 4vh;
+  width: 31.52vh;
   font-family: 'Be Vietnam Bold', sans-serif;
-  font-size: 2.21vh;
+  font-size: 1.6vh;
   cursor: pointer;
   transition: 0.15s;
   background-color: #2966a3;
@@ -257,5 +191,5 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 3.43vh;
+  gap: 2.286vh;
 }
