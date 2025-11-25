@@ -57,3 +57,131 @@ body {
   font-family: 'Jost Thin';
   src: url('/public/fonts/Jost-Font/Jost-Thin.ttf') format('opentype');
 }
+
+@font-face {
+  font-family: 'Benzin Bold';
+  src: url('/public/fonts/Benzin/Benzin-Bold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Benzin ExtraBold';
+  src: url('/public/fonts/Benzin/Benzin-ExtraBold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Benzin Medium';
+  src: url('/public/fonts/Benzin/Benzin-Medium.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Benzin Regular';
+  src: url('/public/fonts/Benzin/Benzin-Regular.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Benzin SemiBold';
+  src: url('/public/fonts/Benzin/Benzin-Semibold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Black';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Black.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam BlackItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-BlackItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Bold';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Bold.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam BoldItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-BoldItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam ExtraBold';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-ExtraBold.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam ExtraBoldItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-ExtraBoldItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam ExtraLight';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-ExtraLight.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam ExtraLightItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-ExtraLightItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Italic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Italic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Light';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Light.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam LightItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-LightItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Medium';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Medium.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam MediumItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-MediumItalic.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Regular';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Regular.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam SemiBold';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-SemiBold.ttf')
+    format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam SemiBoldItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Black.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam Thin';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-Thin.ttf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Be Vietnam ThinItalic';
+  src: url('/public/fonts/Be-Vietnam/BeVietnamPro-ThinItalic.ttf')
+    format('opentype');
+}

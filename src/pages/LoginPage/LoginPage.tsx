@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../store'
 import { setToken } from '../../slices/authSlice'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import cl from './LoginPage.module.css'
 import { API_URL } from '../../constants'
 import { setUser } from '../../slices/currentUserSlice'
-import background from './images/background.png'
-import { motion } from 'framer-motion'
+import lynkLogo from './images/lynk-logo.png'
+import showPasswordIcon from './images/show-password-icon.png'
 
 export const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -30,11 +30,6 @@ export const LoginPage = () => {
       document.body.style.overflow = ''
       document.body.style.height = ''
     }
-  }, [])
-
-  useEffect(() => {
-    loginRef.current?.focus()
-    loginRef.current?.blur()
   }, [])
 
   async function handleLogin() {
@@ -74,71 +69,59 @@ export const LoginPage = () => {
   return (
     <div className={cl.allPage}>
       <div className={cl.leftContainer}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0 }}
-        >
-          <h1 className={cl.welcomeText}>Welcome again.</h1>
-          <Link className={cl.register} to={'/register'}>
-            Dont have account? Sign up
-          </Link>
-        </motion.div>
-        <motion.input
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className={cl.userInput}
-          type="text"
-          placeholder="login"
-          ref={loginRef}
-          onBlur={(e) => setLogin(e.target.value)}
-        />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className={cl.passwordAndButtonDiv}
-        >
+        <div className={cl.logoAndNameContainer}>
+          <img className={cl.lynkLogo} src={lynkLogo} alt="lynk" />
+          <h1 className={cl.lynkText}>Lynk</h1>
+        </div>
+        <div className={cl.navigationContainer}>
+          <button className={cl.loginLink}>Sign In</button>
+          <button
+            onClick={() => navigate('/register')}
+            className={cl.registerLink}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <div className={cl.inputsContainer}>
+          <input
+            className={cl.userInput}
+            type="text"
+            placeholder="Enter Username"
+            ref={loginRef}
+            onBlur={(e) => setLogin(e.target.value)}
+          />
+
           <input
             className={cl.userInput}
             type={isVisible ? 'text' : 'password'}
             onChange={(e) => setPassword(e.target.value)}
             ref={passwordRef}
-            placeholder="password"
+            placeholder="Enter Password"
           />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.7 }}
-          className={cl.visibilityContainer}
-        >
-          <div
-            className={isVisible ? cl.checkboxChecked : cl.checkbox}
+
+          <button
             onClick={() => setIsVisible((v) => !v)}
-          />
-          <p className={cl.visibilityText}>show password</p>
-        </motion.div>
-        {error && <p className={cl.error}>{error}</p>}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.9 }}
-          disabled={!isButtonHidden}
-          onClick={handleLogin}
-          className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
-        >
-          Continue
-        </motion.button>
-      </div>
-      <div className={cl.rightContainer}>
-        <img
-          draggable={false}
-          className={cl.rightContainerImage}
-          src={background}
-          alt="background"
-        />
+            className={
+              isVisible ? cl.showPasswordButtonChecked : cl.showPasswordButton
+            }
+          >
+            <img
+              className={cl.showPasswordIcon}
+              src={showPasswordIcon}
+              alt="show-password"
+            />
+          </button>
+
+          {error && <p className={cl.error}>{error}</p>}
+          <button
+            disabled={!isButtonHidden}
+            onClick={handleLogin}
+            className={isButtonHidden ? cl.loginButton : cl.hiddenLoginButton}
+          >
+            Sign In
+          </button>
+        </div>
       </div>
     </div>
   )

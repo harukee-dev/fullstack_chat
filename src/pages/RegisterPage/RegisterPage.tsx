@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import cl from './RegisterPage.module.css'
 import { API_URL } from '../../constants'
-import background from '../LoginPage/images/background.png'
 import { setToken } from '../../slices/authSlice'
 import { setUser } from '../../slices/currentUserSlice'
 import { useDispatch } from 'react-redux'
@@ -280,7 +279,7 @@ export const Register = () => {
         <img
           draggable={false}
           className={cl.rightContainerImage}
-          src={background}
+          src={''}
           alt="background"
         />
       </div>
