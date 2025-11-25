@@ -411,19 +411,7 @@ export const Room = () => {
         return null
       }
 
-      const isScreen =
-        source.name.toLowerCase().includes('screen') ||
-        source.name === 'Entire Screen' ||
-        source.name.startsWith('Screen ')
-
-      // РАЗДЕЛЬНАЯ ЛОГИКА ДЛЯ WINDOWS:
-      // - Для экрана: ТОЛЬКО видео, БЕЗ системного звука
-      // - Для окон: Видео + звук конкретного окна
-      if (isScreen) {
-        return await startScreenShareWithoutAudio(source)
-      } else {
-        return await startWindowShareWithAudio(source)
-      }
+      return await startScreenShareWithoutAudio(source)
     } catch (error: any) {
       console.error('❌ Screen share failed:', error)
 
