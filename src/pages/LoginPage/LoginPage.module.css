@@ -146,22 +146,10 @@
   margin-left: 7vw;
 }
 
-.visibilityContainer {
-  display: flex;
-  margin-left: 7vw;
-  align-items: center;
-  gap: 0.5vw;
-}
-
-.visibilityText {
-  color: white;
-  font-family: 'Jost ExtraLight', sans-serif;
-}
-
 .showPasswordButton {
   position: absolute;
-  left: 36.55%;
-  bottom: 36.57%;
+  left: 58.1vh;
+  bottom: 36.57vh;
   width: 4.87vh;
   height: 4.87vh;
   background-color: #333333;
@@ -177,8 +165,8 @@
 
 .showPasswordButtonChecked {
   position: absolute;
-  left: 36.55%;
-  bottom: 36.57%;
+  left: 58.1vh;
+  bottom: 36.57vh;
   width: 4.87vh;
   height: 4.87vh;
   background-color: #3a3a3a;
